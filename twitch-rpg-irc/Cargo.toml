@@ -1,0 +1,12 @@
+[package]
+name = "twitch-rpg-irc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dotenv = "0.15.0"
+reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+tokio = { version = "1.45.1", features = ["full"] }
+tmi = "0.9.0"
+winnow = "0.7.10"
+openssl = { version = "0.10", features = ["vendored"] }
