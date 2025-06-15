@@ -1,5 +1,9 @@
 mod commands;
 mod parser;
+mod player_class;
+
+mod ecs;
+mod webserver;
 
 use crate::commands::RpgCommand;
 use crate::parser::get_command;
@@ -36,17 +40,18 @@ async fn main() {
                             let player = msg.sender().name();
                             match command {
                                 RpgCommand::New(class) => {
-                                    // create player character with default values, store in persistance
-                                }
-                                RpgCommand::Buy(item) => {
-                                    // subtract player gold, player gets item
+                                    // create player character with default values, store in persistence (player, class)
                                 }
                                 RpgCommand::Load => {
-                                    // load character from persistance
+                                    // load character from persistence (player)
                                 }
-                                RpgCommand::Use(consumable) => {
-                                    // check if player has the consumable
-                                }
+                                // RpgCommand::Use(consumable) => {
+                                //     // check if player has the consumable
+                                // }
+                                // RpgCommand::Buy(item) => {
+                                //     // subtract player gold, player gets item
+                                // }
+                                _ => unimplemented!(),
                             }
                         }
 

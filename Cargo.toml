@@ -1,9 +1,7 @@
 [workspace]
 members = [
-    "frontend",
-#    "webserver",
-#    "game",
-    "twitch-rpg-irc",
+    "client",
+    "server",
 ]
 
 resolver = "2"

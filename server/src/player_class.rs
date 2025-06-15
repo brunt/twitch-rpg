@@ -1,15 +1,8 @@
+use anyhow::bail;
 use std::fmt::Display;
 use std::str::FromStr;
 
-#[derive(Clone)]
-pub enum RpgCommand {
-    New(PlayerClass),
-    Load,
-    Buy(Item),
-    Use(Consumable),
-}
-
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PlayerClass {
     Fighter,
     Druid,
@@ -21,6 +14,9 @@ pub enum PlayerClass {
     Warlock,
     Monk,
 }
+
+impl PlayerClass {}
+
 impl Display for PlayerClass {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self {
@@ -37,8 +33,7 @@ impl Display for PlayerClass {
     }
 }
 impl FromStr for PlayerClass {
-    //TODO: error types?
-    type Err = ();
+    type Err = anyhow::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "fighter" => Ok(Self::Fighter),
@@ -50,30 +45,7 @@ impl FromStr for PlayerClass {
             "paladin" => Ok(Self::Paladin),
             "warlock" => Ok(Self::Warlock),
             "monk" => Ok(Self::Monk),
-            _ => Err(()),
+            _ => bail!("Invalid player class {}", s),
         }
     }
-}
-
-#[derive(Clone)]
-pub enum Item {
-    Consumable(Consumable),
-    Equipment(String),
-}
-impl FromStr for Item {
-    type Err = ();
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            // "" => {
-            //     Item::Equipment(s.to_string())
-            // },
-            _ => Err(()),
-        }
-    }
-}
-
-#[derive(Clone)]
-pub enum Consumable {
-    Potion(String),
-    Scroll(String),
 }
