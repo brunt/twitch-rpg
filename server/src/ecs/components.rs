@@ -3,7 +3,13 @@ use specs_derive::Component;
 
 //Entity's coordinates in the world
 #[derive(Debug, Component)]
-pub(crate) struct Position(u32, u32);
+pub(crate) struct Position(pub(crate) u32, pub(crate) u32);
+
+#[derive(Debug, Component)]
+pub(crate) struct MovementSpeed(u32);
+
+#[derive(Debug, Component)]
+pub(crate) struct TargetPosition(u32, u32);
 
 #[derive(Debug, Component)]
 pub struct Renderable {
