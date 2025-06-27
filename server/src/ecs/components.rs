@@ -1,15 +1,45 @@
+use std::cmp::Ordering;
 use specs::prelude::*;
 use specs_derive::Component;
 
 //Entity's coordinates in the world
-#[derive(Debug, Component)]
-pub(crate) struct Position(pub(crate) u32, pub(crate) u32);
+#[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
+pub struct Position {
+    pub x: i32,
+    pub y: i32,
+}
+
+#[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
+pub struct MovementSpeed(pub i32);
+
+impl PartialEq<i32> for MovementSpeed {
+    fn eq(&self, other: &i32) -> bool {
+        self.0 == *other
+    }
+}
+impl PartialEq<MovementSpeed> for i32 {
+    fn eq(&self, other: &MovementSpeed) -> bool {
+        *self == other.0
+    }
+}
+impl PartialOrd<i32> for MovementSpeed {
+    fn partial_cmp(&self, other: &i32) -> Option<Ordering> {
+        self.0.partial_cmp(other)
+    }
+}
+
+impl PartialOrd<MovementSpeed> for i32 {
+    fn partial_cmp(&self, other: &MovementSpeed) -> Option<Ordering> {
+        self.partial_cmp(&other.0)
+    }
+}
+
 
 #[derive(Debug, Component)]
-pub(crate) struct MovementSpeed(u32);
-
-#[derive(Debug, Component)]
-pub(crate) struct TargetPosition(u32, u32);
+pub struct TargetPosition {
+    pub x: i32,
+    pub y: i32,
+}
 
 #[derive(Debug, Component)]
 pub struct Renderable {
@@ -58,6 +88,7 @@ struct EquipmentSlot{
 // struct Stats();	//RPG stats (strength, agility, etc.)
 #[derive(Debug)]
 struct Experience(u32);	//XP and level
+
 
 #[derive(Debug, Component)]
 struct Level(u32);

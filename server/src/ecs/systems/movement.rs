@@ -1,9 +1,8 @@
-use specs::{Dispatcher, Join, ReadStorage, System, World, WorldExt, WriteStorage};
-use specs_derive::Component;
-use crate::ecs::components;
+use specs::{Join, ReadStorage, System, WriteStorage};
+
 use crate::ecs::components::{MovementSpeed, Position, TargetPosition};
 
-struct Movement;
+pub struct Movement;
 
 impl<'a> System<'a> for Movement {
     type SystemData = (
@@ -13,10 +12,10 @@ impl<'a> System<'a> for Movement {
     );
 
     fn run(&mut self, (mut positions, speed, target): Self::SystemData) {
-        for (pos, speed, target) in (&mut positions, &speed, target).join() {
+        for (pos, speed, target) in (&mut positions, &speed, &target).join() {
             // Calculate direction vector (dx, dy)
-            let dx = (target.0 as i32 - pos.0 as i32).abs() as u32;
-            let dy = (target.1 as i32 - pos.1 as i32).abs() as u32;
+            let dx = (target.x - pos.x).abs();
+            let dy = (target.y - pos.y).abs();
 
             // If already at target, skip
             if dx == 0 && dy == 0 {
@@ -28,26 +27,28 @@ impl<'a> System<'a> for Movement {
 
             // Compute step in x and y, limited by speed
             let step_x = if dx > 0 {
-                dx.min(speed.0 as i32)
+                dx.min(speed.0)
             } else {
-                dx.max(-(speed.0 as i32))
+                dx.max(-speed.0)
             };
 
             let step_y = if dy > 0 {
-                dy.min(speed.0 as i32)
+                dy.min(speed.0)
             } else {
-                dy.max(-(speed.0 as i32))
+                dy.max(-speed.0)
             };
             
-            if dist <= speed {
-                pos.0 = target.0;
-                pos.1 = target.1;
+            if dist <= *speed {
+                pos.x = target.x;
+                pos.y = target.y;
                 continue;
             }
             
             //TODO: finish this
-            pos.0 = (pos.0 as i64 + step_x as i64) as u32;
-            pos.1 = (pos.1 as i64 + step_y as i64) as u32;
+            pos.x = pos.x + step_x;
+            pos.y = pos.y + step_y;
+            
+            dbg!(pos.x, pos.y);
         }
     }
 }

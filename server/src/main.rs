@@ -2,8 +2,8 @@ mod commands;
 mod parser;
 mod player_class;
 
-mod ecs;
 mod webserver;
+mod ecs;
 
 use crate::commands::RpgCommand;
 use crate::parser::get_command;
@@ -11,7 +11,7 @@ use dotenv::dotenv;
 use specs::{World, WorldExt};
 use tmi::User;
 use tokio::sync::{broadcast, mpsc};
-use crate::ecs::{run_game_server, GameSnapShot, GameState};
+use crate::ecs::{run_game_server, GameSnapShot};
 use crate::webserver::start_web_server;
 
 #[tokio::main]
@@ -26,7 +26,7 @@ async fn main() {
     _ = tokio::spawn(read_commands_from_chat(commands_sender));
     _ = tokio::spawn(start_web_server(gamestate_sender.clone()));
 
-    run_game_server(gamestate_sender, commands_receiver).await;
+    run_game_server(gamestate_sender, commands_receiver);
 }
 
 
