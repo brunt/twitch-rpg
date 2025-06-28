@@ -1,36 +1,37 @@
 mod commands;
 mod parser;
 mod player_class;
-
-mod webserver;
 mod ecs;
+mod webserver;
 
 use crate::commands::RpgCommand;
+use crate::ecs::{GameSnapShot, run_game_server};
 use crate::parser::get_command;
-use dotenv::dotenv;
-use specs::{World, WorldExt};
-use tmi::User;
-use tokio::sync::{broadcast, mpsc};
-use crate::ecs::{run_game_server, GameSnapShot};
 use crate::webserver::start_web_server;
+use dotenv::dotenv;
+use tmi::{Badge, Privmsg};
+use tokio::sync::{broadcast, mpsc};
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-
-
-    let (commands_sender, commands_receiver) = mpsc::channel::<(String, RpgCommand)>(100);
+    let (commands_sender, commands_receiver) = mpsc::channel::<(String, RpgCommand, bool)>(100);
     let (gamestate_sender, _gamestate_receiver) = broadcast::channel::<GameSnapShot>(100);
 
-    
     _ = tokio::spawn(read_commands_from_chat(commands_sender));
     _ = tokio::spawn(start_web_server(gamestate_sender.clone()));
-
     run_game_server(gamestate_sender, commands_receiver);
 }
 
+fn is_privileged_user(msg: &Privmsg) -> bool {
+    msg.badges().any(|b| matches!(b, Badge::Subscriber(..)))
+}
 
-async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand)>) {
+fn is_channel_owner(msg: &Privmsg) -> bool {
+    msg.badges().any(|b| matches!(b, Badge::Broadcaster))
+}
+
+async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand, bool)>) {
     let channel = format!(
         "#{}",
         std::env::var("CHANNEL_NAME").expect("missing CHANNEL_NAME env var")
@@ -49,22 +50,11 @@ async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand)>) {
                 match m {
                     tmi::Message::Privmsg(msg) => {
                         if let Some(command) = get_command(&mut msg.text()) {
-                            let _ = tx.send((msg.sender().name().to_string(), command)).await;
-                            // match command {
-                            //     RpgCommand::New(class) => {
-                            //         // create player character with default values, store in persistence (player, class)
-                            //     }
-                            //     RpgCommand::Load => {
-                            //         // load character from persistence (player)
-                            //     }
-                            //     // RpgCommand::Use(consumable) => {
-                            //     //     // check if player has the consumable
-                            //     // }
-                            //     // RpgCommand::Buy(item) => {
-                            //     //     // subtract player gold, player gets item
-                            //     // }
-                            //     _ => unimplemented!(),
-                            // }
+                            _ = tx.try_send((
+                                msg.sender().name().to_string(),
+                                command,
+                                is_privileged_user(&msg),
+                            ));
                         }
                     }
                     tmi::Message::Reconnect => {

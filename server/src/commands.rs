@@ -1,6 +1,6 @@
-use std::str::FromStr;
-use serde::{Deserialize, Serialize};
 use crate::player_class::PlayerClass;
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum RpgCommand {
@@ -14,7 +14,6 @@ pub enum PlayerCommand {
     Use(Player, MenuItem),
     Buy(Player, MenuItem),
 }
-
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Player(String);

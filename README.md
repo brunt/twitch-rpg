@@ -20,3 +20,7 @@ Idle RPG controlled through Twitch chat
 * compile frontend first (may need a makefile or build.rs file)
 * compile webserver with the compiled frontend code (css, wasm, js, html) using rust-embed into single binary
 * .env file specifying channel and webserver port
+
+### Quick local run
+* front end: `cd` into client folder, run `nix develop`
+* back end: `cargo run --package twitch-rpg-server --bin twitch-rpg-server`

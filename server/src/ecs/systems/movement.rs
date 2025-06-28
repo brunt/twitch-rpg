@@ -21,7 +21,7 @@ impl<'a> System<'a> for Movement {
             if dx == 0 && dy == 0 {
                 continue;
             }
-            
+
             // distance formula (chebyshev)
             let dist = dx.max(dy);
 
@@ -37,18 +37,18 @@ impl<'a> System<'a> for Movement {
             } else {
                 dy.max(-speed.0)
             };
-            
+
             if dist <= *speed {
                 pos.x = target.x;
                 pos.y = target.y;
                 continue;
             }
-            
+
             //TODO: finish this
             pos.x = pos.x + step_x;
             pos.y = pos.y + step_y;
-            
-            dbg!(pos.x, pos.y);
+
+            // dbg!(pos.x, pos.y);
         }
     }
 }

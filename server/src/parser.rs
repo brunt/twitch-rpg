@@ -1,23 +1,17 @@
-use winnow::ascii::{alpha1, digit1, space1, Caseless};
+use crate::commands::PlayerCommand::Buy;
+use crate::commands::{PlayerCommand, RpgCommand};
+use crate::player_class::PlayerClass;
+use winnow::Parser;
+use winnow::ascii::{Caseless, alpha1, digit1, space1};
 use winnow::combinator::{alt, preceded};
 use winnow::error::EmptyError;
-use winnow::Parser;
-use crate::commands::{PlayerCommand, RpgCommand};
-use crate::commands::PlayerCommand::Buy;
-use crate::player_class::PlayerClass;
 
 pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
     preceded::<&str, &str, RpgCommand, EmptyError, &str, _>(
         "!",
         alt((
             Caseless("load").value(RpgCommand::Load),
-            preceded(
-                "new",
-                preceded(
-                    space1,
-                    parse_class.map(RpgCommand::New),
-                ),
-            ),
+            preceded("new", preceded(space1, parse_class.map(RpgCommand::New))),
             // preceded(
             //     "buy",
             //     preceded(
@@ -34,7 +28,8 @@ pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
             // ),
         )),
     )
-    .parse_next(input).ok()
+    .parse_next(input)
+    .ok()
 }
 
 fn parse_class(input: &mut &str) -> Result<PlayerClass, EmptyError> {
@@ -66,13 +61,15 @@ mod tests {
         let input = "other";
         assert_eq!(parse_class(&mut &*input), Err(EmptyError));
     }
-    
+
     #[test]
     fn test_get_command() {
         let input = "!new wizard";
-        assert_eq!(get_command(&mut &*input), Some(RpgCommand::New(PlayerClass::Wizard)));
+        assert_eq!(
+            get_command(&mut &*input),
+            Some(RpgCommand::New(PlayerClass::Wizard))
+        );
     }
-
 
     #[test]
     fn test_get_command_load() {

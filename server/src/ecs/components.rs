@@ -1,6 +1,6 @@
-use std::cmp::Ordering;
 use specs::prelude::*;
 use specs_derive::Component;
+use std::cmp::Ordering;
 
 //Entity's coordinates in the world
 #[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
@@ -34,7 +34,6 @@ impl PartialOrd<MovementSpeed> for i32 {
     }
 }
 
-
 #[derive(Debug, Component)]
 pub struct TargetPosition {
     pub x: i32,
@@ -45,22 +44,20 @@ pub struct TargetPosition {
 pub struct Renderable {
     /// name of texture
     pub texture_name: String,
-    
+
     pub i_w: u32,
     pub i_h: u32,
     pub o_w: u32,
     pub o_h: u32,
-    
+
     pub frame: u32,
     pub total_frames: u32,
 }
 
 #[derive(Debug, Component)]
 enum Health {
-    Alive {
-        hp: u32,
-    },
-    Dead
+    Alive { hp: u32 },
+    Dead,
 }
 
 enum Equipment {
@@ -78,17 +75,14 @@ enum ArmorType {
 }
 
 #[derive(Debug, Component)]
-struct EquipmentSlot{
+struct EquipmentSlot {
     weapon: Option<String>,
-}	//List of items held
-
-
+} //List of items held
 
 // #[derive(Debug)]
 // struct Stats();	//RPG stats (strength, agility, etc.)
 #[derive(Debug)]
-struct Experience(u32);	//XP and level
-
+struct Experience(u32); //XP and level
 
 #[derive(Debug, Component)]
 struct Level(u32);
