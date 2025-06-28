@@ -1,11 +1,16 @@
-use std::ops::Deref;
-use leptos::html::Canvas;
+mod sprites;
+
+use crate::sprites::monster_sprites::{CASTER_RED_W_STAFF, SKELETAL_MAGE};
+use crate::sprites::terrain_sprites::*;
+use crate::sprites::{SpriteRect, TERRAIN_SPRITE_DIMENSION};
+use leptos::html::{Canvas, S};
 use leptos::mount::mount_to_body;
-use leptos::prelude::{Effect, ElementChild, Get, NodeRef, NodeRefAttribute, request_animation_frame, ClassAttribute};
+use leptos::prelude::{ClassAttribute, Effect, ElementChild, Get, NodeRef, NodeRefAttribute};
 use leptos::{IntoView, component, view};
-use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
+use std::ops::Deref;
 use wasm_bindgen::closure::Closure;
-use web_sys::{CanvasGradient, CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement};
+use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
+use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -23,16 +28,39 @@ fn App() -> impl IntoView {
     }
 }
 
+fn draw_sprite(
+    ctx: &CanvasRenderingContext2d,
+    image: &HtmlImageElement,
+    sprite: &SpriteRect,
+    x: f64,
+    y: f64,
+) -> Result<(), JsValue> {
+    ctx.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
+        image,
+        sprite.x,
+        sprite.y,
+        sprite.w,
+        sprite.h,
+        x,
+        y,
+        TERRAIN_SPRITE_DIMENSION,
+        TERRAIN_SPRITE_DIMENSION,
+    )
+}
+
 #[component]
 fn GameCanvas() -> impl IntoView {
     let canvas_ref: NodeRef<Canvas> = NodeRef::new();
+    const CANVAS_WIDTH: f64 = 1280.0;
+    const CANVAS_HEIGHT: f64 = 720.0;
+    const MAP_WIDTH: usize = 20;
+    const MAP_HEIGHT: usize = 25;
 
     // TODO: offscreen canvas 🤷🏻‍♂️
     // request_animation_frame(move || canvas_ref);
 
     Effect::new(move |_| {
         if let Some(canvas) = canvas_ref.get() {
-
             let ctx = canvas
                 .get_context("2d")
                 .unwrap()
@@ -41,46 +69,89 @@ fn GameCanvas() -> impl IntoView {
                 .unwrap();
 
             // Create and load the image
-            let image = HtmlImageElement::new().unwrap();
-            let closure_image = image.clone();
-            let ctx_clone = ctx.clone(); // Move into closure
+            let terrain_image = HtmlImageElement::new().unwrap();
+            let closure_terrain_image = terrain_image.clone();
+            let monster_image = HtmlImageElement::new().unwrap();
+            let closure_monster_image = monster_image.clone();
+            let ctx_clone = ctx.clone();
 
             let onload = Closure::<dyn FnMut()>::new(move || {
-                //TODO: get sprite coords for useful tiles, draw stuff
-                // loop to paint this tile repeatedly on the canvas
-                // for row in 0..rows {
-                // for col in 0..cols {
-                // ..
-                
-                // draw a sprite from the sprite sheet
-                // (sx, sy, sw, sh): source rect in sprite sheet
-                // (dx, dy, dw, dh): destination rect on canvas
-                let sx = 320.0; // source x in sprite sheet
-                let sy = 320.0; // source y in sprite sheet
-                let sw = 65.0; // sprite width
-                let sh = 65.0; // sprite height
-                let dx = 120.0; // canvas x
-                let dy = 120.0; // canvas y
-                let dw = 100.0; // draw width
-                let dh = 100.0; // draw height
+                // backmost layer: black
+                ctx.set_fill_style(&JsValue::from_str("black"));
+                ctx.fill_rect(0.0, 0.0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-                ctx_clone
-                    .draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
-                        &closure_image, sx, sy, sw, sh, dx, dy, dw, dh,
-                    )
-                    .unwrap();
+                // second backmost layer: terrain
+                // let cols = (CANVAS_WIDTH / TERRAIN_SPRITE_DIMENSION) as usize * 2;
+                // let rows = (CANVAS_HEIGHT / (TERRAIN_SPRITE_DIMENSION / 2.0)).ceil() as usize;
+                for row in 0..MAP_WIDTH {
+                    // rows {
+                    for col in 0..MAP_HEIGHT {
+                        //cols {
+                        let screen_x = (row as f64 - col as f64) * (TERRAIN_SPRITE_DIMENSION / 2.0)
+                            + CANVAS_WIDTH / 2.0;
+                        let screen_y = (row as f64 + col as f64) * (TERRAIN_SPRITE_DIMENSION / 2.0);
+
+                        // edge calculation
+                        let is_perimeter =
+                            row == 0 || row == MAP_WIDTH - 1 || col == 0 || col == MAP_HEIGHT - 1;
+
+                        let x = (col as f64 - row as f64) * (TERRAIN_SPRITE_DIMENSION / 2.0)
+                            + CANVAS_WIDTH / 2.0
+                            - TERRAIN_SPRITE_DIMENSION / 2.0;
+                        let y = (col as f64 + row as f64) * (TERRAIN_SPRITE_DIMENSION / 4.0);
+                        draw_sprite(&ctx_clone, &closure_terrain_image, &GRASS, x, y).unwrap();
+
+                        if is_perimeter {
+                            draw_sprite(&ctx_clone, &closure_terrain_image, &FOREST_THICK, x, y)
+                                .unwrap()
+                        }
+                        // sprites need to be drawn from the top rows down
+                        draw_sprite(
+                            &ctx_clone,
+                            &closure_terrain_image,
+                            &SHOP_TABLE_RIGHT,
+                            TERRAIN_SPRITE_DIMENSION * 6.0,
+                            TERRAIN_SPRITE_DIMENSION * 5.0,
+                        )
+                        .unwrap();
+                        draw_sprite(
+                            &ctx_clone,
+                            &closure_terrain_image,
+                            &STONE_ROOF_HOUSE,
+                            TERRAIN_SPRITE_DIMENSION * 5.0,
+                            TERRAIN_SPRITE_DIMENSION * 5.0,
+                        )
+                        .unwrap();
+                        draw_sprite(
+                            &ctx_clone,
+                            &closure_terrain_image,
+                            &STONE_ROOF_HOUSE,
+                            TERRAIN_SPRITE_DIMENSION * 5.5,
+                            TERRAIN_SPRITE_DIMENSION * 5.25,
+                        )
+                        .unwrap();
+                        draw_sprite(
+                            &ctx_clone,
+                            &closure_monster_image,
+                            &CASTER_RED_W_STAFF,
+                            TERRAIN_SPRITE_DIMENSION * 7.5,
+                            TERRAIN_SPRITE_DIMENSION * 5.0,
+                        )
+                        .unwrap();
+                    }
+                }
             });
 
-            image.set_onload(Some(onload.as_ref().unchecked_ref()));
-            image.set_src("public/sprites/terrain.png");
+            terrain_image.set_onload(Some(onload.as_ref().unchecked_ref()));
+            terrain_image.set_src("public/sprites/terrain.png");
+            monster_image.set_onload(Some(onload.as_ref().unchecked_ref()));
+            monster_image.set_src("public/sprites/monsters.png");
             onload.forget();
-            
         }
     });
 
-    view! { <canvas node_ref=canvas_ref width=1280 height=720 /> }
+    view! { <canvas node_ref=canvas_ref width=CANVAS_WIDTH height=CANVAS_HEIGHT /> }
 }
-
 
 #[component]
 fn SidePanelCharacterSheet() -> impl IntoView {
