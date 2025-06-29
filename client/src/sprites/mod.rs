@@ -1,4 +1,6 @@
 pub const SPRITE_DIMENSION: f64 = 56.0;
+
+#[derive(Copy, Clone)]
 pub struct SpriteRect {
     pub x: f64,
     pub y: f64,

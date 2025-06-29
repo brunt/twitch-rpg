@@ -19,10 +19,23 @@ fn main() {
 
 #[component]
 fn App() -> impl IntoView {
+    let players = vec![
+        Player{
+            name: "Pixel".to_string(),
+            health: 100,
+            sprite: MONSTERS_SPRITE_35,
+        },
+        Player{
+            name: "Pitt".to_string(),
+            health: 98,
+            sprite: MONSTERS_SPRITE_70,
+        }
+    ];
+    
     view! {
         <div class="flex flex-row gap-2">
             <GameCanvas />
-            <SidePanelCharacterSheet />
+            <SidePanelCharacterSheet players={players} />
         </div>
         <BottomPanel />
     }
@@ -169,27 +182,72 @@ fn GameCanvas() -> impl IntoView {
     view! { <canvas node_ref=canvas_ref width=CANVAS_WIDTH height=CANVAS_HEIGHT /> }
 }
 
+//TODO: this belongs in game state struct
+struct Player {
+    name: String,
+    health: u32,
+    sprite: SpriteRect,
+}
+
 #[component]
-fn SidePanelCharacterSheet() -> impl IntoView {
+fn SidePanelCharacterSheet(#[prop(into)] players: Vec<Player>) -> impl IntoView {
+    //TODO: subset game state cloned into this function as well as the main canvas
+       
     view! {
+               
         <aside class="w-64 bg-panel rounded shadow-lg text-sm overflow-y-auto max-h-[720px]">
             <div class="border-b border-gray-700 px-3 py-2 font-semibold text-base">Characters</div>
             <div class="divide-y divide-gray-700">
-                <div class="px-3 py-2">
-                    <div class="font-semibold">Warrior</div>
-                    <div>HP: 120/120</div>
-                    <div>ATK: 15 | DEF: 10</div>
-                    <div>SPD: 8</div>
-                </div>
-                <div class="px-3 py-2">
-                    <div class="font-semibold">Mage</div>
-                    <div>HP: 80/80</div>
-                    <div>ATK: 20 | DEF: 5</div>
-                    <div>SPD: 12</div>
-                </div>
+                {players.into_iter().map(|player| { view!{
+                    <div class="flex items-center gap-2 px-3 py-2">
+                        <PlayerSpriteCanvas sprite={player.sprite} />
+                        <div class="font-semibold text-base">{player.name}</div>
+                    </div>
+                }
+                }).collect::<Vec<_>>()}
             </div>
         </aside>
     }
+}
+
+#[component]
+fn PlayerSpriteCanvas(#[prop(into)] sprite: SpriteRect) -> impl IntoView{
+    let canvas_ref: NodeRef<Canvas> = NodeRef::new();
+    Effect::new(move |_| {
+        if let Some(canvas) = canvas_ref.get() {
+            let ctx = canvas
+                .get_context("2d")
+                .unwrap()
+                .unwrap()
+                .dyn_into::<CanvasRenderingContext2d>()
+                .unwrap();
+
+            // Create and load the image
+            let monster_image = HtmlImageElement::new().unwrap();
+            let closure_monster_image = monster_image.clone();
+            let ctx_clone = ctx.clone();
+
+            let onload = Closure::<dyn FnMut()>::new(move || {
+                
+                draw_sprite(
+                    &ctx_clone,
+                    &closure_monster_image,
+                    &sprite,
+                    0.0,
+                    0.0,
+                )
+                    .unwrap();
+            });
+            
+            monster_image.set_onload(Some(onload.as_ref().unchecked_ref()));
+            monster_image.set_src("public/sprites/monsters.png");
+            onload.forget();
+        }
+    });
+
+
+    view! { <canvas node_ref=canvas_ref width=SPRITE_DIMENSION height=SPRITE_DIMENSION /> }
+
 }
 
 #[component]
@@ -198,10 +256,6 @@ fn BottomPanel() -> impl IntoView {
         <footer class="w-[calc(1280px+0.5rem+256px)] bg-panel rounded shadow-lg text-sm p-3 overflow-y-auto max-h-32">
             <div class="font-semibold mb-1">Game Log</div>
             <div class="space-y-1 text-xs">
-                <p>[00:01] Warrior attacked Slime for 12</p>
-                <p>[00:02] Mage cast Fireball on Slime for 25</p>
-                <p>[00:03] Slime was defeated!</p>
-                <p>[00:04] +10 Gold, +1 XP</p>
             </div>
         </footer>
     }

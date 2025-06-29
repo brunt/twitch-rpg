@@ -6,6 +6,7 @@ use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::random_wander::RandomWander;
 use serde::Serialize;
 use specs::{Builder, DispatcherBuilder, World, WorldExt};
+use tatami_dungeon::{Dungeon, GenerateDungeonParams};
 use tokio::sync::broadcast::Sender;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::{broadcast, mpsc};
@@ -14,24 +15,35 @@ mod components;
 
 mod entities;
 
+
 pub struct GameState {
-    ecs: World,
-    rx: mpsc::Receiver<(String, RpgCommand)>,
-    tx: broadcast::Sender<GameSnapShot>,
+    pub dungeon: Dungeon,
+    pub ecs: World,
+    pub rx: mpsc::Receiver<(String, RpgCommand, bool)>,
+    pub tx: broadcast::Sender<GameSnapShot>,
     // dispatcher: Dispatcher<'static, 'static>,
 }
 
 impl GameState {
     pub fn new(
-        rx: mpsc::Receiver<(String, RpgCommand)>,
+        rx: Receiver<(String, RpgCommand, bool)>,
         tx: broadcast::Sender<GameSnapShot>,
     ) -> Self {
         let mut ecs = World::new();
+        let dungeon = Dungeon::generate_with_params(GenerateDungeonParams{
+            num_floors: 3,
+            dimensions: (40, 40),
+            tiles_per_cell: 1,
+                ..GenerateDungeonParams::default()
+        });
         ecs.register::<Position>();
+        ecs.register::<Renderable>();
+        ecs.register::<MovementSpeed>();
+        ecs.register::<TargetPosition>();
         // ecs.register::<Renderable>();
         // ecs.register::<Health>();
 
-        Self { ecs, rx, tx }
+        Self { dungeon, ecs, rx, tx }
     }
 }
 
@@ -42,12 +54,7 @@ pub fn run_game_server(
     gamestate_sender: Sender<GameSnapShot>,
     commands_receiver: Receiver<(String, RpgCommand, bool)>,
 ) {
-    let mut world = World::new();
-    // register components
-    world.register::<Position>();
-    world.register::<Renderable>();
-    world.register::<MovementSpeed>();
-    world.register::<TargetPosition>();
+    let mut gs = GameState::new(commands_receiver, gamestate_sender);
 
     // build dispatcher with systems
     let mut dispatcher = DispatcherBuilder::new()
@@ -56,7 +63,7 @@ pub fn run_game_server(
         .build();
 
     for i in 0..10 {
-        world
+        gs.ecs
             .create_entity()
             .with(Position { x: i, y: 0 })
             .with(MovementSpeed(2))
@@ -66,10 +73,10 @@ pub fn run_game_server(
 
     loop {
         // run systems
-        dispatcher.dispatch(&mut world);
+        dispatcher.dispatch(&mut gs.ecs);
 
         // cleanup etc
-        world.maintain();
+        gs.ecs.maintain();
 
         // sleep for a duration
         // TODO: figure out a time interval appropriate for this game
