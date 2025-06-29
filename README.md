@@ -3,9 +3,12 @@
 Idle RPG controlled through Twitch chat
 
 ### Current challenges
-* Simple ECS god I should be better at this
+~~* Simple ECS god I should be better at this~~
 * What can I store in game state?
-* Sprite mapping/animation
+~~* Sprite mapping/animation~~
+* Smooth character movement
+* Tying dungeon levels to ECS
+* Having safe, non-dungeon shop time for players
 
 ### Architecture
 * leptos frontend, reacting to server sent events, no events, click, submit etc
@@ -15,6 +18,8 @@ Idle RPG controlled through Twitch chat
 ### Ideas (to come up with)
 * items
 * quests
+* general character progression
+* [classes?](https://archeage.fandom.com/wiki/Classes)
 
 ### Build
 * compile frontend first (may need a makefile or build.rs file)

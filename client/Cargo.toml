@@ -8,3 +8,8 @@ leptos = { version = "0.8.2", features = ["csr"]}
 console_error_panic_hook = "0.1.7"
 web-sys = {version = "0.3.77", features = ["Window", "CanvasRenderingContext2d", "CanvasGradient"] }
 wasm-bindgen = "0.2.100"
+
+
+[[bin]]
+name = "gen_sprites"
+path = "src/bin/gen_sprites.rs"

@@ -1,8 +1,8 @@
 mod sprites;
 
-use crate::sprites::monster_sprites::{CASTER_RED_W_STAFF, SKELETAL_MAGE};
+use crate::sprites::monsters_sprites::*;
 use crate::sprites::terrain_sprites::*;
-use crate::sprites::{SpriteRect, TERRAIN_SPRITE_DIMENSION};
+use crate::sprites::{SpriteRect, SPRITE_DIMENSION};
 use leptos::html::{Canvas, S};
 use leptos::mount::mount_to_body;
 use leptos::prelude::{ClassAttribute, Effect, ElementChild, Get, NodeRef, NodeRefAttribute};
@@ -43,8 +43,8 @@ fn draw_sprite(
         sprite.h,
         x,
         y,
-        TERRAIN_SPRITE_DIMENSION,
-        TERRAIN_SPRITE_DIMENSION,
+        SPRITE_DIMENSION,
+        SPRITE_DIMENSION,
     )
 }
 
@@ -87,55 +87,71 @@ fn GameCanvas() -> impl IntoView {
                     // rows {
                     for col in 0..MAP_HEIGHT {
                         //cols {
-                        let screen_x = (row as f64 - col as f64) * (TERRAIN_SPRITE_DIMENSION / 2.0)
+                        let screen_x = (row as f64 - col as f64) * (SPRITE_DIMENSION / 2.0)
                             + CANVAS_WIDTH / 2.0;
-                        let screen_y = (row as f64 + col as f64) * (TERRAIN_SPRITE_DIMENSION / 2.0);
+                        let screen_y = (row as f64 + col as f64) * (SPRITE_DIMENSION / 2.0);
 
                         // edge calculation
-                        let is_perimeter =
-                            row == 0 || row == MAP_WIDTH - 1 || col == 0 || col == MAP_HEIGHT - 1;
+                        let is_top_left_corner = row == 0  && col == 0;
+                        let is_top_right_corner = row == 0  && col == MAP_HEIGHT - 1;
+                        let is_bottom_left_corner = row == MAP_WIDTH - 1  && col == 0;
+                        let is_top_corner = row == MAP_WIDTH - 1  && col == MAP_HEIGHT - 1;
+                        let is_ne_sw =
+                            row == 0 || row == MAP_WIDTH - 1;
+                        let is_nw_se = col == 0 || col == MAP_HEIGHT - 1;
 
-                        let x = (col as f64 - row as f64) * (TERRAIN_SPRITE_DIMENSION / 2.0)
+                        let x = (col as f64 - row as f64) * (SPRITE_DIMENSION / 2.0)
                             + CANVAS_WIDTH / 2.0
-                            - TERRAIN_SPRITE_DIMENSION / 2.0;
-                        let y = (col as f64 + row as f64) * (TERRAIN_SPRITE_DIMENSION / 4.0);
-                        draw_sprite(&ctx_clone, &closure_terrain_image, &GRASS, x, y).unwrap();
-
-                        if is_perimeter {
-                            draw_sprite(&ctx_clone, &closure_terrain_image, &FOREST_THICK, x, y)
+                            - SPRITE_DIMENSION / 2.0;
+                        let y = (col as f64 + row as f64) * (SPRITE_DIMENSION / 4.0);
+                        draw_sprite(&ctx_clone, &closure_terrain_image, &TERRAIN_SPRITE_653, x, y).unwrap(); //grass sprite
+                        
+                        if is_ne_sw {
+                            draw_sprite(&ctx_clone, &closure_terrain_image, &TERRAIN_SPRITE_467, x, y) //tree sprites
                                 .unwrap()
                         }
+                        if is_nw_se {
+                            draw_sprite(&ctx_clone, &closure_terrain_image, &TERRAIN_SPRITE_432, x, y)
+                                .unwrap()
+                        }
+                        
+                        if is_top_left_corner {
+                            draw_sprite(&ctx_clone, &closure_terrain_image, &TERRAIN_SPRITE_432, x, y)
+                                .unwrap()
+                        }
+                        
+
                         // sprites need to be drawn from the top rows down
                         draw_sprite(
                             &ctx_clone,
                             &closure_terrain_image,
-                            &SHOP_TABLE_RIGHT,
-                            TERRAIN_SPRITE_DIMENSION * 6.0,
-                            TERRAIN_SPRITE_DIMENSION * 5.0,
+                            &TERRAIN_SPRITE_158,
+                            SPRITE_DIMENSION * 6.0,
+                            SPRITE_DIMENSION * 5.0,
                         )
                         .unwrap();
                         draw_sprite(
                             &ctx_clone,
                             &closure_terrain_image,
-                            &STONE_ROOF_HOUSE,
-                            TERRAIN_SPRITE_DIMENSION * 5.0,
-                            TERRAIN_SPRITE_DIMENSION * 5.0,
+                            &TERRAIN_SPRITE_218,
+                            SPRITE_DIMENSION * 5.0,
+                            SPRITE_DIMENSION * 5.0,
                         )
                         .unwrap();
                         draw_sprite(
                             &ctx_clone,
                             &closure_terrain_image,
-                            &STONE_ROOF_HOUSE,
-                            TERRAIN_SPRITE_DIMENSION * 5.5,
-                            TERRAIN_SPRITE_DIMENSION * 5.25,
+                            &TERRAIN_SPRITE_219,
+                            SPRITE_DIMENSION * 5.5,
+                            SPRITE_DIMENSION * 5.25,
                         )
                         .unwrap();
                         draw_sprite(
                             &ctx_clone,
                             &closure_monster_image,
-                            &CASTER_RED_W_STAFF,
-                            TERRAIN_SPRITE_DIMENSION * 7.5,
-                            TERRAIN_SPRITE_DIMENSION * 5.0,
+                            &MONSTERS_SPRITE_934,
+                            SPRITE_DIMENSION * 7.5,
+                            SPRITE_DIMENSION * 5.0,
                         )
                         .unwrap();
                     }
