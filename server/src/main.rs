@@ -50,6 +50,7 @@ async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand, bool)>) {
                 match m {
                     tmi::Message::Privmsg(msg) => {
                         if let Some(command) = get_command(&mut msg.text()) {
+                            // TODO: no actually I do want to check for account privileges here before sending commands to the channel
                             _ = tx.try_send((
                                 msg.sender().name().to_string(),
                                 command,
