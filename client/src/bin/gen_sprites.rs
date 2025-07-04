@@ -31,7 +31,8 @@ fn gen_sprites(category: &str, x: usize, y: usize) {
                 row * x + col,
                 col,
                 row
-            ).unwrap();
+            )
+            .unwrap();
         }
     }
 }

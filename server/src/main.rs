@@ -1,7 +1,7 @@
 mod commands;
+mod ecs;
 mod parser;
 mod player_class;
-mod ecs;
 mod webserver;
 
 use crate::commands::RpgCommand;
@@ -50,7 +50,7 @@ async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand, bool)>) {
                 match m {
                     tmi::Message::Privmsg(msg) => {
                         if let Some(command) = get_command(&mut msg.text()) {
-                            // TODO: no actually I do want to check for account privileges here before sending commands to the channel
+                            dbg!(&command);
                             _ = tx.try_send((
                                 msg.sender().name().to_string(),
                                 command,

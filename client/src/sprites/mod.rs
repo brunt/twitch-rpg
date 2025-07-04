@@ -19,13 +19,13 @@ impl SpriteRect {
     }
 }
 
-pub mod monsters_sprites;
-pub mod terrain_sprites;
 pub mod damage_fx_sprites;
 pub mod items_sprites;
+pub mod monsters_sprites;
 pub mod spellfx_anim_1_sprites;
 pub mod spellfx_anim_2_sprites;
 pub mod spellfx_anim_3_sprites;
 pub mod spellfx_anim_4_sprites;
 pub mod spellfx_anim_5_sprites;
 pub mod spellfx_missiles_sprites;
+pub mod terrain_sprites;

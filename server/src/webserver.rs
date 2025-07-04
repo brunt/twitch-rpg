@@ -1,5 +1,6 @@
 use crate::commands::{PlayerCommand, RpgCommand};
-use crate::ecs::{GameSnapShot, GameState};
+use crate::ecs::GameWorld;
+use crate::ecs::resources::GameSnapShot;
 use axum::extract::State;
 use axum::http::{Method, StatusCode, Uri, header};
 use axum::response::sse::Event;

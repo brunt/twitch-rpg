@@ -1,8 +1,9 @@
+pub(crate) use crate::player_class::PlayerClass;
 use specs::prelude::*;
 use specs_derive::Component;
 use std::cmp::Ordering;
 
-//Entity's coordinates in the world
+// Entity's coordinates in the world
 #[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct Position {
     pub x: i32,
@@ -40,32 +41,55 @@ pub struct TargetPosition {
     pub y: i32,
 }
 
+// Rendering component with sprite information
 #[derive(Debug, Component)]
 pub struct Renderable {
     /// name of texture
     pub texture_name: String,
 
-    pub i_w: u32,
-    pub i_h: u32,
-    pub o_w: u32,
-    pub o_h: u32,
+    pub i_w: u32, // Image width
+    pub i_h: u32, // Image height
+    pub o_w: u32, // Output width
+    pub o_h: u32, // Output height
 
     pub frame: u32,
     pub total_frames: u32,
 }
 
-#[derive(Debug, Component)]
-enum Health {
-    Alive { hp: u32 },
+// Health component with alive/dead states
+#[derive(Debug, Component, Clone)]
+pub enum Health {
+    Alive { hp: u32, max_hp: u32 },
     Dead,
 }
 
-enum Equipment {
-    Weapon,
-    Armor(ArmorType),
+// Corpse component for defeated entities
+#[derive(Debug, Component)]
+pub struct Corpse {
+    //pub time_of_death: std::time::Instant,
 }
 
-enum ArmorType {
+// Character class component
+#[derive(Debug, Component, Clone)]
+pub struct CharacterClass {
+    pub class: PlayerClass,
+    pub level: u32,
+}
+
+// Equipment types
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum WeaponType {
+    Sword,
+    Axe,
+    Bow,
+    Staff,
+    Dagger,
+    Wand,
+    Mace,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ArmorType {
     Head,
     Chest,
     Jewelry,
@@ -74,26 +98,213 @@ enum ArmorType {
     Legs,
 }
 
-#[derive(Debug, Component)]
-struct EquipmentSlot {
-    weapon: Option<String>,
-} //List of items held
+// Equipment component
+#[derive(Debug, Component, Clone)]
+pub struct Equipment {
+    pub weapon: Option<Weapon>,
+    pub armor: Option<Armor>,
+}
 
-// #[derive(Debug)]
-// struct Stats();	//RPG stats (strength, agility, etc.)
-#[derive(Debug)]
-struct Experience(u32); //XP and level
+// Weapon component
+#[derive(Debug, Clone)]
+pub struct Weapon {
+    pub name: String,
+    pub weapon_type: WeaponType,
+    pub damage: u32,
+    pub attributes: Vec<ItemAttribute>,
+}
 
-#[derive(Debug, Component)]
-struct Level(u32);
+// Armor component
+#[derive(Debug, Clone)]
+pub struct Armor {
+    pub name: String,
+    pub armor_type: ArmorType,
+    pub defense: u32,
+    pub attributes: Vec<ItemAttribute>,
+}
 
-#[derive(Component, Debug)]
-enum Faction {
+// Item attributes for equipment
+#[derive(Debug, Clone)]
+pub enum ItemAttribute {
+    StrengthBonus(u32),
+    AgilityBonus(u32),
+    IntelligenceBonus(u32),
+    VitalityBonus(u32),
+    FireDamage(u32),
+    IceDamage(u32),
+    LightningDamage(u32),
+}
+
+// Experience and level
+#[derive(Debug, Component, Clone)]
+pub struct Experience {
+    pub current: u32,
+    pub next_level: u32,
+}
+
+// Level component
+#[derive(Debug, Component, Clone)]
+pub struct Level(pub u32);
+
+// Faction component
+#[derive(Component, Debug, Clone, PartialEq, Eq)]
+pub enum Faction {
     Player,
     Enemy,
     Neutral,
 }
 
-#[derive(Component)]
+// Immobile component for entities that can't move
+#[derive(Component, Debug)]
 #[storage(NullStorage)]
-struct Immobile;
+pub struct Immobile;
+
+// Light radius component for vision
+#[derive(Debug, Component, Clone)]
+pub struct LightRadius {
+    pub radius: u32, // How far the entity can see in tiles
+}
+
+#[derive(Debug, Component, Clone)]
+pub struct Spell {
+    pub name: String,
+    pub mana_cost: u32,
+    pub cooldown: std::time::Duration,
+    pub last_cast: Option<std::time::Instant>,
+    pub spell_type: SpellType,
+}
+
+#[derive(Debug, Clone)]
+pub enum SpellType {
+    Damage {
+        base_damage: u32,
+        range: u32, // How far it can be cast from the caster
+    },
+    Heal {
+        heal_amount: u32,
+        range: u32,
+    },
+    // Area of Effect spell variant
+    AreaOfEffect {
+        effect: AoEEffect, // Specific effect (e.g., damage, heal, debuff)
+        radius: u32,       // Radius of the effect area in tiles
+        range: u32,        // How far from caster it can be targeted
+    },
+    // ...other spell types
+}
+
+// Buff effects
+#[derive(Debug, Clone)]
+pub enum BuffEffect {
+    TemporaryDamage(u32),
+    TemporaryDefense(u32),
+    TemporarySpeed(i32),
+    Regeneration(u32),
+}
+
+#[derive(Debug, Clone)]
+pub enum AoEEffect {
+    Damage(u32),        // Flat damage to all affected targets
+    Heal(u32),          // Flat heal to all affected targets
+    Buff(BuffEffect),   // Buff all affected targets
+    Debuff(BuffEffect), // Debuff all affected targets
+}
+
+// Projectile component
+#[derive(Debug, Component)]
+pub struct Projectile {
+    pub damage: u32,
+    pub source_entity: Entity,
+    pub target_position: Position,
+    pub speed: f32,
+    pub effects: Vec<ProjectileEffect>,
+}
+
+// Projectile effects
+#[derive(Debug, Clone)]
+pub enum ProjectileEffect {
+    Damage(u32),
+    Slow(f32, std::time::Duration),
+    Stun(std::time::Duration),
+    AreaOfEffect { radius: u32, effect_type: String },
+}
+
+// Loot drop component
+#[derive(Debug, Component)]
+pub struct LootTable {
+    pub drops: Vec<LootDrop>,
+}
+
+// Individual loot drops with probabilities
+#[derive(Debug, Clone)]
+pub struct LootDrop {
+    pub item_type: LootType,
+    pub probability: f32,           // 0.0 to 1.0
+    pub quantity_range: (u32, u32), // Min and max quantity
+}
+
+// Types of loot
+#[derive(Debug, Clone)]
+pub enum LootType {
+    Gold,
+    Weapon(WeaponType),
+    Armor(ArmorType),
+    Potion,
+    Scroll,
+    Gem,
+    QuestItem(String),
+}
+
+// Experience reward component
+#[derive(Debug, Component)]
+pub struct ExperienceReward {
+    pub base_amount: u32,
+    pub level_multiplier: f32, // Multiplier based on entity level
+}
+
+// Stats component for RPG attributes
+#[derive(Debug, Component, Clone)]
+pub struct Stats {
+    pub strength: u32,
+    pub agility: u32,
+    pub intelligence: u32,
+    pub vitality: u32,
+}
+
+// Active effects component (buffs/debuffs)
+#[derive(Debug, Component)]
+pub struct ActiveEffects {
+    pub effects: Vec<TimedEffect>,
+}
+
+// Timed effect for buffs/debuffs
+#[derive(Debug, Clone)]
+pub struct TimedEffect {
+    pub effect_type: BuffEffect,
+    pub start_time: std::time::Instant,
+    pub duration: std::time::Duration,
+}
+
+// Resource component for mana, stamina, etc.
+#[derive(Debug, Component, Clone)]
+pub struct Resource {
+    pub mana: u32,
+    pub max_mana: u32,
+    pub stamina: u32,
+    pub max_stamina: u32,
+}
+
+#[derive(Debug, Component, Clone)]
+pub struct MovementAI {
+    pub kind: MovementAIKind,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MovementAIKind {
+    /// Non-player entity: wander randomly from point to point
+    WanderRandomly,
+    /// Player: pathfind toward unexplored rooms, seeking the next floor entrance
+    ExploreDungeon,
+    /// Entity follows an explicit path (e.g., chasing, patrolling), path to be computed elsewhere
+    PathfindTo(Vec<(i32, i32)>),
+}

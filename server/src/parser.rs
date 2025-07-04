@@ -11,12 +11,13 @@ pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
         "!",
         alt((
             Caseless("load").value(RpgCommand::Load),
-            preceded("new", preceded(space1, parse_class.map(RpgCommand::New))),
+            preceded("rpgnew", preceded(space1, parse_class.map(RpgCommand::New))),
+            //TODO: finish adding these pls I beg
             // preceded(
             //     "buy",
             //     preceded(
             //         space1,
-            //         digit1.map(RpgCommand::PlayerCommand(Buy)),
+            //         digit1.map(RpgCommand::PlayerCommand(Buy(/* Player */, /* MenuItem */))),
             //     ),
             // ),
             // preceded(

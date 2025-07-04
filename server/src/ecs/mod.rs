@@ -1,11 +1,13 @@
-pub mod systems;
 pub mod components;
+pub mod systems;
 
 use crate::commands::RpgCommand;
 use crate::ecs::components::{MovementSpeed, Position, Renderable, TargetPosition};
+pub(crate) use crate::ecs::resources::{DungeonExt, GameSnapShot};
+use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::random_wander::RandomWander;
-use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
+use crate::ecs::world::create_world;
 use serde::Serialize;
 use specs::{Builder, DispatcherBuilder, World, WorldExt};
 use tatami_dungeon::{Dungeon, GenerateDungeonParams};
@@ -13,54 +15,44 @@ use tokio::sync::broadcast::Sender;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::{broadcast, mpsc};
 
-
 mod entities;
+pub mod resources;
+mod shop;
 mod world;
-mod resources;
 
-pub struct GameState {
-    pub dungeon: Dungeon,
+pub struct GameWorld {
     pub ecs: World,
     pub rx: mpsc::Receiver<(String, RpgCommand, bool)>,
     pub tx: broadcast::Sender<GameSnapShot>,
-    // dispatcher: Dispatcher<'static, 'static>,
 }
 
-impl GameState {
+impl GameWorld {
     pub fn new(
         rx: Receiver<(String, RpgCommand, bool)>,
         tx: broadcast::Sender<GameSnapShot>,
     ) -> Self {
-        let mut ecs = World::new();
-        let dungeon = Dungeon::generate_with_params(GenerateDungeonParams{
-            num_floors: 3,
-            dimensions: (40, 40),
-            tiles_per_cell: 1,
-                ..GenerateDungeonParams::default()
-        });
-        ecs.register::<Position>();
-        ecs.register::<Renderable>();
-        ecs.register::<MovementSpeed>();
-        ecs.register::<TargetPosition>();
-        // ecs.register::<Renderable>();
-        // ecs.register::<Health>();
+        let mut world = create_world();
+        //TODO: panics on big dimensions
+        // world.generate_dungeon( GenerateDungeonParams {
+        //     num_floors: 3,
+        //     dimensions: (100, 100),
+        //     tiles_per_cell: 4,
+        //     ..GenerateDungeonParams::default()
+        // });
+        world.generate_dungeon(GenerateDungeonParams::default());
 
-        Self { dungeon, ecs, rx, tx }
+        // ecs.generate_dungeon(GenerateDungeonParams::default());
+        Self { ecs: world, rx, tx }
     }
 }
-
-#[derive(Clone, Serialize)]
-pub struct GameSnapShot {}
 
 pub fn run_game_server(
     gamestate_sender: Sender<GameSnapShot>,
     commands_receiver: Receiver<(String, RpgCommand, bool)>,
 ) {
-    let mut gs = GameState::new(commands_receiver, gamestate_sender);
-
+    let mut gs = GameWorld::new(commands_receiver, gamestate_sender);
 
     gs.ecs.insert(CommandQueue::default());
-
 
     // build dispatcher with systems
     let mut dispatcher = DispatcherBuilder::new()
@@ -68,7 +60,6 @@ pub fn run_game_server(
         .with(Movement, "movement", &["command_handler"])
         .with(RandomWander, "idle", &["movement"])
         .build();
-
 
     for i in 0..10 {
         gs.ecs
@@ -80,13 +71,11 @@ pub fn run_game_server(
     }
 
     loop {
-
         while let Ok((player, command, is_privileged)) = gs.rx.try_recv() {
             if let Some(queue) = gs.ecs.get_mut::<CommandQueue>() {
                 queue.push_back((player, command, is_privileged));
             }
         }
-
 
         // run systems
         dispatcher.dispatch(&mut gs.ecs);
@@ -99,27 +88,3 @@ pub fn run_game_server(
         std::thread::sleep(std::time::Duration::from_millis(1500));
     }
 }
-
-pub fn change_game_state(world: &mut World, new_state: resources::GameState) {
-    if let Some(state) = world.get_mut::<resources::GameState>() {
-        *state = new_state.clone();
-        println!("Game state changed to: {:?}", new_state);
-    }
-}
-
-
-// match command {
-//     RpgCommand::New(class) => {
-// create player character with default values, store in persistence (player, class)
-// }
-// RpgCommand::Load => {
-// load character from persistence (player)
-// RpgCommand::Use(consumable) => {
-//     // check if player has the consumable
-// }
-// RpgCommand::Buy(item) => {
-//     // subtract player gold, player gets item
-// }
-// _ => unimplemented!(),
-// }
-// }
