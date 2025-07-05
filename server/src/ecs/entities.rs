@@ -4,7 +4,7 @@ use crate::ecs::components::{
     Stats,
 };
 use crate::player_class::PlayerClass;
-use specs::{Builder, Entities, Entity, LazyUpdate, ReadExpect, World, WorldExt};
+use specs::{Entities, Entity, LazyUpdate, ReadExpect};
 
 /// Creates a new player entity with all required components
 pub fn create_player_entity(

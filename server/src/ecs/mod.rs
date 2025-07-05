@@ -7,12 +7,12 @@ pub(crate) use crate::ecs::resources::{DungeonExt, GameSnapShot};
 use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::random_wander::RandomWander;
+use crate::ecs::systems::rendering::Rendering;
 use crate::ecs::world::create_world;
 use serde::Serialize;
 use specs::{Builder, DispatcherBuilder, World, WorldExt};
 use tatami_dungeon::{Dungeon, GenerateDungeonParams};
-use tokio::sync::broadcast::Sender;
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::{broadcast, mpsc};
 
 mod entities;
@@ -23,13 +23,11 @@ mod world;
 pub struct GameWorld {
     pub ecs: World,
     pub rx: mpsc::Receiver<(String, RpgCommand, bool)>,
-    pub tx: broadcast::Sender<GameSnapShot>,
 }
 
 impl GameWorld {
     pub fn new(
         rx: Receiver<(String, RpgCommand, bool)>,
-        tx: broadcast::Sender<GameSnapShot>,
     ) -> Self {
         let mut world = create_world();
         //TODO: panics on big dimensions
@@ -42,15 +40,15 @@ impl GameWorld {
         world.generate_dungeon(GenerateDungeonParams::default());
 
         // ecs.generate_dungeon(GenerateDungeonParams::default());
-        Self { ecs: world, rx, tx }
+        Self { ecs: world, rx }
     }
 }
 
 pub fn run_game_server(
-    gamestate_sender: Sender<GameSnapShot>,
+    gamestate_sender: broadcast::Sender<GameSnapShot>,
     commands_receiver: Receiver<(String, RpgCommand, bool)>,
 ) {
-    let mut gs = GameWorld::new(commands_receiver, gamestate_sender);
+    let mut gs = GameWorld::new(commands_receiver);
 
     gs.ecs.insert(CommandQueue::default());
 
@@ -59,6 +57,7 @@ pub fn run_game_server(
         .with(CommandHandlerSystem, "command_handler", &[])
         .with(Movement, "movement", &["command_handler"])
         .with(RandomWander, "idle", &["movement"])
+        .with(Rendering { sender: gamestate_sender}, "rendering", &[])
         .build();
 
     for i in 0..10 {

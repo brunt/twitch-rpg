@@ -16,6 +16,8 @@ use tokio::sync::{broadcast, mpsc};
 async fn main() {
     dotenv().ok();
     let (commands_sender, commands_receiver) = mpsc::channel::<(String, RpgCommand, bool)>(100);
+    
+    // TODO: broadcast or mpsc??
     let (gamestate_sender, _gamestate_receiver) = broadcast::channel::<GameSnapShot>(100);
 
     _ = tokio::spawn(read_commands_from_chat(commands_sender));

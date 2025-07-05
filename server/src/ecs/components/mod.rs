@@ -307,4 +307,6 @@ pub enum MovementAIKind {
     ExploreDungeon,
     /// Entity follows an explicit path (e.g., chasing, patrolling), path to be computed elsewhere
     PathfindTo(Vec<(i32, i32)>),
+    /// Follow Leader
+    Follow,
 }

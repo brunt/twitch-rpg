@@ -1,5 +1,5 @@
-use crate::commands::PlayerCommand::Buy;
-use crate::commands::{PlayerCommand, RpgCommand};
+use crate::commands::PlayerCommand::{Buy, Use};
+use crate::commands::{MenuItem, PlayerCommand, RpgCommand};
 use crate::player_class::PlayerClass;
 use winnow::Parser;
 use winnow::ascii::{Caseless, alpha1, digit1, space1};
@@ -10,23 +10,30 @@ pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
     preceded::<&str, &str, RpgCommand, EmptyError, &str, _>(
         "!",
         alt((
-            Caseless("load").value(RpgCommand::Load),
-            preceded("rpgnew", preceded(space1, parse_class.map(RpgCommand::New))),
-            //TODO: finish adding these pls I beg
-            // preceded(
-            //     "buy",
-            //     preceded(
-            //         space1,
-            //         digit1.map(RpgCommand::PlayerCommand(Buy(/* Player */, /* MenuItem */))),
-            //     ),
-            // ),
-            // preceded(
-            //     "use",
-            //     preceded(
-            //         space1,
-            //         digit1.map(RpgCommand::PlayerCommand(Use)),
-            //     ),
-            // ),
+            Caseless("rejoin").value(RpgCommand::Rejoin),
+            preceded("join", preceded(space1, parse_class.map(RpgCommand::Join))),
+            preceded(
+                "buy",
+                preceded(
+                    space1,
+                    digit1.map(|number: &str| {
+                        RpgCommand::PlayerCommand(Buy(MenuItem::from(
+                            number.parse::<u8>().unwrap_or_default(),
+                        )))
+                    }),
+                ),
+            ),
+            preceded(
+                "use",
+                preceded(
+                    space1,
+                    digit1.map(|number: &str| {
+                        RpgCommand::PlayerCommand(Use(MenuItem::from(
+                            number.parse::<u8>().unwrap_or_default(),
+                        )))
+                    }),
+                ),
+            ),
         )),
     )
     .parse_next(input)
@@ -65,16 +72,34 @@ mod tests {
 
     #[test]
     fn test_get_command() {
-        let input = "!new wizard";
+        let input = "!join wizard";
         assert_eq!(
             get_command(&mut &*input),
-            Some(RpgCommand::New(PlayerClass::Wizard))
+            Some(RpgCommand::Join(PlayerClass::Wizard))
         );
     }
 
     #[test]
     fn test_get_command_load() {
-        let input = "!load";
-        assert_eq!(get_command(&mut &*input), Some(RpgCommand::Load));
+        let input = "!rejoin";
+        assert_eq!(get_command(&mut &*input), Some(RpgCommand::Rejoin));
+    }
+    
+    #[test]
+    fn test_buy_item() {
+        let input = "!buy 1";
+        assert_eq!(
+            get_command(&mut &*input),
+            Some(RpgCommand::PlayerCommand(Buy(MenuItem::from(1))))
+        );
+    }
+    
+    #[test]
+    fn test_use_item() {
+        let input = "!use 1";
+        assert_eq!(
+            get_command(&mut &*input),
+            Some(RpgCommand::PlayerCommand(Use(MenuItem::from(1))))
+        );
     }
 }

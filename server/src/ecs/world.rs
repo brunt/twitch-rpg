@@ -1,7 +1,4 @@
-use crate::ecs::components::{
-    CharacterClass, Equipment, Experience, Faction, Health, MovementAI, MovementSpeed, Position,
-    Renderable, Resource, Stats, TargetPosition,
-};
+use crate::ecs::components::{CharacterClass, Equipment, Experience, Faction, Health, MovementAI, MovementSpeed, Position, Projectile, Renderable, Resource, Stats, TargetPosition};
 use crate::ecs::resources;
 use crate::ecs::resources::{GameState, ShopInventory, TownPlayers};
 use specs::{Entity, World, WorldExt};
@@ -41,6 +38,7 @@ pub fn create_world() -> World {
     world.register::<Experience>();
     world.register::<MovementAI>();
     world.register::<Faction>();
+    world.register::<Projectile>();
 
     // resources
     world.insert(GameState::OutOfDungeon);
@@ -49,6 +47,4 @@ pub fn create_world() -> World {
     // world.insert(ShopInventory::new());
 
     world
-    // ecs.register::<Renderable>();
-    // ecs.register::<Health>();
 }

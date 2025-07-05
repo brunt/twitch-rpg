@@ -1,20 +1,16 @@
-use crate::commands::{PlayerCommand, RpgCommand};
-use crate::ecs::GameWorld;
 use crate::ecs::resources::GameSnapShot;
 use axum::extract::State;
 use axum::http::{Method, StatusCode, Uri, header};
 use axum::response::sse::Event;
 use axum::response::{Html, IntoResponse, Response, Sse};
 use axum::routing::{get, post};
-use axum::{Json, Router};
+use axum::Router;
 use rust_embed::RustEmbed;
-use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-use tokio::sync::{Notify, broadcast};
+
+use tokio::sync::broadcast;
 use tokio_stream::StreamExt as _;
-use tokio_stream::wrappers::{BroadcastStream, IntervalStream};
+use tokio_stream::wrappers::BroadcastStream;
 use tower_http::cors::{Any, CorsLayer};
 
 #[derive(RustEmbed)]
@@ -57,6 +53,7 @@ pub async fn start_web_server(game_state: broadcast::Sender<GameSnapShot>) -> an
 async fn sse_handler(
     State(state): State<AppState>,
 ) -> Sse<impl tokio_stream::Stream<Item = Result<Event, Infallible>>> {
+    dbg!("sse_handler");
     let rx = state.tx.subscribe();
 
     let stream = BroadcastStream::new(rx).filter_map(|msg| match msg {
