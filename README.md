@@ -1,3 +1,5 @@
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20me-orange?logo=kofi)](https://ko-fi.com/ubruntu65048)
+
 # Twitch RPG
 
 Idle RPG controlled through Twitch chat
