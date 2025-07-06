@@ -1,8 +1,25 @@
-use anyhow::bail;
 use std::fmt::Display;
 use std::str::FromStr;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GameSnapShot {
+    // in_dungeon: GameState,
+    pub party: Vec<PlayerSnapshot>,
+    pub floor_positions: Option<Vec<String>>
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PlayerSnapshot {
+    pub name: String,
+    pub class: Option<PlayerClass>, // Class -> PlayerClass
+    pub health: Health,
+    pub level: u32,
+    pub gold: u32,
+    pub sprite_name: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum PlayerClass {
     Fighter,
     Druid,
@@ -32,8 +49,9 @@ impl Display for PlayerClass {
         }
     }
 }
+
 impl FromStr for PlayerClass {
-    type Err = anyhow::Error;
+    type Err = std::io::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "fighter" => Ok(Self::Fighter),
@@ -45,7 +63,13 @@ impl FromStr for PlayerClass {
             "paladin" => Ok(Self::Paladin),
             "warlock" => Ok(Self::Warlock),
             "monk" => Ok(Self::Monk),
-            _ => bail!("Invalid player class {}", s),
+            _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "invalid player class"))
         }
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Health {
+    Alive { hp: u32, max_hp: u32 },
+    Dead,
 }

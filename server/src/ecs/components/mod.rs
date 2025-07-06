@@ -1,8 +1,8 @@
-pub(crate) use crate::player_class::PlayerClass;
+pub(crate) use common::{Health, PlayerClass};
 use specs::prelude::*;
 use specs_derive::Component;
 use std::cmp::Ordering;
-
+use std::fmt::{Display, Formatter};
 // Entity's coordinates in the world
 #[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct Position {
@@ -56,11 +56,13 @@ pub struct Renderable {
     pub total_frames: u32,
 }
 
-// Health component with alive/dead states
-#[derive(Debug, Component, Clone)]
-pub enum Health {
-    Alive { hp: u32, max_hp: u32 },
-    Dead,
+#[derive(Debug, Component)]
+pub struct HealthComponent(pub Health);
+
+impl Default for HealthComponent {
+    fn default() -> Self {
+        Self(Health::Alive { hp: 1, max_hp: 1 })
+    }
 }
 
 // Corpse component for defeated entities
@@ -69,11 +71,39 @@ pub struct Corpse {
     //pub time_of_death: std::time::Instant,
 }
 
-// Character class component
 #[derive(Debug, Component, Clone)]
-pub struct CharacterClass {
-    pub class: PlayerClass,
-    pub level: u32,
+pub enum CharacterClass {
+    PlayerClass(PlayerClass),
+    Beast,
+    Dragon,
+    Elemental,
+}
+
+impl CharacterClass {
+    pub fn is_player(&self) -> bool {
+        match self {
+            Self::PlayerClass(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn get_player_class(&self) -> Option<PlayerClass> {
+        match self {
+            Self::PlayerClass(pc) => Some(pc.clone()),
+            _ => None,
+        }
+    }
+}
+
+impl Display for CharacterClass {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PlayerClass(pc) => write!(f, "{}", pc),
+            Self::Beast => write!(f, "Beast"),
+            Self::Dragon => write!(f, "Dragon"),
+            Self::Elemental => write!(f, "Elemental"),
+        }
+    }
 }
 
 // Equipment types
@@ -145,6 +175,12 @@ pub struct Experience {
 // Level component
 #[derive(Debug, Component, Clone)]
 pub struct Level(pub u32);
+
+impl Default for Level {
+    fn default() -> Self {
+        Self(1)
+    }
+}
 
 // Faction component
 #[derive(Component, Debug, Clone, PartialEq, Eq)]
@@ -309,4 +345,16 @@ pub enum MovementAIKind {
     PathfindTo(Vec<(i32, i32)>),
     /// Follow Leader
     Follow,
+}
+
+#[derive(Debug, Component, Clone)]
+pub struct Name(pub String);
+
+#[derive(Debug, Component, Clone)]
+pub struct Money(pub u32);
+
+impl Default for Money {
+    fn default() -> Self {
+        Self(0)
+    }
 }

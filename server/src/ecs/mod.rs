@@ -2,15 +2,15 @@ pub mod components;
 pub mod systems;
 
 use crate::commands::RpgCommand;
-use crate::ecs::components::{MovementSpeed, Position, Renderable, TargetPosition};
-pub(crate) use crate::ecs::resources::{DungeonExt, GameSnapShot};
+pub(crate) use crate::ecs::resources::DungeonExt;
 use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
 use crate::ecs::world::create_world;
+use common::GameSnapShot;
 use serde::Serialize;
-use specs::{Builder, DispatcherBuilder, World, WorldExt};
+use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tatami_dungeon::{Dungeon, GenerateDungeonParams};
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::{broadcast, mpsc};
@@ -26,9 +26,7 @@ pub struct GameWorld {
 }
 
 impl GameWorld {
-    pub fn new(
-        rx: Receiver<(String, RpgCommand, bool)>,
-    ) -> Self {
+    pub fn new(rx: Receiver<(String, RpgCommand, bool)>) -> Self {
         let mut world = create_world();
         //TODO: panics on big dimensions
         // world.generate_dungeon( GenerateDungeonParams {
@@ -57,17 +55,14 @@ pub fn run_game_server(
         .with(CommandHandlerSystem, "command_handler", &[])
         .with(Movement, "movement", &["command_handler"])
         .with(RandomWander, "idle", &["movement"])
-        .with(Rendering { sender: gamestate_sender}, "rendering", &[])
+        .with(
+            Rendering {
+                sender: gamestate_sender,
+            },
+            "rendering",
+            &[],
+        )
         .build();
-
-    for i in 0..10 {
-        gs.ecs
-            .create_entity()
-            .with(Position { x: i, y: 0 })
-            .with(MovementSpeed(2))
-            .with(TargetPosition { x: 0, y: 0 })
-            .build();
-    }
 
     loop {
         while let Ok((player, command, is_privileged)) = gs.rx.try_recv() {
@@ -81,6 +76,15 @@ pub fn run_game_server(
 
         // cleanup etc
         gs.ecs.maintain();
+
+        // let entites = gs.ecs.entities();
+        // let classes = gs.ecs.read_storage::<CharacterClass>();
+        // let levels = gs.ecs.read_storage::<Level>();
+        // let monies = gs.ecs.read_storage::<Money>();
+        // let healths = gs.ecs.read_storage::<HealthComponent>();
+        // for (entity, class, level, money, health) in (&entites, &classes, &levels, &monies, &healths).join() {
+        //     println!("{:?} {:?} {:?} {:?} {:?}", entity, class, level, money, health);
+        // }
 
         // sleep for a duration
         // TODO: figure out a time interval appropriate for this game

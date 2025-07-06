@@ -1,10 +1,10 @@
-use crate::ecs::resources::GameSnapShot;
+use axum::Router;
 use axum::extract::State;
 use axum::http::{Method, StatusCode, Uri, header};
 use axum::response::sse::Event;
 use axum::response::{Html, IntoResponse, Response, Sse};
 use axum::routing::{get, post};
-use axum::Router;
+use common::GameSnapShot;
 use rust_embed::RustEmbed;
 use std::convert::Infallible;
 
@@ -31,7 +31,8 @@ impl AppState {
 }
 
 pub async fn start_web_server(game_state: broadcast::Sender<GameSnapShot>) -> anyhow::Result<()> {
-    let default_port = std::env::var("PORT")?;
+    let default_port = std::env::var("PORT").unwrap_or_else(|_| "9090".to_string());
+
     let state = AppState::new(game_state);
 
     let app = Router::new()
@@ -53,7 +54,6 @@ pub async fn start_web_server(game_state: broadcast::Sender<GameSnapShot>) -> an
 async fn sse_handler(
     State(state): State<AppState>,
 ) -> Sse<impl tokio_stream::Stream<Item = Result<Event, Infallible>>> {
-    dbg!("sse_handler");
     let rx = state.tx.subscribe();
 
     let stream = BroadcastStream::new(rx).filter_map(|msg| match msg {

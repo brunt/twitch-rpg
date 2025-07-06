@@ -1,4 +1,4 @@
-use crate::player_class::PlayerClass;
+use common::PlayerClass;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -43,7 +43,7 @@ impl From<u8> for MenuItem {
 //         }
 //     }
 // }
-// 
+//
 // #[derive(Clone)]
 // pub enum Consumable {
 //     Potion(String),

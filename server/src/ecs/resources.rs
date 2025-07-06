@@ -36,13 +36,6 @@ impl DungeonExt for World {
 }
 
 /// Struct that holds game data specifically for the client to render
-#[derive(Clone, Serialize)]
-pub struct GameSnapShot {
-    // in_dungeon: GameState,
-    pub party: Vec<Player>,
-    pub floor_positions: Option<Vec<String>>
-}
-
 
 // queue of players that can shop before joining dungeon
 #[derive(Default)]

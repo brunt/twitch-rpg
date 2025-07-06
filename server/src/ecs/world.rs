@@ -1,4 +1,8 @@
-use crate::ecs::components::{CharacterClass, Equipment, Experience, Faction, Health, MovementAI, MovementSpeed, Position, Projectile, Renderable, Resource, Stats, TargetPosition};
+use crate::ecs::components::{
+    CharacterClass, Equipment, Experience, Faction, Health, HealthComponent, Level, Money,
+    MovementAI, MovementSpeed, Name, Position, Projectile, Renderable, Resource, Stats,
+    TargetPosition,
+};
 use crate::ecs::resources;
 use crate::ecs::resources::{GameState, ShopInventory, TownPlayers};
 use specs::{Entity, World, WorldExt};
@@ -26,12 +30,13 @@ pub fn register_town_player(world: &mut World, player_name: String, entity: Enti
 
 pub fn create_world() -> World {
     let mut world = World::new();
+    world.register::<Name>();
     world.register::<Position>();
     world.register::<Renderable>();
     world.register::<MovementSpeed>();
     world.register::<TargetPosition>();
     world.register::<CharacterClass>();
-    world.register::<Health>();
+    world.register::<HealthComponent>();
     world.register::<Equipment>();
     world.register::<Resource>();
     world.register::<Stats>();
@@ -39,6 +44,8 @@ pub fn create_world() -> World {
     world.register::<MovementAI>();
     world.register::<Faction>();
     world.register::<Projectile>();
+    world.register::<Level>();
+    world.register::<Money>();
 
     // resources
     world.insert(GameState::OutOfDungeon);

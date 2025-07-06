@@ -1,16 +1,21 @@
 mod sprites;
+mod state;
 
 use crate::sprites::monsters_sprites::*;
 use crate::sprites::terrain_sprites::*;
 use crate::sprites::{SPRITE_DIMENSION, SpriteRect};
+use common::{GameSnapShot, Health, PlayerClass, PlayerSnapshot};
 use leptos::html::Canvas;
 use leptos::mount::mount_to_body;
-use leptos::prelude::{ClassAttribute, Effect, ElementChild, Get, NodeRef, NodeRefAttribute};
+use leptos::prelude::{
+    ClassAttribute, Effect, ElementChild, Get, IntoInner, LocalStorage, NodeRef, NodeRefAttribute,
+    ReadSignal, Set, Signal, on_cleanup, signal, signal_local,
+};
 use leptos::{IntoView, component, view};
 use std::ops::Deref;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
-use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
+use web_sys::{CanvasRenderingContext2d, EventSource, HtmlImageElement, MessageEvent};
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -19,23 +24,28 @@ fn main() {
 
 #[component]
 fn App() -> impl IntoView {
-    let players = vec![
-        Player {
-            name: "Pixel".to_string(),
-            health: 100,
-            sprite: MONSTERS_SPRITE_35,
-        },
-        Player {
-            name: "Pitt".to_string(),
-            health: 98,
-            sprite: MONSTERS_SPRITE_70,
-        },
-    ];
+    // let (gamestate, set_gamestate) = signal_local::<Option<GameSnapShot>>(None);
+    let (gamestate, set_gamestate) = signal::<Option<GameSnapShot>>(None);
+
+    // let set_gamestate_clone = set_gamestate.clone();
+    Effect::new(move |_| {
+        let mut sse_event = EventSource::new("/sse").expect_throw("Failed to create EventSource");
+        let callback = Closure::wrap(Box::new(move |event: MessageEvent| {
+            if let Some(text) = event.data().as_string() {
+                // leptos::logging::log!("{}", text.clone());
+                set_gamestate
+                    .set(serde_json::from_str(&text).expect_throw("Failed to parse game state"));
+            }
+        }) as Box<dyn FnMut(MessageEvent)>);
+        sse_event.set_onmessage(Some(callback.as_ref().unchecked_ref()));
+
+        callback.forget();
+    });
 
     view! {
         <div class="flex flex-row gap-2">
-            <GameCanvas />
-            <SidePanelCharacterSheet players={players} />
+            <GameCanvas gs=gamestate />
+            <SidePanelCharacterSheet gs=gamestate />
         </div>
         <BottomPanel />
     }
@@ -62,7 +72,54 @@ fn draw_sprite(
 }
 
 #[component]
-fn GameCanvas() -> impl IntoView {
+fn SidePanelCharacterSheet(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoView {
+    //TODO: subset game state cloned into this function as well as the main canvas
+
+    view! {
+        <aside class="w-64 bg-panel rounded shadow-lg text-sm overflow-y-auto max-h-[720px]">
+            <div class="border-b border-gray-700 px-3 py-2 font-semibold text-base">Characters</div>
+            <div class="divide-y divide-gray-700">
+                {move || {
+                    let gs = gs.get();
+                    if let Some(gs) = gs {
+                        leptos::logging::log!("{:?}", gs.party.clone());
+                        gs.party
+                            .iter()
+                            .map(|player| {
+                                leptos::logging::log!("{:?}", player);
+
+                                view! {
+                                    <div class="flex items-center gap-2 px-3 py-2">
+                                        <PlayerSpriteCanvas sprite=WIZARD_SPRITES
+                                            .get(&player.sprite_name)
+                                            .unwrap() />
+                                        <div class="font-semibold text-base">
+                                            {player.name.clone()}
+                                        </div>
+                                        <div class="font-semibold text-base">
+                                            Level: {player.level}
+                                        </div>
+                                        <div class="font-semibold text-base">
+                                            Gold: {player.gold}
+                                        </div>
+
+                                    </div>
+                                }
+                            })
+                            .collect::<Vec<_>>()
+                    } else {
+                        leptos::logging::log!("gs is none");
+                        vec![]
+                    }
+                }}
+
+            </div>
+        </aside>
+    }
+}
+
+#[component]
+fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoView {
     let canvas_ref: NodeRef<Canvas> = NodeRef::new();
     const CANVAS_WIDTH: f64 = 1280.0;
     const CANVAS_HEIGHT: f64 = 720.0;
@@ -202,39 +259,29 @@ fn GameCanvas() -> impl IntoView {
         }
     });
 
+    // spawn_local(async move {
+    //    let mut sse_event = EventSource::new("/sse").expect_throw("Failed to create EventSource");
+    //     let callback = Closure::wrap(Box::new(move |event: MessageEvent| {
+    //         if let Ok(text) = event.data().as_string() {
+    //
+    //         }
+    //     }));
+    //
+    //     while let Some(callback) = sse_event.onmessage() {
+    //
+    //     }
+    //     // while let Some(event) = sse_event.onmessage() {
+    //     //     if let Ok(event) = serde_json::from_str::<GameSnapShot>(event.data()) {
+    //     //
+    //     //     }
+    //     // }
+    // });
+
     view! { <canvas node_ref=canvas_ref width=CANVAS_WIDTH height=CANVAS_HEIGHT /> }
 }
 
-//TODO: this belongs in game state struct
-struct Player {
-    name: String,
-    health: u32,
-    sprite: SpriteRect,
-}
-
 #[component]
-fn SidePanelCharacterSheet(#[prop(into)] players: Vec<Player>) -> impl IntoView {
-    //TODO: subset game state cloned into this function as well as the main canvas
-
-    view! {
-
-        <aside class="w-64 bg-panel rounded shadow-lg text-sm overflow-y-auto max-h-[720px]">
-            <div class="border-b border-gray-700 px-3 py-2 font-semibold text-base">Characters</div>
-            <div class="divide-y divide-gray-700">
-                {players.into_iter().map(|player| { view!{
-                    <div class="flex items-center gap-2 px-3 py-2">
-                        <PlayerSpriteCanvas sprite={player.sprite} />
-                        <div class="font-semibold text-base">{player.name}</div>
-                    </div>
-                }
-                }).collect::<Vec<_>>()}
-            </div>
-        </aside>
-    }
-}
-
-#[component]
-fn PlayerSpriteCanvas(#[prop(into)] sprite: SpriteRect) -> impl IntoView {
+fn PlayerSpriteCanvas(#[prop(into)] sprite: &'static SpriteRect) -> impl IntoView {
     let canvas_ref: NodeRef<Canvas> = NodeRef::new();
     Effect::new(move |_| {
         if let Some(canvas) = canvas_ref.get() {
@@ -268,8 +315,31 @@ fn BottomPanel() -> impl IntoView {
     view! {
         <footer class="w-[calc(1280px+0.5rem+256px)] bg-panel rounded shadow-lg text-sm p-3 overflow-y-auto max-h-32">
             <div class="font-semibold mb-1">Game Log</div>
-            <div class="space-y-1 text-xs">
-            </div>
+            <div class="space-y-1 text-xs"></div>
         </footer>
     }
 }
+
+// #[component]
+// pub fn SseListener(props: SseListenerProps) -> impl IntoView {
+//     use_effect(move || {
+//         let event_source = EventSource::new("https://your-sse-endpoint")
+//             .expect("failed to create EventSource");
+//
+//         let set_messages = props.set_messages;
+//         let on_message = Closure::wrap(Box::new(move |event: MessageEvent| {
+//             if let Ok(data) = event.data().as_string() {
+//                 set_messages.update(|msgs| msgs.push(data));
+//             }
+//         }) as Box<dyn FnMut(MessageEvent)>);
+//
+//         event_source.set_onmessage(Some(on_message.as_ref().unchecked_ref()));
+//         on_message.forget();
+//
+//         move || {
+//             event_source.close();
+//         }
+//     });
+//
+//     view! { <></> }
+// }

@@ -24,4 +24,6 @@ tmi = "0.9.0"
 winnow = "0.7.11"
 openssl = { version = "0.10", features = ["vendored"] }
 
+common = { package = "twitch-rpg-common", path = "../common"}
+
 

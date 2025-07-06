@@ -1,34 +1,51 @@
-use tokio::sync::broadcast::Sender;
-use specs::{Join, ReadExpect, ReadStorage, System};
-use crate::ecs::components::{Health, Position, Projectile};
-use crate::ecs::GameSnapShot;
+use crate::ecs::components::{
+    CharacterClass, Health, HealthComponent, Level, Money, Name, Position, Projectile,
+};
 use crate::ecs::resources::GameState;
+use common::{GameSnapShot, PlayerSnapshot};
+use specs::{Join, ReadExpect, ReadStorage, System};
+use tokio::sync::broadcast::Sender;
 
 pub struct Rendering {
-    pub sender: Sender<GameSnapShot>
+    pub sender: Sender<GameSnapShot>,
 }
 
 impl<'a> System<'a> for Rendering {
     type SystemData = (
+        ReadStorage<'a, Name>,
         ReadStorage<'a, Position>,
-        ReadStorage<'a, Health>,
+        ReadStorage<'a, HealthComponent>,
         ReadStorage<'a, Projectile>,
+        ReadStorage<'a, CharacterClass>,
+        ReadStorage<'a, Level>,
+        ReadStorage<'a, Money>,
         ReadExpect<'a, GameState>,
         // inventory
     );
-    
-    fn run(&mut self, (positions, health, projectiles, game_state): Self::SystemData) {
+
+    fn run(
+        &mut self,
+        (names, positions, health, projectiles, character_classes, levels, monies, game_state): Self::SystemData,
+    ) {
         let state = &*game_state;
         match state {
             GameState::OutOfDungeon => {
-                let gs = GameSnapShot {
+                let mut gs = GameSnapShot {
                     party: Vec::new(),
-                    floor_positions: None
+                    floor_positions: None,
                 };
-                for (_, _, _) in (&positions, &health, &projectiles).join() {
-                    // gs.party.append()
+                for (name, health, character_class, level, money) in
+                    (&names, &health, &character_classes, &levels, &monies).join()
+                {
+                    gs.party.push(PlayerSnapshot {
+                        name: name.0.clone(), //TODO: not clone?
+                        class: character_class.get_player_class(),
+                        health: health.0.clone(),
+                        level: level.0.clone(),
+                        gold: money.0,
+                        sprite_name: "wizard1".to_string(), //TODO: you know
+                    });
                 }
-                dbg!("sending out of dungeon");
                 _ = self.sender.send(gs);
             }
             GameState::InDungeon => {

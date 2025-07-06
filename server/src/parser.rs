@@ -1,6 +1,6 @@
 use crate::commands::PlayerCommand::{Buy, Use};
 use crate::commands::{MenuItem, PlayerCommand, RpgCommand};
-use crate::player_class::PlayerClass;
+use common::PlayerClass;
 use winnow::Parser;
 use winnow::ascii::{Caseless, alpha1, digit1, space1};
 use winnow::combinator::{alt, preceded};
@@ -84,7 +84,7 @@ mod tests {
         let input = "!rejoin";
         assert_eq!(get_command(&mut &*input), Some(RpgCommand::Rejoin));
     }
-    
+
     #[test]
     fn test_buy_item() {
         let input = "!buy 1";
@@ -93,7 +93,7 @@ mod tests {
             Some(RpgCommand::PlayerCommand(Buy(MenuItem::from(1))))
         );
     }
-    
+
     #[test]
     fn test_use_item() {
         let input = "!use 1";

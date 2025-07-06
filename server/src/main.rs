@@ -1,13 +1,13 @@
 mod commands;
 mod ecs;
 mod parser;
-mod player_class;
 mod webserver;
 
 use crate::commands::RpgCommand;
-use crate::ecs::{GameSnapShot, run_game_server};
+use crate::ecs::run_game_server;
 use crate::parser::get_command;
 use crate::webserver::start_web_server;
+use common::GameSnapShot;
 use dotenv::dotenv;
 use tmi::{Badge, Privmsg};
 use tokio::sync::{broadcast, mpsc};
@@ -16,7 +16,7 @@ use tokio::sync::{broadcast, mpsc};
 async fn main() {
     dotenv().ok();
     let (commands_sender, commands_receiver) = mpsc::channel::<(String, RpgCommand, bool)>(100);
-    
+
     // TODO: broadcast or mpsc??
     let (gamestate_sender, _gamestate_receiver) = broadcast::channel::<GameSnapShot>(100);
 

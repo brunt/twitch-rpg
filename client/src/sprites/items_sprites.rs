@@ -1,4 +1,12 @@
 use crate::sprites::SpriteRect;
+
+use phf::phf_map;
+// static FIRE_DAMAGE_SPRITES: phf::Map<&'static str, SpriteRect> = phf_map! {
+//     "0" => DAMAGE_FX_SPRITE_0,
+//     "1" => DAMAGE_FX_SPRITE_1,
+//     "2" => DAMAGE_FX_SPRITE_2,
+// };
+
 #[allow(dead_code)]
 pub const ITEMS_SPRITE_0: SpriteRect = SpriteRect::at(0.0, 0.0);
 #[allow(dead_code)]

@@ -1,4 +1,16 @@
 use crate::sprites::SpriteRect;
+
+use phf::phf_map;
+pub static WIZARD_SPRITES: phf::Map<&'static str, SpriteRect> = phf_map! {
+    "wizard1" => MONSTERS_SPRITE_37,
+    // "1" => DAMAGE_FX_SPRITE_1,
+    // "2" => DAMAGE_FX_SPRITE_2,
+};
+
+// pub fn from_spritemap(value: String, phf: phf::Map<&'static str, SpriteRect>) -> Result<SpriteRect, std::io::Error> {
+//     "wizard1" =>
+// }
+
 #[allow(dead_code)]
 pub const MONSTERS_SPRITE_0: SpriteRect = SpriteRect::at(0.0, 0.0);
 #[allow(dead_code)]
