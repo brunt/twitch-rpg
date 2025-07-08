@@ -1,4 +1,7 @@
+use leptos::either::EitherOf16::P;
+
 pub const SPRITE_DIMENSION: f64 = 56.0;
+pub const ITEM_SPRITE_DIMENSION: f64 = 33.0;
 
 #[derive(Copy, Clone)]
 pub struct SpriteRect {
@@ -15,6 +18,15 @@ impl SpriteRect {
             y: iy * SPRITE_DIMENSION,
             w: SPRITE_DIMENSION,
             h: SPRITE_DIMENSION,
+        }
+    }
+
+    pub const fn item_at(ix: f64, iy: f64) -> SpriteRect {
+        Self {
+            x: ix * ITEM_SPRITE_DIMENSION,
+            y: iy * ITEM_SPRITE_DIMENSION,
+            w: ITEM_SPRITE_DIMENSION,
+            h: ITEM_SPRITE_DIMENSION,
         }
     }
 }
