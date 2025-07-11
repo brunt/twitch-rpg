@@ -57,9 +57,12 @@ async fn sse_handler(
     let rx = state.tx.subscribe();
 
     let stream = BroadcastStream::new(rx).filter_map(|msg| match msg {
-        Ok(msg) => Some(Ok(
+        Ok(msg) => {
+            //TODO: remove after debugging
+            dbg!(&msg);
+            Some(Ok(
             Event::default().data(serde_json::to_string(&msg).unwrap())
-        )),
+        ))},
         Err(_) => None,
     });
 

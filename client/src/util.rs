@@ -70,10 +70,11 @@ pub fn draw_sprite(
 pub fn draw_item_sprite(
     ctx: &CanvasRenderingContext2d,
     image: &HtmlImageElement,
-    sprite: &SpriteRect,
+    sprite: Option<&SpriteRect>,
     x: f64,
     y: f64,
 ) {
+    let Some(sprite) = sprite else { return };
     ctx.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
         image,
         sprite.x,
@@ -86,4 +87,9 @@ pub fn draw_item_sprite(
         ITEM_SPRITE_DIMENSION,
     )
     .expect_throw("Failed to draw sprite");
+}
+
+pub struct AnimationState {
+    pub frame_count: u64,
+    pub last_time: f64,
 }

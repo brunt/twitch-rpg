@@ -1,8 +1,8 @@
 use crate::ecs::components::{
     CharacterClass, Health, HealthComponent, Level, Money, Name, Position, Projectile,
 };
-use crate::ecs::resources::GameState;
-use common::{GameSnapShot, PlayerSnapshot};
+use crate::ecs::resources::{CountdownTimer, GameState};
+use common::{GameSnapShot, PlayerSnapshot, ShopItem};
 use specs::{Join, ReadExpect, ReadStorage, System};
 use tokio::sync::broadcast::Sender;
 
@@ -20,20 +20,45 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, Level>,
         ReadStorage<'a, Money>,
         ReadExpect<'a, GameState>,
+        ReadExpect<'a, CountdownTimer>,
         // inventory
     );
 
     fn run(
         &mut self,
-        (names, positions, health, projectiles, character_classes, levels, monies, game_state): Self::SystemData,
+        (
+            names,
+            positions,
+            health,
+            projectiles,
+            character_classes,
+            levels,
+            monies,
+            game_state,
+            countdown,
+        ): Self::SystemData,
     ) {
         let state = &*game_state;
         match state {
             GameState::OutOfDungeon => {
+                
+                let timer = countdown.to_serialized();
+                dbg!(timer.clone());
+                // TODO: builder method for this?
                 let mut gs = GameSnapShot {
                     party: Vec::new(),
                     floor_positions: None,
+                    floor: None,
+                    shop_items: Some(vec![ShopItem {
+                        name: "Name".to_string(),
+                        description: "desc".to_string(),
+                        price: 10,
+                        sprite: "red_potion".to_string(),
+                    }]),
+                    // ready_timer: Some(countdown.to_serialized()),
+                    ready_timer: Some(timer),
                 };
+                
                 for (name, health, character_class, level, money) in
                     (&names, &health, &character_classes, &levels, &monies).join()
                 {
@@ -49,10 +74,26 @@ impl<'a> System<'a> for Rendering {
                 _ = self.sender.send(gs);
             }
             GameState::InDungeon => {
-                let gs = GameSnapShot {
+                let mut gs = GameSnapShot {
                     party: Vec::new(),
                     floor_positions: Some(vec![]),
+                    floor: None,
+                    shop_items: None,
+                    ready_timer: None,
                 };
+
+                for (name, health, character_class, level, money) in
+                    (&names, &health, &character_classes, &levels, &monies).join()
+                {
+                    gs.party.push(PlayerSnapshot {
+                        name: name.0.clone(), //TODO: not clone?
+                        class: character_class.get_player_class(),
+                        health: health.0.clone(),
+                        level: level.0.clone(),
+                        gold: money.0,
+                        sprite_name: "wizard1".to_string(), //TODO: you know
+                    });
+                }
                 for (pos, health, proj) in (&positions, &health, &projectiles).join() {
                     // gs.party.append()
                 }

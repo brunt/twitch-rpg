@@ -2,8 +2,10 @@ pub mod components;
 pub mod systems;
 
 use crate::commands::RpgCommand;
+use crate::ecs::resources::CountdownTimer;
 pub(crate) use crate::ecs::resources::DungeonExt;
 use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
+use crate::ecs::systems::countdown::CountdownSystem;
 use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
@@ -62,6 +64,7 @@ pub fn run_game_server(
             "rendering",
             &[],
         )
+        .with(CountdownSystem, "countdown", &["command_handler"])
         .build();
 
     loop {
@@ -76,15 +79,6 @@ pub fn run_game_server(
 
         // cleanup etc
         gs.ecs.maintain();
-
-        // let entites = gs.ecs.entities();
-        // let classes = gs.ecs.read_storage::<CharacterClass>();
-        // let levels = gs.ecs.read_storage::<Level>();
-        // let monies = gs.ecs.read_storage::<Money>();
-        // let healths = gs.ecs.read_storage::<HealthComponent>();
-        // for (entity, class, level, money, health) in (&entites, &classes, &levels, &monies, &healths).join() {
-        //     println!("{:?} {:?} {:?} {:?} {:?}", entity, class, level, money, health);
-        // }
 
         // sleep for a duration
         // TODO: figure out a time interval appropriate for this game

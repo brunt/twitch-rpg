@@ -2,11 +2,11 @@
 use crate::commands::PlayerCommand::Use;
 use crate::commands::{PlayerCommand, RpgCommand};
 use crate::ecs::components::{
-    CharacterClass, Equipment, Experience, Faction, HealthComponent, Level, Money, MovementAI,
-    MovementAIKind, MovementSpeed, Name, Position, Renderable, Resource, Stats,
+    CharacterClass, Equipment, Experience, HealthComponent, Level, Money, MovementAI,
+    MovementAIKind, MovementSpeed, Name, Player, Position, Renderable, Resource, Stats,
 };
 use crate::ecs::resources::GameState;
-use specs::{Entities, LazyUpdate, Read, ReadExpect, System, Write, WriteExpect, WriteStorage};
+use specs::{Entities, Join, ReadExpect, System, Write, WriteExpect, WriteStorage};
 use std::collections::VecDeque;
 use tatami_dungeon::Dungeon;
 
@@ -24,8 +24,8 @@ impl<'a> System<'a> for CommandHandlerSystem {
         WriteStorage<'a, HealthComponent>,
         WriteStorage<'a, CharacterClass>,
         WriteStorage<'a, Money>,
+        WriteStorage<'a, Player>,
         Entities<'a>,
-        ReadExpect<'a, LazyUpdate>,
     );
 
     fn run(
@@ -38,8 +38,8 @@ impl<'a> System<'a> for CommandHandlerSystem {
             mut healths,
             mut classes,
             mut money,
+            mut players,
             entities,
-            lazy,
         ): Self::SystemData,
     ) {
         while let Some((player_name, command, _is_privileged)) = command_queue.pop_front() {
@@ -51,10 +51,11 @@ impl<'a> System<'a> for CommandHandlerSystem {
                             // they begin in "town" and are able to immediately purchase items
                             // when the dungeon starts, they are added as entities (with purchased items) to dungeon
                             // before that, they are stored in the Town hashmap
-                            println!(
-                                "Creating new character for {} with class {:?}",
-                                player_name, class
-                            );
+
+                            // do not let player duplicates join
+                            if (&names).join().any(|name| name.0 == player_name) {
+                                continue;
+                            }
 
                             let player_entity = entities.create();
                             levels
@@ -73,12 +74,19 @@ impl<'a> System<'a> for CommandHandlerSystem {
                             money
                                 .insert(player_entity, Money::default())
                                 .expect("failed to set default money");
+                            players
+                                .insert(player_entity, Player)
+                                .expect("failed to set player");
                         }
                         // Other commands...
                         RpgCommand::Rejoin => {
                             // Load player character
                             println!("Loading character for {}", player_name);
-                            // Implementation here
+                            // do not let player duplicates join
+                            if (&names).join().any(|name| name.0 == player_name) {
+                                continue;
+                            }
+                            //TODO: load data from database
                         }
                         RpgCommand::PlayerCommand(PlayerCommand::Buy(item)) => {
                             // Handle buy command

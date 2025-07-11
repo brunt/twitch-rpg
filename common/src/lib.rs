@@ -1,12 +1,15 @@
 use std::fmt::Display;
 use std::str::FromStr;
 use serde::{Deserialize, Serialize};
+use tatami_dungeon::Floor;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GameSnapShot {
-    // in_dungeon: GameState,
     pub party: Vec<PlayerSnapshot>,
-    pub floor_positions: Option<Vec<String>>
+    pub floor_positions: Option<Vec<String>>,
+    pub floor: Option<Floor>,
+    pub shop_items: Option<Vec<ShopItem>>,
+    pub ready_timer: Option<SerializedCountdownTimer>
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -72,4 +75,18 @@ impl FromStr for PlayerClass {
 pub enum Health {
     Alive { hp: u32, max_hp: u32 },
     Dead,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ShopItem {
+    pub sprite: String,
+    pub name: String,
+    pub price: u32,
+    pub description: String,
+}
+
+#[derive(Serialize, Clone, Debug, Deserialize)]
+pub struct SerializedCountdownTimer {
+    pub remaining: u64,
+    pub active: bool,
 }

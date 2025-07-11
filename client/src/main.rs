@@ -1,27 +1,31 @@
+mod dungeon_floor;
 mod item_shop;
 mod sprites;
 mod util;
 
-use crate::item_shop::{ShopItem, draw_shop_interface};
+use crate::dungeon_floor::draw_dungeon_floor;
+use crate::item_shop::{draw_shop_interface};
 use crate::sprites::items_sprites::{
     ITEMS_SPRITE_0, ITEMS_SPRITE_25, ITEMS_SPRITE_26, ITEMS_SPRITE_27,
 };
 use crate::sprites::monsters_sprites::*;
 use crate::sprites::terrain_sprites::*;
 use crate::sprites::{SPRITE_DIMENSION, SpriteRect};
-use crate::util::{draw_item_sprite, draw_sprite, load_images};
-use common::{GameSnapShot, Health, PlayerClass, PlayerSnapshot};
+use crate::util::{AnimationState, draw_item_sprite, draw_sprite, load_images};
+use common::{GameSnapShot, Health, PlayerClass, PlayerSnapshot, ShopItem};
 use leptos::html::Canvas;
 use leptos::mount::mount_to_body;
 use leptos::prelude::{
-    ClassAttribute, Effect, ElementChild, Get, IntoInner, NodeRef, NodeRefAttribute, Set, Signal,
-    signal,
+    ClassAttribute, Effect, ElementChild, Get, GetUntracked, IntoInner, NodeRef, NodeRefAttribute,
+    Set, Signal, signal,
 };
 use leptos::{IntoView, component, view};
+use std::cell::RefCell;
 use std::ops::Deref;
+use std::rc::Rc;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
-use web_sys::{CanvasRenderingContext2d, EventSource, HtmlImageElement, MessageEvent};
+use web_sys::{CanvasRenderingContext2d, EventSource, HtmlImageElement, MessageEvent, window};
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -62,164 +66,111 @@ fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoView {
     const MAP_WIDTH: usize = 20;
     const MAP_HEIGHT: usize = 25;
 
-    // TODO: offscreen canvas 🤷🏻‍♂️
-    // request_animation_frame(move || canvas_ref);
+    // load sprites
+    let [
+        terrain_image,
+        monster_image,
+        item_image,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+    ] = load_images();
+
+    let latest_snapshot = Rc::new(RefCell::new(None));
+    let animation_state = Rc::new(RefCell::new(AnimationState {
+        frame_count: 0,
+        last_time: 0.0,
+    }));
+    let animation_state_for_effect = animation_state.clone();
+    let latest_snapshot_for_effect = latest_snapshot.clone();
+    let f: Rc<RefCell<Option<Closure<dyn FnMut()>>>> = Rc::new(RefCell::new(None));
+    let g = f.clone();
+    let g_for_effect = g.clone();
+
+    {
+        let latest_snapshot = latest_snapshot.clone();
+        Effect::new(move |_| {
+            *latest_snapshot.borrow_mut() = gs.get();
+        });
+    }
 
     Effect::new(move |_| {
-        if let Some(canvas) = canvas_ref.get() {
-            let ctx = canvas
-                .get_context("2d")
-                .unwrap()
-                .unwrap()
-                .dyn_into::<CanvasRenderingContext2d>()
-                .unwrap();
+        let animation_state = animation_state_for_effect.clone();
+        let latest_snapshot = latest_snapshot_for_effect.clone();
+        let g = g_for_effect.clone();
 
-            // load sprites
-            let [
-                terrain_image,
-                monster_image,
-                item_image,
-                _,
-                _,
-                _,
-                _,
-                _,
-                _,
-                _,
-            ] = load_images();
+        let Some(canvas) = canvas_ref.get() else {
+            return;
+        };
+        let ctx = canvas
+            .get_context("2d")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<CanvasRenderingContext2d>()
+            .unwrap();
 
-            // clone for usage in closure
-            let closure_terrain_image = terrain_image.clone();
-            let closure_monster_image = monster_image.clone();
-            let closure_item_image = item_image.clone();
+        // clone for usage in closure
+        let closure_terrain_image = terrain_image.clone();
+        let closure_monster_image = monster_image.clone();
+        let closure_item_image = item_image.clone();
+        let closure = Closure::<dyn FnMut()>::new(move || {
+            let mut anim = animation_state.borrow_mut();
+            anim.frame_count += 1;
 
-            let ctx_clone = ctx.clone();
+            // Optional: compute time delta for smooth motion
+            let now = window().unwrap().performance().unwrap().now();
+            let dt = now - anim.last_time;
 
-            let onload = Closure::<dyn FnMut()>::new(move || {
-                // backmost layer: black
-                ctx.set_fill_style_str("black");
-                ctx.fill_rect(0.0, 0.0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            // backmost layer: black
+            ctx.set_fill_style_str("black");
+            ctx.fill_rect(0.0, 0.0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-                // // second backmost layer: terrain
-                for row in 0..MAP_WIDTH {
-                    // rows {
-                    for col in 0..MAP_HEIGHT {
-                        //cols {
-                        let screen_x = (row as f64 - col as f64) * (SPRITE_DIMENSION / 2.0)
-                            + CANVAS_WIDTH / 2.0;
-                        let screen_y = (row as f64 + col as f64) * (SPRITE_DIMENSION / 2.0);
 
-                        // edge calculation
-                        let is_top_left_corner = row == 0 && col == 0;
-                        let is_top_right_corner = row == 0 && col == MAP_HEIGHT - 1;
-                        let is_bottom_left_corner = row == MAP_WIDTH - 1 && col == 0;
-                        let is_top_corner = row == MAP_WIDTH - 1 && col == MAP_HEIGHT - 1;
-                        let is_ne_sw = row == 0 || row == MAP_WIDTH - 1;
-                        let is_nw_se = col == 0 || col == MAP_HEIGHT - 1;
-
-                        let x = (col as f64 - row as f64) * (SPRITE_DIMENSION / 2.0)
-                            + CANVAS_WIDTH / 2.0
-                            - SPRITE_DIMENSION / 2.0;
-                        let y = (col as f64 + row as f64) * (SPRITE_DIMENSION / 4.0);
-                        draw_sprite(
-                            &ctx_clone,
-                            &closure_terrain_image,
-                            &TERRAIN_SPRITE_653,
-                            x,
-                            y,
-                            None,
-                        ); //grass sprite
-
-                        if is_ne_sw {
-                            draw_sprite(
-                                &ctx_clone,
-                                &closure_terrain_image,
-                                &TERRAIN_SPRITE_467,
-                                x,
-                                y,
-                                None,
-                            ); //tree sprites
-                        }
-                        if is_nw_se {
-                            draw_sprite(
-                                &ctx_clone,
-                                &closure_terrain_image,
-                                &TERRAIN_SPRITE_432,
-                                x,
-                                y,
-                                None,
-                            );
-                        }
-
-                        if is_top_left_corner {
-                            draw_sprite(
-                                &ctx_clone,
-                                &closure_terrain_image,
-                                &TERRAIN_SPRITE_432,
-                                x,
-                                y,
-                                None,
-                            );
-                        }
-
-                        //         // sprites need to be drawn from the top rows down
-                        draw_sprite(
-                            &ctx_clone,
-                            &closure_terrain_image,
-                            &TERRAIN_SPRITE_158,
-                            SPRITE_DIMENSION * 6.0,
-                            SPRITE_DIMENSION * 5.0,
-                            None,
-                        );
-                        draw_sprite(
-                            &ctx_clone,
-                            &closure_terrain_image,
-                            &TERRAIN_SPRITE_218,
-                            SPRITE_DIMENSION * 5.0,
-                            SPRITE_DIMENSION * 5.0,
-                            None,
-                        );
-                        draw_sprite(
-                            &ctx_clone,
-                            &closure_terrain_image,
-                            &TERRAIN_SPRITE_219,
-                            SPRITE_DIMENSION * 5.5,
-                            SPRITE_DIMENSION * 5.25,
-                            None,
-                        );
-                        draw_sprite(
-                            &ctx_clone,
-                            &closure_monster_image,
-                            &MONSTERS_SPRITE_339,
-                            SPRITE_DIMENSION * 7.5,
-                            SPRITE_DIMENSION * 5.0,
-                            None,
-                        );
-                    }
+            if let Some(snapshot) = latest_snapshot.borrow().as_ref() {
+                if let Some(_floor) = gs.get_untracked().and_then(|gs| gs.floor) {
+                    draw_dungeon_floor(
+                        // &ctx_clone,
+                        &ctx,
+                        &closure_terrain_image,
+                        &closure_monster_image,
+                        MAP_WIDTH,
+                        MAP_HEIGHT,
+                        CANVAS_WIDTH,
+                        CANVAS_HEIGHT,
+                    );
+                } else {
+                    draw_shop_interface(
+                        &ctx,
+                        &closure_item_image,
+                        &gs.get().unwrap().shop_items.unwrap_or_default(),
+                        30.0,
+                        30.0,
+                        100.0,
+                        100.0,
+                        2,
+                    )
                 }
 
-                let shop_item = ShopItem {
-                    name: "Name".to_string(),
-                    description: "desc".to_string(),
-                    price: 10,
-                    sprite: ITEMS_SPRITE_27,
-                };
-                draw_shop_interface(
-                    &ctx,
-                    &closure_item_image,
-                    &[shop_item],
-                    30.0,
-                    30.0,
-                    100.0,
-                    100.0,
-                    2,
-                )
-            });
-            terrain_image.set_onload(Some(onload.as_ref().unchecked_ref()));
-            monster_image.set_onload(Some(onload.as_ref().unchecked_ref()));
-            item_image.set_onload(Some(onload.as_ref().unchecked_ref()));
-            onload.forget();
-        }
+                ctx.set_font("bold 16px sans-serif");
+                ctx.set_fill_style_str("white");
+                ctx.fill_text((gs.get_untracked().unwrap().ready_timer.unwrap().remaining).to_string().as_str(), 10.0, 10.0).expect("failed to count down");
+            }
+            let window = window().unwrap();
+            let cb = g.borrow();
+            let cb_ref = cb.as_ref().unwrap();
+            window.request_animation_frame(cb_ref.as_ref().unchecked_ref()).unwrap();
+        });
+
+        *f.borrow_mut() = Some(closure);
+
+        window()
+            .unwrap()
+            .request_animation_frame(f.borrow().as_ref().unwrap().as_ref().unchecked_ref())
+            .unwrap();
     });
 
     view! { <canvas node_ref=canvas_ref width=CANVAS_WIDTH height=CANVAS_HEIGHT /> }
@@ -234,12 +185,9 @@ fn SidePanelCharacterSheet(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> im
                 {move || {
                     let gs = gs.get();
                     if let Some(gs) = gs {
-                        leptos::logging::log!("{:?}", gs.party.clone());
                         gs.party
                             .iter()
                             .map(|player| {
-                                leptos::logging::log!("{:?}", player);
-
                                 view! {
                                     <div class="flex items-center gap-2 px-3 py-2">
                                         <PlayerSpriteCanvas sprite=WIZARD_SPRITES
@@ -260,7 +208,6 @@ fn SidePanelCharacterSheet(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> im
                             })
                             .collect::<Vec<_>>()
                     } else {
-                        leptos::logging::log!("gs is none");
                         vec![]
                     }
                 }}

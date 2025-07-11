@@ -1,10 +1,9 @@
 use crate::ecs::components::{
-    CharacterClass, Equipment, Experience, Faction, Health, HealthComponent, Level, Money,
-    MovementAI, MovementSpeed, Name, Position, Projectile, Renderable, Resource, Stats,
-    TargetPosition,
+    CharacterClass, Equipment, Experience, Health, HealthComponent, Level, Money, MovementAI,
+    MovementSpeed, Name, Player, Position, Projectile, Renderable, Resource, Stats, TargetPosition,
 };
 use crate::ecs::resources;
-use crate::ecs::resources::{GameState, ShopInventory, TownPlayers};
+use crate::ecs::resources::{CountdownTimer, DeltaTime, GameState, ShopInventory};
 use specs::{Entity, World, WorldExt};
 
 pub fn change_game_state(world: &mut World, new_state: resources::GameState) {
@@ -15,11 +14,11 @@ pub fn change_game_state(world: &mut World, new_state: resources::GameState) {
 }
 
 /// Registers a player in the town, allowing them to use the shop
-pub fn register_town_player(world: &mut World, player_name: String, entity: Entity) {
-    if let Some(town) = world.get_mut::<TownPlayers>() {
-        town.players.insert(player_name, entity);
-    }
-}
+// pub fn register_town_player(world: &mut World, player_name: String, entity: Entity) {
+//     if let Some(town) = world.get_mut::<TownPlayers>() {
+//         town.players.insert(player_name, entity);
+//     }
+// }
 // pub fn register_town_player(
 //     town_players: &mut WriteExpect<TownPlayers>,
 //     player_name: String,
@@ -42,16 +41,14 @@ pub fn create_world() -> World {
     world.register::<Stats>();
     world.register::<Experience>();
     world.register::<MovementAI>();
-    world.register::<Faction>();
+    world.register::<Player>();
     world.register::<Projectile>();
     world.register::<Level>();
     world.register::<Money>();
 
     // resources
     world.insert(GameState::OutOfDungeon);
-    world.insert(TownPlayers::default());
-    world.insert(specs::LazyUpdate::default());
-    // world.insert(ShopInventory::new());
-
+    world.insert(CountdownTimer::default());
+    world.insert(DeltaTime::default());
     world
 }

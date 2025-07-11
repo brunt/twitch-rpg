@@ -1,7 +1,8 @@
-use crate::commands::{MenuItem, Player};
-use serde::Serialize;
+use crate::commands::MenuItem;
+use common::SerializedCountdownTimer;
 use specs::{Entity, World};
 use std::collections::HashMap;
+use std::time::Duration;
 use tatami_dungeon::{Dungeon, GenerateDungeonParams, Item};
 
 #[derive(Debug, Clone)]
@@ -9,19 +10,6 @@ pub enum GameState {
     OutOfDungeon,
     InDungeon,
 }
-
-//TODO: shouldn't need to show this at all
-// impl Serialize for GameState {
-//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-//     where
-//         S: serde::Serializer,
-//     {
-//         match self {
-//             GameState::OutOfDungeon => serializer.serialize_bool(false),
-//             GameState::InDungeon => serializer.serialize_bool(true),
-//         }
-//     }
-// }
 
 pub trait DungeonExt {
     fn generate_dungeon(&mut self, params: GenerateDungeonParams);
@@ -35,26 +23,37 @@ impl DungeonExt for World {
     }
 }
 
-/// Struct that holds game data specifically for the client to render
-
-// queue of players that can shop before joining dungeon
-#[derive(Default)]
-pub struct TownPlayers {
-    pub players: HashMap<String, Entity>,
-}
-
+//TODO: use this?
 pub struct ShopInventory {
     pub items: HashMap<MenuItem, (Item, u32)>,
 }
 
-// impl ShopInventory {
-//     pub fn new() -> Self {
-//         let mut shop = Self::default();
-//
-//         // Add default shop items
-//         // For example:
-//         // shop.items.insert(MenuItem(1), (Item::Consumable(Consumable::Potion("Health".to_string())), 10));
-//
-//         shop
-//     }
-// }
+pub struct CountdownTimer {
+    pub remaining: Duration,
+    pub active: bool,
+}
+
+impl CountdownTimer {
+    pub fn new(remaining: Duration) -> Self {
+        Self {
+            remaining,
+            active: false,
+        }
+    }
+
+    pub fn to_serialized(&self) -> SerializedCountdownTimer {
+        SerializedCountdownTimer {
+            remaining: self.remaining.as_secs(),
+            active: self.active,
+        }
+    }
+}
+
+impl Default for CountdownTimer {
+    fn default() -> Self {
+        Self::new(Duration::from_secs(120))
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct DeltaTime(pub u64);

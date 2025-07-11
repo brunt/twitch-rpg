@@ -26,26 +26,3 @@ impl From<u8> for MenuItem {
         MenuItem(i)
     }
 }
-
-// #[derive(Clone)]
-// pub enum Item {
-//     Consumable(Consumable),
-//     Equipment(String),
-// }
-// impl FromStr for Item {
-//     type Err = ();
-//     fn from_str(s: &str) -> Result<Self, Self::Err> {
-//         match s {
-//             // "" => {
-//             //     Item::Equipment(s.to_string())
-//             // },
-//             _ => Err(()),
-//         }
-//     }
-// }
-//
-// #[derive(Clone)]
-// pub enum Consumable {
-//     Potion(String),
-//     Scroll(String),
-// }

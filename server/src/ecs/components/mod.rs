@@ -182,13 +182,9 @@ impl Default for Level {
     }
 }
 
-// Faction component
-#[derive(Component, Debug, Clone, PartialEq, Eq)]
-pub enum Faction {
-    Player,
-    Enemy,
-    Neutral,
-}
+#[derive(Debug, Component, Clone, Default)]
+#[storage(NullStorage)]
+pub struct Player;
 
 // Immobile component for entities that can't move
 #[derive(Component, Debug)]

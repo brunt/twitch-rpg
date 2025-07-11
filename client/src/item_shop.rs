@@ -1,14 +1,9 @@
 use crate::draw_sprite;
 use crate::sprites::{ITEM_SPRITE_DIMENSION, SpriteRect};
-use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 use crate::util::draw_item_sprite;
-
-pub struct ShopItem {
-    pub sprite: SpriteRect,
-    pub name: String,
-    pub price: u32,
-    pub description: String,
-}
+use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
+use common::ShopItem;
+use crate::sprites::items_sprites::ITEMS_SPRITES;
 
 pub(crate) fn draw_shop_interface(
     ctx: &CanvasRenderingContext2d,
@@ -34,7 +29,9 @@ pub(crate) fn draw_shop_interface(
         // Draw item sprite centered in slot
         let sprite_x = x + (slot_width - ITEM_SPRITE_DIMENSION) / 2.0;
         let sprite_y = y + 8.0;
-        draw_item_sprite(ctx, item_image, &item.sprite, sprite_x, sprite_y);
+        draw_item_sprite(ctx, item_image, ITEMS_SPRITES.get(&item.sprite), sprite_x, sprite_y);
+        ctx.set_fill_style_str("#fff");
+        ctx.line_to(100.0, 100.0);
 
         // Draw item name
         ctx.set_fill_style_str("#fff");
