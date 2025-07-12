@@ -112,9 +112,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                         &gs.get().unwrap().shop_items.unwrap_or_default(),
                         30.0,
                         30.0,
-                        100.0,
-                        100.0,
-                        2,
+                        4,
                     )
                 }
             }

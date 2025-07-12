@@ -84,8 +84,18 @@ pub enum Health {
 pub struct ShopItem {
     pub sprite: String,
     pub name: String,
+    // pub quality: ItemQuality,
     pub price: u32,
     pub description: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ItemQuality {
+    Common,
+    Uncommon,
+    Rare,
+    Epic,
+    Legendary,
 }
 
 #[derive(Serialize, Clone, Debug, Deserialize)]
