@@ -1,7 +1,7 @@
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::{Health, HealthComponent, Level, Money, Name, Position, Projectile};
 use crate::ecs::resources::{CountdownTimer, GameState};
-use common::{GameSnapShot, PlayerSnapshot, ShopItem};
+use common::{Form, GameSnapShot, PlayerSnapshot, ShopItem};
 use specs::{Join, ReadExpect, ReadStorage, System};
 use tokio::sync::broadcast::Sender;
 
@@ -59,11 +59,11 @@ impl<'a> System<'a> for Rendering {
                 {
                     gs.party.push(PlayerSnapshot {
                         name: name.0.clone(), //TODO: not clone?
-                        class: character_class.get_player_class(),
+                        class: character_class.0.clone(),
                         health: health.0.clone(),
                         level: level.0.clone(),
                         gold: money.0,
-                        sprite_name: "wizard1".to_string(), //TODO: you know
+                        form: Form::Normal,
                     });
                 }
                 _ = self.sender.send(gs);
@@ -81,12 +81,12 @@ impl<'a> System<'a> for Rendering {
                     (&names, &health, &character_classes, &levels, &monies).join()
                 {
                     gs.party.push(PlayerSnapshot {
-                        name: name.0.clone(), //TODO: not clone?
-                        class: character_class.get_player_class(),
+                        name: name.0.clone(),
+                        class: character_class.0.clone(),
                         health: health.0.clone(),
                         level: level.0.clone(),
                         gold: money.0,
-                        sprite_name: "wizard1".to_string(), //TODO: you know
+                        form: Form::Normal // TODO: not always normal
                     });
                 }
                 for (pos, health, proj) in (&positions, &health, &projectiles).join() {

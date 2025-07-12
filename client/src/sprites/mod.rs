@@ -3,7 +3,7 @@ use leptos::either::EitherOf16::P;
 pub const SPRITE_DIMENSION: f64 = 56.0;
 pub const ITEM_SPRITE_DIMENSION: f64 = 34.0;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct SpriteRect {
     pub x: f64,
     pub y: f64,

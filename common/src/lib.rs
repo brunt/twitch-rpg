@@ -15,12 +15,20 @@ pub struct GameSnapShot {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerSnapshot {
     pub name: String,
-    pub class: Option<PlayerClass>, // Class -> PlayerClass
+    pub class: PlayerClass,
     pub health: Health,
     pub level: u32,
     pub gold: u32,
-    pub sprite_name: String,
+    pub form: Form,
     // pub buffs: Vec<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Form {
+    Normal,
+    Polymorphed(String),
+    Invisible,
+    Scaled(f64), // larger or smaller
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -33,7 +41,7 @@ pub enum PlayerClass {
     Cleric,
     Paladin,
     Warlock,
-    Monk,
+    // Monk,
     Sorcerer,
 }
 
@@ -50,7 +58,7 @@ impl Display for PlayerClass {
             Self::Cleric => write!(f, "Cleric"),
             Self::Paladin => write!(f, "Paladin"),
             Self::Warlock => write!(f, "Warlock"),
-            Self::Monk => write!(f, "Monk"),
+            // Self::Monk => write!(f, "Monk"),
             Self::Sorcerer => write!(f, "Sorcerer"),
         }
     }
@@ -68,7 +76,7 @@ impl FromStr for PlayerClass {
             "cleric" => Ok(Self::Cleric),
             "paladin" => Ok(Self::Paladin),
             "warlock" => Ok(Self::Warlock),
-            "monk" => Ok(Self::Monk),
+            // "monk" => Ok(Self::Monk),
             "sorcerer" => Ok(Self::Sorcerer),
             _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "invalid player class"))
         }
@@ -86,7 +94,7 @@ impl Display for Health {
         match self {
             Self::Alive { hp, max_hp } => {
                 let total_hearts = 6;
-                let filled_hearts = ((hp * total_hearts) + (max_hp - 1)) / max_hp; // Round up slightly
+                let filled_hearts = (((hp * total_hearts) + (max_hp - 1)) / max_hp).min(total_hearts);
                 let empty_hearts = total_hearts - filled_hearts;
 
                 let hearts: String = "❤️".repeat(filled_hearts as usize) + &"🖤".repeat(empty_hearts as usize);

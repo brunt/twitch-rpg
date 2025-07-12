@@ -69,7 +69,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 .insert(player_entity, HealthComponent::new_from_class(&class))
                                 .expect("failed to set default health");
                             classes
-                                .insert(player_entity, CharacterClass::PlayerClass(class))
+                                .insert(player_entity, CharacterClass(class))
                                 .expect("failed to set class");
                             money
                                 .insert(player_entity, Money::default())

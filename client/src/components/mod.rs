@@ -49,6 +49,7 @@ pub fn draw_sprite(
     sprite: &SpriteRect,
     x: f64,
     y: f64,
+    scale: f64,
     opacity: Option<f64>,
 ) {
     if let Some(o) = opacity {
@@ -62,8 +63,8 @@ pub fn draw_sprite(
         sprite.h,
         x,
         y,
-        SPRITE_DIMENSION,
-        SPRITE_DIMENSION,
+        SPRITE_DIMENSION * scale,
+        SPRITE_DIMENSION * scale,
     )
     .expect_throw("Failed to draw sprite");
     if opacity.is_some() {

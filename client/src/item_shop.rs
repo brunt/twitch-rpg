@@ -63,13 +63,25 @@ pub(crate) fn draw_shop_interface(
         .unwrap();
 
         // Draw gold sprite
-        draw_item_sprite(ctx, item_image, Some(ITEMS_SPRITES.get("small_gold_pile").unwrap()), x + 70.0, y + 25.0);
-
+        draw_item_sprite(
+            ctx,
+            item_image,
+            Some(ITEMS_SPRITES.get("small_gold_pile").unwrap()),
+            x + 70.0,
+            y + 25.0,
+        );
 
         // Draw description (shortened for slot)
         ctx.set_fill_style_str("#aaa");
         ctx.set_font("12px sans-serif");
-        draw_wrapped_text(ctx, &item.description, x + 8.0, y + ITEM_SLOT_SIZE - 45.0, ITEM_SLOT_SIZE - 16.0, 14.0);
+        draw_wrapped_text(
+            ctx,
+            &item.description,
+            x + 8.0,
+            y + ITEM_SLOT_SIZE - 45.0,
+            ITEM_SLOT_SIZE - 16.0,
+            14.0,
+        );
     }
 }
 

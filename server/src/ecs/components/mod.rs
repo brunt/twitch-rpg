@@ -69,7 +69,7 @@ impl HealthComponent {
             PlayerClass::Rogue
             | PlayerClass::Cleric
             | PlayerClass::Druid
-            | PlayerClass::Monk
+            // | PlayerClass::Monk
             | PlayerClass::Warlock => Health::Alive { hp: 8, max_hp: 8 },
             PlayerClass::Wizard | PlayerClass::Sorcerer => Health::Alive { hp: 6, max_hp: 6 },
         })

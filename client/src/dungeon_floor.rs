@@ -33,16 +33,16 @@ pub fn draw_dungeon_floor(
                 - SPRITE_DIMENSION / 2.0;
             let y = (col as f64 + row as f64) * (SPRITE_DIMENSION / 4.0);
 
-            draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_653, x, y, None);
+            draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_653, x, y, 1.0, None);
 
             if is_ne_sw {
-                draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_467, x, y, None);
+                draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_467, x, y, 1.0, None);
             }
             if is_nw_se {
-                draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_432, x, y, None);
+                draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_432, x, y, 1.0, None);
             }
             if is_top_left_corner {
-                draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_432, x, y, None);
+                draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_432, x, y, 1.0, None);
             }
 
             // Example of drawing additional sprites
@@ -52,6 +52,7 @@ pub fn draw_dungeon_floor(
                 &TERRAIN_SPRITE_158,
                 SPRITE_DIMENSION * 6.0,
                 SPRITE_DIMENSION * 5.0,
+                1.0,
                 None,
             );
             draw_sprite(
@@ -60,6 +61,7 @@ pub fn draw_dungeon_floor(
                 &TERRAIN_SPRITE_218,
                 SPRITE_DIMENSION * 5.0,
                 SPRITE_DIMENSION * 5.0,
+                1.0,
                 None,
             );
             draw_sprite(
@@ -68,6 +70,7 @@ pub fn draw_dungeon_floor(
                 &TERRAIN_SPRITE_219,
                 SPRITE_DIMENSION * 5.5,
                 SPRITE_DIMENSION * 5.25,
+                1.0,
                 None,
             );
             draw_sprite(
@@ -76,6 +79,7 @@ pub fn draw_dungeon_floor(
                 &MONSTERS_SPRITE_339,
                 SPRITE_DIMENSION * 7.5,
                 SPRITE_DIMENSION * 5.0,
+                1.0,
                 None,
             );
         }

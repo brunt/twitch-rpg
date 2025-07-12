@@ -45,7 +45,7 @@ fn parse_class(input: &mut &str) -> Result<PlayerClass, EmptyError> {
         Caseless("cleric").value(PlayerClass::Cleric),
         Caseless("druid").value(PlayerClass::Druid),
         Caseless("fighter").value(PlayerClass::Fighter),
-        Caseless("monk").value(PlayerClass::Monk),
+        // Caseless("monk").value(PlayerClass::Monk),
         Caseless("paladin").value(PlayerClass::Paladin),
         Caseless("ranger").value(PlayerClass::Ranger),
         Caseless("rogue").value(PlayerClass::Rogue),

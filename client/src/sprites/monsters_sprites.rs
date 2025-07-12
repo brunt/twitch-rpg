@@ -1,21 +1,107 @@
 use crate::sprites::SpriteRect;
+use common::{Form, PlayerClass, PlayerSnapshot};
 
-use phf::phf_map;
-pub static WIZARD_SPRITES: phf::Map<&'static str, SpriteRect> = phf_map! {
-    "wizard1" => MONSTERS_SPRITE_39,
-    "wizard2" => MONSTERS_SPRITE_53,
-    "wizard_max" => MONSTERS_SPRITE_339,
-};
+//TODO: may need this for shapeshifting, etc
+pub enum VisualState {
+    Normal { class: PlayerClass, level: u32 },
+    PolyMorphed(SpriteRect),
+    Invisible,
+}
 
-pub static ROGUE_SPRITES: phf::Map<&'static str, SpriteRect> = phf_map! {
-    // "" => MONSTERS_SPRITE_39,
-    "rogue1" => MONSTERS_SPRITE_53,
-    // "" => MONSTERS_SPRITE_,
-};
+pub fn player_sprite(player: &PlayerSnapshot) -> &'static SpriteRect {
+    match player.form.clone() {
+        Form::Normal => match (player.class.clone(), player.level) {
+            (PlayerClass::Rogue, level) => {
+                if level <= 5 {
+                    &MONSTERS_SPRITE_878
+                } else {
+                    &MONSTERS_SPRITE_914
+                }
+            }
+            (PlayerClass::Wizard, level) => {
+                if level <= 5 {
+                    &MONSTERS_SPRITE_363
+                } else {
+                    &MONSTERS_SPRITE_339
+                }
+            }
+            (PlayerClass::Druid, level) => {
+                if level <= 5 {
+                    &MONSTERS_SPRITE_412
+                } else {
+                    &MONSTERS_SPRITE_448
+                }
+            }
+            (PlayerClass::Ranger, level) => {
+                if level <= 5 {
+                    &MONSTERS_SPRITE_485
+                } else {
+                    &MONSTERS_SPRITE_413
+                }
+            }
+            (PlayerClass::Warlock, level) => {
+                if level <= 5 {
+                    &MONSTERS_SPRITE_245
+                } else {
+                    &MONSTERS_SPRITE_872
+                }
+            }
+            (PlayerClass::Cleric, level) => {
+                if level <= 5 {
+                    &MONSTERS_SPRITE_163
+                } else {
+                    &MONSTERS_SPRITE_164
+                }
+            }
+            (PlayerClass::Sorcerer, level) => {
+                if level <= 5 {
+                    &MONSTERS_SPRITE_442
+                } else {
+                    &MONSTERS_SPRITE_406
+                }
+            }
+            (PlayerClass::Fighter, level) => {
+                if level <= 5 {
+                    &MONSTERS_SPRITE_33
+                } else {
+                    &MONSTERS_SPRITE_35
+                }
+            }
+            (PlayerClass::Paladin, level) => {
+                if level <= 5 {
+                    &MONSTERS_SPRITE_198
+                } else {
+                    &MONSTERS_SPRITE_219
+                }
+            }
+        },
+        _ => &MONSTERS_SPRITE_914,
+        // Form::Polymorphed(s) => match &s {
+        //     "dragon" => VisualState::PolyMorphed(sprite) => sprite
+        //
+        // }
+    }
 
-// pub fn from_spritemap(value: String, phf: phf::Map<&'static str, SpriteRect>) -> Result<SpriteRect, std::io::Error> {
-//     "wizard1" =>
-// }
+    // match class {
+    //     PlayerClass::Rogue => {
+    //         if level <= 5 {
+    //             MONSTERS_SPRITE_878
+    //         } else {
+    //             MONSTERS_SPRITE_914
+    //         }
+    //     },
+    //     PlayerClass::Wizard => {
+    //         if level <= 5 {
+    //             MONSTERS_SPRITE_39
+    //         } else {
+    //             MONSTERS_SPRITE_339
+    //         }
+    //     },
+    //     _ => {
+    //         MONSTERS_SPRITE_914
+    //     }
+    // }
+}
 
 #[allow(dead_code)]
 pub const MONSTERS_SPRITE_0: SpriteRect = SpriteRect::at(0.0, 0.0);

@@ -5,15 +5,14 @@ pub static ITEMS_SPRITES: phf::Map<&'static str, SpriteRect> = phf_map! {
     // consumables
     "purple_potion" => ITEMS_SPRITE_25,
     "red_potion" => ITEMS_SPRITE_26,
-    
+
     // sprites for UI
     "small_gold_pile" => ITEMS_SPRITE_138,
-    
+
     // wearables
     "elven_boots" => ITEMS_SPRITE_1,
     "wizard_boots" => ITEMS_SPRITE_576,
 };
-
 
 #[allow(dead_code)]
 pub const ITEMS_SPRITE_0: SpriteRect = SpriteRect::item_at(0.0, 0.0);

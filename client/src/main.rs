@@ -4,7 +4,7 @@ mod item_shop;
 mod sprites;
 
 use common::{
-    GameSnapShot, Health, PlayerClass, PlayerSnapshot, SerializedCountdownTimer, ShopItem,
+    Form, GameSnapShot, Health, PlayerClass, PlayerSnapshot, SerializedCountdownTimer, ShopItem,
 };
 use components::bottom_panel::BottomPanel;
 use components::game_canvas::GameCanvas;
@@ -15,9 +15,7 @@ use leptos::prelude::{
     signal,
 };
 use leptos::{IntoView, component, view};
-use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
-use web_sys::{EventSource, MessageEvent};
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -81,17 +79,41 @@ fn App() -> impl IntoView {
                     name: "Elven Boots".to_string(),
                     price: 100,
                     description: "Increases movement speed".to_string(),
-                }
+                },
             ]),
             party: vec![
                 PlayerSnapshot {
                     name: "xMellowMonkeyx".to_string(),
-                    sprite_name: "wizard_max".to_string(),
-                    class: Some(PlayerClass::Wizard),
-                    health: Health::Alive {hp: 4, max_hp: 6},
-                    level: 5,
+                    class: PlayerClass::Paladin,
+                    health: Health::Alive { hp: 11, max_hp: 10 },
+                    level: 2,
                     gold: 100,
-                }
+                    form: Form::Normal,
+                },
+                PlayerSnapshot {
+                    name: "Pixelmog".to_string(),
+                    class: PlayerClass::Ranger,
+                    health: Health::Alive { hp: 5, max_hp: 10 },
+                    level: 4,
+                    gold: 100,
+                    form: Form::Normal,
+                },
+                PlayerSnapshot {
+                    name: "ubruntu".to_string(),
+                    class: PlayerClass::Wizard,
+                    health: Health::Alive { hp: 7, max_hp: 10 },
+                    level: 2,
+                    gold: 100,
+                    form: Form::Normal,
+                },
+                PlayerSnapshot {
+                    name: "Pittinjury".to_string(),
+                    class: PlayerClass::Cleric,
+                    health: Health::Alive { hp: 5, max_hp: 10 },
+                    level: 3,
+                    gold: 100,
+                    form: Form::Normal,
+                },
             ],
             floor_positions: None,
         };
@@ -108,12 +130,12 @@ fn App() -> impl IntoView {
     //         }
     //     }) as Box<dyn FnMut(MessageEvent)>);
     //     sse_event.set_onmessage(Some(callback.as_ref().unchecked_ref()));
-    // 
+    //
     //     callback.forget();
     // });
 
     view! {
-        <div class="flex flex-row gap-2">
+        <div class="flex flex-row">
             <GameCanvas gs=gamestate />
             <SidePanelCharacterSheet gs=gamestate />
         </div>
