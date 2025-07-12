@@ -98,7 +98,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                         ctx.set_font("bold 16px sans-serif");
                         ctx.set_fill_style_str("white");
                         ctx.fill_text(
-                            format!("Entering Dungeon in {}", ready_timer.remaining)
+                            format!("Entering Dungeon in {} seconds", ready_timer.remaining)
                                 .to_string()
                                 .as_str(),
                             CANVAS_WIDTH * 0.45,

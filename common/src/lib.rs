@@ -20,6 +20,7 @@ pub struct PlayerSnapshot {
     pub level: u32,
     pub gold: u32,
     pub sprite_name: String,
+    // pub buffs: Vec<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -78,6 +79,22 @@ impl FromStr for PlayerClass {
 pub enum Health {
     Alive { hp: u32, max_hp: u32 },
     Dead,
+}
+
+impl Display for Health {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Alive { hp, max_hp } => {
+                let total_hearts = 6;
+                let filled_hearts = ((hp * total_hearts) + (max_hp - 1)) / max_hp; // Round up slightly
+                let empty_hearts = total_hearts - filled_hearts;
+
+                let hearts: String = "❤️".repeat(filled_hearts as usize) + &"🖤".repeat(empty_hearts as usize);
+                write!(f, "{}", hearts)
+            }
+            Self::Dead => write!(f, "☠️ Dead"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

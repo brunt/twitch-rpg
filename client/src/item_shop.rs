@@ -81,19 +81,19 @@ fn draw_wrapped_text(
     max_width: f64,
     line_height: f64,
 ) {
-    let words: Vec<&str> = text.split_whitespace().collect();
     let mut line = String::new();
 
-    for word in words {
+    for word in text.split_whitespace() {
         let test_line = if line.is_empty() {
             word.to_string()
         } else {
             format!("{} {}", line, word)
         };
-        let metrics = ctx.measure_text(&test_line).unwrap();
-        if metrics.width() > max_width && !line.is_empty() {
+
+        if ctx.measure_text(&test_line).unwrap().width() > max_width && !line.is_empty() {
             ctx.fill_text(&line, x, y).unwrap();
-            line = word.to_string();
+            line.clear();
+            line.push_str(word);
             y += line_height;
         } else {
             line = test_line;
