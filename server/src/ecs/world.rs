@@ -1,6 +1,7 @@
+use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::{
-    CharacterClass, Equipment, Experience, Health, HealthComponent, Level, Money, MovementAI,
-    MovementSpeed, Name, Player, Position, Projectile, Renderable, Resource, Stats, TargetPosition,
+    Equipment, Experience, Health, HealthComponent, Level, Money, MovementAI, MovementSpeed, Name,
+    Player, Position, Projectile, Resource, Stats, TargetPosition,
 };
 use crate::ecs::resources;
 use crate::ecs::resources::{CountdownTimer, DeltaTime, GameState, ShopInventory};
@@ -31,7 +32,6 @@ pub fn create_world() -> World {
     let mut world = World::new();
     world.register::<Name>();
     world.register::<Position>();
-    world.register::<Renderable>();
     world.register::<MovementSpeed>();
     world.register::<TargetPosition>();
     world.register::<CharacterClass>();
@@ -48,7 +48,7 @@ pub fn create_world() -> World {
 
     // resources
     world.insert(GameState::OutOfDungeon);
-    world.insert(CountdownTimer::default());
+    world.insert::<Option<CountdownTimer>>(None);
     world.insert(DeltaTime::default());
     world
 }

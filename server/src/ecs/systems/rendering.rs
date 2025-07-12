@@ -1,6 +1,5 @@
-use crate::ecs::components::{
-    CharacterClass, Health, HealthComponent, Level, Money, Name, Position, Projectile,
-};
+use crate::ecs::components::class::CharacterClass;
+use crate::ecs::components::{Health, HealthComponent, Level, Money, Name, Position, Projectile};
 use crate::ecs::resources::{CountdownTimer, GameState};
 use common::{GameSnapShot, PlayerSnapshot, ShopItem};
 use specs::{Join, ReadExpect, ReadStorage, System};
@@ -20,7 +19,7 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, Level>,
         ReadStorage<'a, Money>,
         ReadExpect<'a, GameState>,
-        ReadExpect<'a, CountdownTimer>,
+        ReadExpect<'a, Option<CountdownTimer>>,
         // inventory
     );
 
@@ -41,9 +40,6 @@ impl<'a> System<'a> for Rendering {
         let state = &*game_state;
         match state {
             GameState::OutOfDungeon => {
-                
-                let timer = countdown.to_serialized();
-                dbg!(timer.clone());
                 // TODO: builder method for this?
                 let mut gs = GameSnapShot {
                     party: Vec::new(),
@@ -55,10 +51,9 @@ impl<'a> System<'a> for Rendering {
                         price: 10,
                         sprite: "red_potion".to_string(),
                     }]),
-                    // ready_timer: Some(countdown.to_serialized()),
-                    ready_timer: Some(timer),
+                    ready_timer: countdown.clone().map(|c| c.to_serialized()),
                 };
-                
+
                 for (name, health, character_class, level, money) in
                     (&names, &health, &character_classes, &levels, &monies).join()
                 {

@@ -33,6 +33,7 @@ pub enum PlayerClass {
     Paladin,
     Warlock,
     Monk,
+    Sorcerer,
 }
 
 impl PlayerClass {}
@@ -49,6 +50,7 @@ impl Display for PlayerClass {
             Self::Paladin => write!(f, "Paladin"),
             Self::Warlock => write!(f, "Warlock"),
             Self::Monk => write!(f, "Monk"),
+            Self::Sorcerer => write!(f, "Sorcerer"),
         }
     }
 }
@@ -66,6 +68,7 @@ impl FromStr for PlayerClass {
             "paladin" => Ok(Self::Paladin),
             "warlock" => Ok(Self::Warlock),
             "monk" => Ok(Self::Monk),
+            "sorcerer" => Ok(Self::Sorcerer),
             _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "invalid player class"))
         }
     }
@@ -88,5 +91,4 @@ pub struct ShopItem {
 #[derive(Serialize, Clone, Debug, Deserialize)]
 pub struct SerializedCountdownTimer {
     pub remaining: u64,
-    pub active: bool,
 }

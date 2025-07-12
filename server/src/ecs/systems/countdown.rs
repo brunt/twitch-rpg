@@ -1,13 +1,16 @@
-use std::time;
 use crate::ecs::components::{Name, Player};
 use crate::ecs::resources::{CountdownTimer, DeltaTime, GameState};
 use specs::{Join, Read, ReadStorage, System, WriteExpect};
+use std::time;
 
-pub struct CountdownSystem;
+pub struct CountdownSystem {
+    /// The minimum number of players in a lobby before the countdown timer starts.
+    pub min_players: usize,
+}
 
 impl<'a> System<'a> for CountdownSystem {
     type SystemData = (
-        WriteExpect<'a, CountdownTimer>,
+        WriteExpect<'a, Option<CountdownTimer>>,
         WriteExpect<'a, GameState>,
         ReadStorage<'a, Player>,
         Read<'a, DeltaTime>,
@@ -15,25 +18,19 @@ impl<'a> System<'a> for CountdownSystem {
 
     fn run(&mut self, (mut timer, mut game_state, players, delta_time): Self::SystemData) {
         let player_count = players.join().count();
-        if matches!(*game_state, GameState::OutOfDungeon) && player_count > 0 && !timer.active {
-            timer.active = true;
-            timer.remaining = time::Duration::from_secs(120);
+        if matches!(*game_state, GameState::OutOfDungeon)
+            && player_count > self.min_players
+            && timer.is_none()
+        {
+            *timer = Some(CountdownTimer::default());
         }
-        
-        if timer.active {
-            let delta_secs = delta_time.0;
-            let elapsed = time::Duration::new(delta_secs, 0);
 
-            if timer.remaining > elapsed {
-                timer.remaining -= elapsed;
-            } else {
-                timer.remaining = time::Duration::from_secs(0);
-                timer.active = false;
-                *game_state = GameState::InDungeon; //TODO: should this happen here?
+        if let Some(timer) = timer.as_mut() {
+            let elapsed = time::Duration::from_secs_f64(delta_time.0);
+            timer.remaining = timer.remaining.saturating_sub(elapsed);
+            if timer.remaining.is_zero() {
+                *game_state = GameState::InDungeon;
             }
-
-
         }
-        
     }
 }

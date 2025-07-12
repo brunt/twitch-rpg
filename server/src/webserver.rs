@@ -31,6 +31,7 @@ impl AppState {
 }
 
 pub async fn start_web_server(game_state: broadcast::Sender<GameSnapShot>) -> anyhow::Result<()> {
+    dotenv::dotenv().ok();
     let default_port = std::env::var("PORT").unwrap_or_else(|_| "9090".to_string());
 
     let state = AppState::new(game_state);
@@ -57,12 +58,9 @@ async fn sse_handler(
     let rx = state.tx.subscribe();
 
     let stream = BroadcastStream::new(rx).filter_map(|msg| match msg {
-        Ok(msg) => {
-            //TODO: remove after debugging
-            dbg!(&msg);
-            Some(Ok(
+        Ok(msg) => Some(Ok(
             Event::default().data(serde_json::to_string(&msg).unwrap())
-        ))},
+        )),
         Err(_) => None,
     });
 

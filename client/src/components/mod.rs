@@ -2,6 +2,10 @@ use crate::sprites::{ITEM_SPRITE_DIMENSION, SPRITE_DIMENSION, SpriteRect};
 use wasm_bindgen::UnwrapThrowExt;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
+pub mod bottom_panel;
+pub mod game_canvas;
+pub mod side_panel;
+
 pub fn load_images() -> [HtmlImageElement; 10] {
     let terrain_image = HtmlImageElement::new().unwrap();
     let monster_image = HtmlImageElement::new().unwrap();

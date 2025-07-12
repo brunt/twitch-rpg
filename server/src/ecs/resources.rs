@@ -28,32 +28,28 @@ pub struct ShopInventory {
     pub items: HashMap<MenuItem, (Item, u32)>,
 }
 
+#[derive(Clone)]
 pub struct CountdownTimer {
     pub remaining: Duration,
-    pub active: bool,
 }
 
 impl CountdownTimer {
     pub fn new(remaining: Duration) -> Self {
-        Self {
-            remaining,
-            active: false,
-        }
+        Self { remaining }
     }
 
     pub fn to_serialized(&self) -> SerializedCountdownTimer {
         SerializedCountdownTimer {
             remaining: self.remaining.as_secs(),
-            active: self.active,
         }
     }
 }
 
 impl Default for CountdownTimer {
     fn default() -> Self {
-        Self::new(Duration::from_secs(120))
+        Self::new(Duration::from_secs(60))
     }
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct DeltaTime(pub u64);
+pub struct DeltaTime(pub f64);

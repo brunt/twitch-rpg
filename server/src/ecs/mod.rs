@@ -2,8 +2,8 @@ pub mod components;
 pub mod systems;
 
 use crate::commands::RpgCommand;
-use crate::ecs::resources::CountdownTimer;
 pub(crate) use crate::ecs::resources::DungeonExt;
+use crate::ecs::resources::{CountdownTimer, DeltaTime};
 use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::countdown::CountdownSystem;
 use crate::ecs::systems::movement::Movement;
@@ -48,9 +48,11 @@ pub fn run_game_server(
     gamestate_sender: broadcast::Sender<GameSnapShot>,
     commands_receiver: Receiver<(String, RpgCommand, bool)>,
 ) {
-    let mut gs = GameWorld::new(commands_receiver);
+    const MIN_PLAYERS: usize = 3;
 
-    gs.ecs.insert(CommandQueue::default());
+    let mut gw = GameWorld::new(commands_receiver);
+
+    gw.ecs.insert(CommandQueue::default());
 
     // build dispatcher with systems
     let mut dispatcher = DispatcherBuilder::new()
@@ -64,24 +66,37 @@ pub fn run_game_server(
             "rendering",
             &[],
         )
-        .with(CountdownSystem, "countdown", &["command_handler"])
+        .with(
+            CountdownSystem {
+                min_players: MIN_PLAYERS,
+            },
+            "countdown",
+            &["command_handler"],
+        )
         .build();
 
+    let mut last_frame_time = std::time::Instant::now();
     loop {
-        while let Ok((player, command, is_privileged)) = gs.rx.try_recv() {
-            if let Some(queue) = gs.ecs.get_mut::<CommandQueue>() {
+        while let Ok((player, command, is_privileged)) = gw.rx.try_recv() {
+            if let Some(queue) = gw.ecs.get_mut::<CommandQueue>() {
                 queue.push_back((player, command, is_privileged));
             }
         }
 
+        //clock timing
+        let now = std::time::Instant::now();
+        let delta = now.duration_since(last_frame_time).as_secs_f64();
+        last_frame_time = now;
+        gw.ecs.write_resource::<DeltaTime>().0 = delta;
+
         // run systems
-        dispatcher.dispatch(&mut gs.ecs);
+        dispatcher.dispatch(&mut gw.ecs);
 
         // cleanup etc
-        gs.ecs.maintain();
+        gw.ecs.maintain();
 
         // sleep for a duration
         // TODO: figure out a time interval appropriate for this game
-        std::thread::sleep(std::time::Duration::from_millis(1500));
+        std::thread::sleep(std::time::Duration::from_millis(500));
     }
 }

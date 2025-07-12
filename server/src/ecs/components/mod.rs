@@ -3,6 +3,9 @@ use specs::prelude::*;
 use specs_derive::Component;
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
+
+pub mod class;
+
 // Entity's coordinates in the world
 #[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct Position {
@@ -41,21 +44,6 @@ pub struct TargetPosition {
     pub y: i32,
 }
 
-// Rendering component with sprite information
-#[derive(Debug, Component)]
-pub struct Renderable {
-    /// name of texture
-    pub texture_name: String,
-
-    pub i_w: u32, // Image width
-    pub i_h: u32, // Image height
-    pub o_w: u32, // Output width
-    pub o_h: u32, // Output height
-
-    pub frame: u32,
-    pub total_frames: u32,
-}
-
 #[derive(Debug, Component)]
 pub struct HealthComponent(pub Health);
 
@@ -65,45 +53,33 @@ impl Default for HealthComponent {
     }
 }
 
-// Corpse component for defeated entities
-#[derive(Debug, Component)]
-pub struct Corpse {
-    //pub time_of_death: std::time::Instant,
-}
-
-#[derive(Debug, Component, Clone)]
-pub enum CharacterClass {
-    PlayerClass(PlayerClass),
-    Beast,
-    Dragon,
-    Elemental,
-}
-
-impl CharacterClass {
-    pub fn is_player(&self) -> bool {
-        match self {
-            Self::PlayerClass(_) => true,
+impl HealthComponent {
+    pub fn is_alive(&self) -> bool {
+        match self.0 {
+            Health::Alive { .. } => true,
             _ => false,
         }
     }
 
-    pub fn get_player_class(&self) -> Option<PlayerClass> {
-        match self {
-            Self::PlayerClass(pc) => Some(pc.clone()),
-            _ => None,
-        }
+    pub fn new_from_class(class: &PlayerClass) -> Self {
+        Self(match class {
+            PlayerClass::Fighter | PlayerClass::Paladin | PlayerClass::Ranger => {
+                Health::Alive { hp: 10, max_hp: 10 }
+            }
+            PlayerClass::Rogue
+            | PlayerClass::Cleric
+            | PlayerClass::Druid
+            | PlayerClass::Monk
+            | PlayerClass::Warlock => Health::Alive { hp: 8, max_hp: 8 },
+            PlayerClass::Wizard | PlayerClass::Sorcerer => Health::Alive { hp: 6, max_hp: 6 },
+        })
     }
 }
 
-impl Display for CharacterClass {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::PlayerClass(pc) => write!(f, "{}", pc),
-            Self::Beast => write!(f, "Beast"),
-            Self::Dragon => write!(f, "Dragon"),
-            Self::Elemental => write!(f, "Elemental"),
-        }
-    }
+// Corpse component for defeated entities
+#[derive(Debug, Component)]
+pub struct Corpse {
+    //pub time_of_death: std::time::Instant,
 }
 
 // Equipment types

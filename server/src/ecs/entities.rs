@@ -1,32 +1,31 @@
 // In ecs/entities.rs
 use crate::ecs::components::{
-    CharacterClass, Equipment, Experience, Health, HealthComponent, MovementAI, MovementAIKind,
-    Resource, Stats,
+    Equipment, Experience, Health, HealthComponent, MovementAI, MovementAIKind, Resource, Stats,
 };
 use common::PlayerClass;
 use specs::{Entities, Entity, LazyUpdate, ReadExpect};
 
 // Helper functions to determine starting attributes based on class
-fn get_starting_hp(class: &PlayerClass) -> u32 {
-    match class {
-        PlayerClass::Fighter | PlayerClass::Paladin => 20,
-        PlayerClass::Cleric | PlayerClass::Druid => 16,
-        PlayerClass::Monk | PlayerClass::Ranger => 14,
-        PlayerClass::Rogue => 12,
-        PlayerClass::Warlock | PlayerClass::Wizard => 10,
-    }
-}
+// fn get_starting_hp(class: &PlayerClass) -> u32 {
+//     match class {
+//         PlayerClass::Fighter | PlayerClass::Paladin => 20,
+//         PlayerClass::Cleric | PlayerClass::Druid => 16,
+//         PlayerClass::Monk | PlayerClass::Ranger => 14,
+//         PlayerClass::Rogue => 12,
+//         PlayerClass::Warlock | PlayerClass::Wizard => 10,
+//     }
+// }
 
 //TODO: do I even want mana
-fn get_starting_mana(class: &PlayerClass) -> u32 {
-    match class {
-        PlayerClass::Wizard | PlayerClass::Warlock => 30,
-        PlayerClass::Cleric | PlayerClass::Druid => 25,
-        PlayerClass::Paladin => 15,
-        PlayerClass::Ranger => 10,
-        PlayerClass::Fighter | PlayerClass::Monk | PlayerClass::Rogue => 5,
-    }
-}
+// fn get_starting_mana(class: &PlayerClass) -> u32 {
+//     match class {
+//         PlayerClass::Wizard | PlayerClass::Warlock => 30,
+//         PlayerClass::Cleric | PlayerClass::Druid => 25,
+//         PlayerClass::Paladin => 15,
+//         PlayerClass::Ranger => 10,
+//         PlayerClass::Fighter | PlayerClass::Monk | PlayerClass::Rogue => 5,
+//     }
+// }
 
 fn get_starting_stats(class: &PlayerClass) -> Stats {
     match class {

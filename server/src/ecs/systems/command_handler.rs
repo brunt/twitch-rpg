@@ -1,9 +1,10 @@
 // In server/src/ecs/systems/command_handler.rs
 use crate::commands::PlayerCommand::Use;
 use crate::commands::{PlayerCommand, RpgCommand};
+use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::{
-    CharacterClass, Equipment, Experience, HealthComponent, Level, Money, MovementAI,
-    MovementAIKind, MovementSpeed, Name, Player, Position, Renderable, Resource, Stats,
+    Equipment, Experience, HealthComponent, Level, Money, MovementAI, MovementAIKind,
+    MovementSpeed, Name, Player, Position, Resource, Stats,
 };
 use crate::ecs::resources::GameState;
 use specs::{Entities, Join, ReadExpect, System, Write, WriteExpect, WriteStorage};
@@ -64,9 +65,8 @@ impl<'a> System<'a> for CommandHandlerSystem {
                             names
                                 .insert(player_entity, Name(player_name))
                                 .expect("failed to set name");
-                            //TODO: set health based on class
                             healths
-                                .insert(player_entity, HealthComponent::default())
+                                .insert(player_entity, HealthComponent::new_from_class(&class))
                                 .expect("failed to set default health");
                             classes
                                 .insert(player_entity, CharacterClass::PlayerClass(class))
@@ -78,7 +78,6 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 .insert(player_entity, Player)
                                 .expect("failed to set player");
                         }
-                        // Other commands...
                         RpgCommand::Rejoin => {
                             // Load player character
                             println!("Loading character for {}", player_name);

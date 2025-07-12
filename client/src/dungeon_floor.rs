@@ -1,10 +1,10 @@
+use crate::components::draw_sprite;
 use crate::sprites::SPRITE_DIMENSION;
 use crate::sprites::monsters_sprites::MONSTERS_SPRITE_339;
 use crate::sprites::terrain_sprites::{
     TERRAIN_SPRITE_158, TERRAIN_SPRITE_218, TERRAIN_SPRITE_219, TERRAIN_SPRITE_432,
     TERRAIN_SPRITE_467, TERRAIN_SPRITE_653,
 };
-use crate::util::draw_sprite;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
 pub fn draw_dungeon_floor(
