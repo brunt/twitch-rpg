@@ -10,8 +10,16 @@ pub static ITEMS_SPRITES: phf::Map<&'static str, SpriteRect> = phf_map! {
     "small_gold_pile" => ITEMS_SPRITE_138,
 
     // wearables
-    "elven_boots" => ITEMS_SPRITE_1,
-    "wizard_boots" => ITEMS_SPRITE_576,
+    "green_leather_boots" => ITEMS_SPRITE_1,
+    "mace" => ITEMS_SPRITE_2,
+    "trident" => ITEMS_SPRITE_4,
+    "greatsword" => ITEMS_SPRITE_5,
+    "longsword" => ITEMS_SPRITE_6,
+    "scimitar" => ITEMS_SPRITE_7,
+    "purple_tip_wood_staff" => ITEMS_SPRITE_8,
+    "purple_tip_silver_staff" => ITEMS_SPRITE_9,
+    "red_cloth_boots" => ITEMS_SPRITE_576,
+    "white_wizard_hat" => ITEMS_SPRITE_288,
 };
 
 #[allow(dead_code)]

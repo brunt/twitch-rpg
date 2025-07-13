@@ -9,6 +9,7 @@ use crate::ecs::systems::countdown::CountdownSystem;
 use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
+use crate::ecs::systems::shop_population::ShopPopulation;
 use crate::ecs::world::create_world;
 use common::GameSnapShot;
 use serde::Serialize;
@@ -73,6 +74,7 @@ pub fn run_game_server(
             "countdown",
             &["command_handler"],
         )
+        .with(ShopPopulation, "shop_population", &["rendering", "command_handler"])
         .build();
 
     let mut last_frame_time = std::time::Instant::now();

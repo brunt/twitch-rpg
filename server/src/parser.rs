@@ -1,6 +1,6 @@
 use crate::commands::PlayerCommand::{Buy, Use};
-use crate::commands::{MenuItem, PlayerCommand, RpgCommand};
-use common::PlayerClass;
+use crate::commands::{RpgCommand};
+use common::{MenuItem, PlayerClass};
 use winnow::Parser;
 use winnow::ascii::{Caseless, alpha1, digit1, space1};
 use winnow::combinator::{alt, preceded};
@@ -18,7 +18,7 @@ pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
                     space1,
                     digit1.map(|number: &str| {
                         RpgCommand::PlayerCommand(Buy(MenuItem::from(
-                            number.parse::<u8>().unwrap_or_default(),
+                            number.parse::<usize>().unwrap_or_default(),
                         )))
                     }),
                 ),
@@ -29,7 +29,7 @@ pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
                     space1,
                     digit1.map(|number: &str| {
                         RpgCommand::PlayerCommand(Use(MenuItem::from(
-                            number.parse::<u8>().unwrap_or_default(),
+                            number.parse::<usize>().unwrap_or_default(),
                         )))
                     }),
                 ),
@@ -57,6 +57,7 @@ fn parse_class(input: &mut &str) -> Result<PlayerClass, EmptyError> {
 
 #[cfg(test)]
 mod tests {
+    use common::MenuItem;
     use super::*;
     #[test]
     fn test_parse_class() {

@@ -1,4 +1,4 @@
-use common::PlayerClass;
+use common::{MenuItem, PlayerClass};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -18,11 +18,3 @@ pub enum PlayerCommand {
 #[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Player(String);
 
-#[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
-pub struct MenuItem(u8);
-
-impl From<u8> for MenuItem {
-    fn from(i: u8) -> Self {
-        MenuItem(i)
-    }
-}

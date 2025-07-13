@@ -24,7 +24,7 @@ pub fn SidePanelCharacterSheet(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -
                         .iter()
                         .map(|player| {
                             view! {
-                                <div class="flex items-center gap-2 p-2 bg-stone-900 border border-amber-800">
+                                <div class="flex items-center gap-2 p-2 bg-stone-900 border border-amber-300">
                                     <PlayerSpriteCanvas sprite=player_sprite(&player) />
                                     <div class="flex flex-col grow">
                                         <div class="font-semibold text-lg text-amber-500">

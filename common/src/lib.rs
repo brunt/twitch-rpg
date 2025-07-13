@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::str::FromStr;
 use serde::{Deserialize, Serialize};
@@ -8,7 +9,7 @@ pub struct GameSnapShot {
     pub party: Vec<PlayerSnapshot>,
     pub floor_positions: Option<Vec<String>>,
     pub floor: Option<Floor>,
-    pub shop_items: Option<Vec<ShopItem>>,
+    pub shop_items: Option<HashMap<MenuItem, ShopItem>>,
     pub ready_timer: Option<SerializedCountdownTimer>
 }
 
@@ -109,7 +110,7 @@ impl Display for Health {
 pub struct ShopItem {
     pub sprite: String,
     pub name: String,
-    // pub quality: ItemQuality,
+    pub quality: ItemQuality,
     pub price: u32,
     pub description: String,
 }
@@ -126,4 +127,13 @@ pub enum ItemQuality {
 #[derive(Serialize, Clone, Debug, Deserialize)]
 pub struct SerializedCountdownTimer {
     pub remaining: u64,
+}
+
+#[derive(Hash, Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
+pub struct MenuItem(pub usize);
+
+impl From<usize> for MenuItem {
+    fn from(i: usize) -> Self {
+        MenuItem(i)
+    }
 }

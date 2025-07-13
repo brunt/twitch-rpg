@@ -1,7 +1,7 @@
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::{Health, HealthComponent, Level, Money, Name, Position, Projectile};
-use crate::ecs::resources::{CountdownTimer, GameState};
-use common::{Form, GameSnapShot, PlayerSnapshot, ShopItem};
+use crate::ecs::resources::{CountdownTimer, GameState, ShopInventory};
+use common::{Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
 use specs::{Join, ReadExpect, ReadStorage, System};
 use tokio::sync::broadcast::Sender;
 
@@ -20,6 +20,7 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, Money>,
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
+        ReadExpect<'a, ShopInventory>,
         // inventory
     );
 
@@ -35,6 +36,7 @@ impl<'a> System<'a> for Rendering {
             monies,
             game_state,
             countdown,
+            shop_inventory,
         ): Self::SystemData,
     ) {
         let state = &*game_state;
@@ -45,12 +47,7 @@ impl<'a> System<'a> for Rendering {
                     party: Vec::new(),
                     floor_positions: None,
                     floor: None,
-                    shop_items: Some(vec![ShopItem {
-                        name: "Name".to_string(),
-                        description: "desc".to_string(),
-                        price: 10,
-                        sprite: "red_potion".to_string(),
-                    }]),
+                    shop_items: Some(shop_inventory.items.clone()),
                     ready_timer: countdown.clone().map(|c| c.to_serialized()),
                 };
 

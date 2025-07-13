@@ -1,5 +1,4 @@
-use crate::commands::MenuItem;
-use common::SerializedCountdownTimer;
+use common::{MenuItem, SerializedCountdownTimer, ShopItem};
 use specs::{Entity, World};
 use std::collections::HashMap;
 use std::time::Duration;
@@ -23,9 +22,9 @@ impl DungeonExt for World {
     }
 }
 
-//TODO: use this?
+#[derive(Default)]
 pub struct ShopInventory {
-    pub items: HashMap<MenuItem, (Item, u32)>,
+    pub items: HashMap<MenuItem, ShopItem>,
 }
 
 #[derive(Clone)]

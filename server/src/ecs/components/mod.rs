@@ -5,6 +5,7 @@ use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
 pub mod class;
+mod inventory;
 
 // Entity's coordinates in the world
 #[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
