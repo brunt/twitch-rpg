@@ -1,8 +1,10 @@
+use std::time::Duration;
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::{Health, HealthComponent, Level, Money, Name, Position, Projectile};
 use crate::ecs::resources::{CountdownTimer, GameState, ShopInventory};
 use common::{Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
 use specs::{Join, ReadExpect, ReadStorage, System};
+use tatami_dungeon::Dungeon;
 use tokio::sync::broadcast::Sender;
 
 pub struct Rendering {
@@ -21,6 +23,7 @@ impl<'a> System<'a> for Rendering {
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
         ReadExpect<'a, ShopInventory>,
+        ReadExpect<'a, Dungeon>,
         // inventory
     );
 
@@ -37,6 +40,7 @@ impl<'a> System<'a> for Rendering {
             game_state,
             countdown,
             shop_inventory,
+            dungeon,
         ): Self::SystemData,
     ) {
         let state = &*game_state;
@@ -69,7 +73,7 @@ impl<'a> System<'a> for Rendering {
                 let mut gs = GameSnapShot {
                     party: Vec::new(),
                     floor_positions: Some(vec![]),
-                    floor: None,
+                    floor: dungeon.floors.get(0).cloned(), //TODO: transition between dungeon floors
                     shop_items: None,
                     ready_timer: None,
                 };
@@ -89,7 +93,6 @@ impl<'a> System<'a> for Rendering {
                 for (pos, health, proj) in (&positions, &health, &projectiles).join() {
                     // gs.party.append()
                 }
-                dbg!("sending in dungeon");
                 _ = self.sender.send(gs);
             }
         }

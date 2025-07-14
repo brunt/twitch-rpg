@@ -5,4 +5,3 @@ use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Component, Clone)]
 pub struct CharacterClass(pub PlayerClass);
-

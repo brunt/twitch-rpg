@@ -1,18 +1,12 @@
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::{
-    Equipment, Experience, Health, HealthComponent, Level, Money, MovementAI, MovementSpeed, Name,
+    Experience, HealthComponent, Level, Money, MovementAI, MovementSpeed, Name,
     Player, Position, Projectile, Resource, Stats, TargetPosition,
 };
 use crate::ecs::resources::{CountdownTimer, DeltaTime, GameState, ShopInventory};
 use specs::{World, WorldExt};
+use crate::ecs::components::inventory::{Equipment};
 use crate::ecs::shop::{initialize_shop_items, ShopItemPool};
-
-pub fn change_game_state(world: &mut World, new_state: GameState) {
-    if let Some(state) = world.get_mut::<GameState>() {
-        *state = new_state.clone();
-        println!("Game state changed to: {:?}", new_state);
-    }
-}
 
 pub fn create_world() -> World {
     let mut world = World::new();
@@ -38,5 +32,7 @@ pub fn create_world() -> World {
     world.insert(DeltaTime::default());
     world.insert(ShopItemPool{ all_items: initialize_shop_items() });
     world.insert(ShopInventory::default());
+    // world.insert(tatami_dungeon::Dungeon::generate_with_params(..GenerateDungeonParams::default()))
+    world.insert(tatami_dungeon::Dungeon::generate());
     world
 }

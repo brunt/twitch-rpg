@@ -5,7 +5,7 @@ use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
 pub mod class;
-mod inventory;
+pub mod inventory;
 
 // Entity's coordinates in the world
 #[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
@@ -105,21 +105,6 @@ pub enum ArmorType {
     Legs,
 }
 
-// Equipment component
-#[derive(Debug, Component, Clone)]
-pub struct Equipment {
-    pub weapon: Option<Weapon>,
-    pub armor: Option<Armor>,
-}
-
-// Weapon component
-#[derive(Debug, Clone)]
-pub struct Weapon {
-    pub name: String,
-    pub weapon_type: WeaponType,
-    pub damage: u32,
-    pub attributes: Vec<ItemAttribute>,
-}
 
 // Armor component
 #[derive(Debug, Clone)]
@@ -277,7 +262,45 @@ pub struct Stats {
     pub strength: u32,
     pub agility: u32,
     pub intelligence: u32,
-    pub vitality: u32,
+}
+
+impl Stats {
+    
+    /// starting stats sum to 30?
+    pub(crate) fn new(class: &PlayerClass) -> Self {
+        match class {
+            PlayerClass::Fighter => Stats {
+                strength: 12,
+                agility: 10,
+                intelligence: 8,
+            },
+            PlayerClass::Paladin => Stats {
+                strength: 12,
+                agility: 8,
+                intelligence: 10,
+            },
+            PlayerClass::Wizard | PlayerClass::Sorcerer | PlayerClass::Warlock => Stats {
+                strength: 6,
+                agility: 10,
+                intelligence: 14,
+            },
+            PlayerClass::Rogue | PlayerClass::Ranger => Stats {
+                strength: 10,
+                agility: 14,
+                intelligence: 6,
+            },
+            PlayerClass::Druid => Stats {
+                strength: 10,
+                agility: 8,
+                intelligence: 12,
+            },
+            PlayerClass::Cleric => Stats {
+                strength: 9,
+                agility: 9,
+                intelligence: 12,
+            }
+        }
+    }
 }
 
 // Active effects component (buffs/debuffs)

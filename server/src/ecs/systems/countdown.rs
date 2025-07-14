@@ -19,7 +19,7 @@ impl<'a> System<'a> for CountdownSystem {
     fn run(&mut self, (mut timer, mut game_state, players, delta_time): Self::SystemData) {
         let player_count = players.join().count();
         if matches!(*game_state, GameState::OutOfDungeon)
-            && player_count > self.min_players
+            && player_count >= self.min_players
             && timer.is_none()
         {
             *timer = Some(CountdownTimer::default());

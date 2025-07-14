@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use serde::{Deserialize, Serialize};
 use tatami_dungeon::Floor;
@@ -91,7 +91,7 @@ pub enum Health {
 }
 
 impl Display for Health {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Alive { hp, max_hp } => {
                 let total_hearts = 6;
@@ -111,8 +111,22 @@ pub struct ShopItem {
     pub sprite: String,
     pub name: String,
     pub quality: ItemQuality,
+    pub equip_slot: EquipmentSlot,
     pub price: u32,
+    pub stats: ItemStats,
     pub description: String,
+}
+
+impl ShopItem {
+    pub fn to_equipped_item(&self) -> EquippedItem {
+        EquippedItem {
+            name: self.name.clone(),
+            quality: self.quality.clone(),
+            stats: self.stats.clone(),
+            description: self.description.clone(),
+            slot: self.equip_slot.clone(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -136,4 +150,60 @@ impl From<usize> for MenuItem {
     fn from(i: usize) -> Self {
         MenuItem(i)
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
+pub enum EquipmentSlot {
+    MainHand,
+    // OffHand, //TODO: too lazy to differentiate 1h/2h weapons rn
+    Head,
+    Body,
+    Legs,
+    Feet,
+    Finger,
+    Neck,
+    UtilitySlot
+}
+
+impl Display for EquipmentSlot {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::MainHand => write!(f, "Main Hand"),
+            Self::Head => write!(f, "Head"),
+            Self::Body => write!(f, "Body"),
+            Self::Legs => write!(f, "Legs"),
+            Self::Feet => write!(f, "Feet"),
+            Self::Finger => write!(f, "Finger"),
+            Self::Neck => write!(f, "Neck"),
+            Self::UtilitySlot => write!(f, "Utility Slot"), 
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EquippedItem {
+    pub name: String,
+    pub quality: ItemQuality,
+    pub slot: EquipmentSlot,
+    pub description: String,
+    pub stats: ItemStats,
+    //TODO: how to grant abilities?
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ItemStats {
+    /// physical damage, health
+    pub strength: Option<u32>,
+    /// spell damage, duration, radius
+    pub intelligence: Option<u32>,
+    /// hit rating, evasion rating
+    pub dexterity: Option<u32>,
+}
+
+// TODO: only show these in the Display command
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PlayerStats {
+    pub strength: u32,
+    pub intelligence: u32,
+    pub dexterity: u32,
 }

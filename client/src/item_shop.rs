@@ -5,6 +5,16 @@ use crate::sprites::{ITEM_SPRITE_DIMENSION, SpriteRect};
 use common::{ItemQuality, MenuItem, ShopItem};
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
+
+// TODO: reshape shop item
+// /////////////////////////
+// //  ITEM NAME         #//
+// // ITEM IMAGE  SLOT    //
+// // /////////   COST    //
+// // DESCRIPTION         //
+// //                     //
+// /////////////////////////
+
 pub(crate) fn draw_shop_interface(
     ctx: &CanvasRenderingContext2d,
     item_image: &HtmlImageElement,
@@ -97,7 +107,18 @@ pub(crate) fn draw_shop_interface(
             ITEM_SLOT_WIDTH - 16.0,
             14.0,
         );
-
+        
+        // Draw equipment slot value
+        draw_wrapped_text(
+            ctx,
+            &item.equip_slot.to_string(),
+            x + 80.0,
+            y + 25.0,
+            ITEM_SLOT_WIDTH - 16.0,
+            14.0,
+        );
+        
+        
         // Draw Menu Item #
         ctx.set_fill_style_str("#fff");
         ctx.set_font("bold 16px sans-serif");

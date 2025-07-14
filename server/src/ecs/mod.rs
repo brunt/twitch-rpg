@@ -25,22 +25,12 @@ mod world;
 
 pub struct GameWorld {
     pub ecs: World,
-    pub rx: mpsc::Receiver<(String, RpgCommand, bool)>,
+    pub rx: Receiver<(String, RpgCommand, bool)>,
 }
 
 impl GameWorld {
     pub fn new(rx: Receiver<(String, RpgCommand, bool)>) -> Self {
         let mut world = create_world();
-        //TODO: panics on big dimensions
-        // world.generate_dungeon( GenerateDungeonParams {
-        //     num_floors: 3,
-        //     dimensions: (100, 100),
-        //     tiles_per_cell: 4,
-        //     ..GenerateDungeonParams::default()
-        // });
-        world.generate_dungeon(GenerateDungeonParams::default());
-
-        // ecs.generate_dungeon(GenerateDungeonParams::default());
         Self { ecs: world, rx }
     }
 }
@@ -49,7 +39,7 @@ pub fn run_game_server(
     gamestate_sender: broadcast::Sender<GameSnapShot>,
     commands_receiver: Receiver<(String, RpgCommand, bool)>,
 ) {
-    const MIN_PLAYERS: usize = 3;
+    const MIN_PLAYERS: usize = 1;
 
     let mut gw = GameWorld::new(commands_receiver);
 
@@ -85,7 +75,7 @@ pub fn run_game_server(
             }
         }
 
-        //clock timing
+        // clock timing
         let now = std::time::Instant::now();
         let delta = now.duration_since(last_frame_time).as_secs_f64();
         last_frame_time = now;
@@ -97,7 +87,6 @@ pub fn run_game_server(
         // cleanup etc
         gw.ecs.maintain();
 
-        // sleep for a duration
         // TODO: figure out a time interval appropriate for this game
         std::thread::sleep(std::time::Duration::from_millis(500));
     }
