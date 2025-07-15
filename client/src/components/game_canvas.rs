@@ -16,8 +16,6 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
     let canvas_ref: NodeRef<Canvas> = NodeRef::new();
     const CANVAS_WIDTH: f64 = 1280.0;
     const CANVAS_HEIGHT: f64 = 720.0;
-    const MAP_WIDTH: usize = 20;
-    const MAP_HEIGHT: usize = 25;
 
     // load sprites
     let [
@@ -83,15 +81,15 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
             ctx.fill_rect(0.0, 0.0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
             if let Some(snapshot) = latest_snapshot.borrow().as_ref() {
-                if let Some(_floor) = gs.get_untracked().and_then(|gs| gs.floor) {
+                if let Some((floor, position)) = gs.get_untracked().and_then(|gs| Some((gs.floor, gs.party_position))) {
                     draw_dungeon_floor(
                         &ctx,
                         &closure_terrain_image,
                         &closure_monster_image,
-                        MAP_WIDTH,
-                        MAP_HEIGHT,
+                        &floor.unwrap(),
                         CANVAS_WIDTH,
                         CANVAS_HEIGHT,
+                        (position.unwrap().x, position.unwrap().x),
                     );
                 } else {
                     if let Some(ready_timer) = &snapshot.ready_timer {

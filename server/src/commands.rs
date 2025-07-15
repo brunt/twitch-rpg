@@ -9,7 +9,7 @@ pub enum RpgCommand {
     PlayerCommand(PlayerCommand),
     //TODO: display character details e.g. stats and equipment and abilities.
     // When would this command be available e.g. in or out of dungeon?
-    // ShowCharacter, 
+    // ShowCharacter,
 }
 /// PlayerCommand represents things players can do at any point in an adventure, if they are an adventurer
 #[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]

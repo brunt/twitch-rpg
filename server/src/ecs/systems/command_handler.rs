@@ -2,15 +2,17 @@
 use crate::commands::PlayerCommand::Use;
 use crate::commands::{PlayerCommand, RpgCommand};
 use crate::ecs::components::class::CharacterClass;
+use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::{
-    Experience, HealthComponent, Level, Money, MovementAI, MovementAIKind,
-    MovementSpeed, Name, Player, Position, Resource, Stats,
+    Experience, HealthComponent, Level, Money, MovementAI, MovementAIKind, MovementSpeed, Name,
+    Player, Position, Resource, Stats,
 };
 use crate::ecs::resources::{GameState, ShopInventory};
-use specs::{Entities, Entity, Join, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage};
+use specs::{
+    Entities, Entity, Join, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
+};
 use std::collections::VecDeque;
 use tatami_dungeon::Dungeon;
-use crate::ecs::components::inventory::Equipment;
 
 // A queue to store commands to be processed
 pub type CommandQueue = VecDeque<(String, RpgCommand, bool)>;
@@ -52,7 +54,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
     ) {
         while let Some((player_name, command, _is_privileged)) = command_queue.pop_front() {
             match *game_state {
-                GameState::OutOfDungeon => {
+                GameState::InTown => {
                     match command {
                         RpgCommand::Join(class) => {
                             // a player has queued up to join a dungeon.
@@ -75,7 +77,9 @@ impl<'a> System<'a> for CommandHandlerSystem {
                             healths
                                 .insert(player_entity, HealthComponent::new_from_class(&class))
                                 .expect("failed to set default health");
-                            stats.insert(player_entity, Stats::new(&class)).expect("failed to add stats");
+                            stats
+                                .insert(player_entity, Stats::new(&class))
+                                .expect("failed to add stats");
                             classes
                                 .insert(player_entity, CharacterClass(class))
                                 .expect("failed to set class");
@@ -86,7 +90,9 @@ impl<'a> System<'a> for CommandHandlerSystem {
                             players
                                 .insert(player_entity, Player)
                                 .expect("failed to set player");
-                            equipment.insert(player_entity, Equipment::default()).expect("failed to create inventory");
+                            equipment
+                                .insert(player_entity, Equipment::default())
+                                .expect("failed to create inventory");
                         }
                         RpgCommand::Rejoin => {
                             // Load player character
@@ -103,15 +109,19 @@ impl<'a> System<'a> for CommandHandlerSystem {
 
                             // get the entity of the player, get that entity's money, subtract gold from their money,
                             // get the entity's inventory, add item at MenuItem(#) to their inventory
-                            if let Some((e, _name)) = (entities, &names).join().find(|(_, name)| name.0 == player_name) {
+                            if let Some((e, _name)) = (entities, &names)
+                                .join()
+                                .find(|(_, name)| name.0 == player_name)
+                            {
                                 // if an item is purchased, it is equipped in an item slot, old item is overwritten
                                 equipment.get_mut(e).map(|equip_slots| {
-                                    
                                     let item = shop_inventory.items.get(&item).unwrap();
-                                    equip_slots.slots.insert(item.equip_slot.clone(), item.to_equipped_item())
+                                    equip_slots
+                                        .slots
+                                        .insert(item.equip_slot.clone(), item.to_equipped_item())
                                 });
-                                
-                                money.get_mut(e).map(|gold| { 
+
+                                money.get_mut(e).map(|gold| {
                                     let price = shop_inventory.items.get(&item).unwrap().price; //TODO: and_then
                                     if gold.0 < price {
                                         return;
@@ -126,7 +136,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
                         }
                     }
                 }
-                GameState::InDungeon => {
+                GameState::OnAdventure => {
                     match command {
                         RpgCommand::PlayerCommand(Use(item)) => {
                             println!("{} is using item {:?}", player_name, item);
@@ -144,4 +154,3 @@ impl<'a> System<'a> for CommandHandlerSystem {
 // fn find_player_by_name(name: &str, players: &ReadExpect<Entities>, names: &ReadStorage<Player>) -> Option<Entity> {
 //     players
 // }
-

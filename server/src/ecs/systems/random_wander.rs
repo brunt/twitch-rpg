@@ -14,8 +14,6 @@ impl<'a> System<'a> for RandomWander {
             if pos.x == target.x && pos.y == target.y {
                 target.x = (rng.random_range(-5..10) + pos.x).clamp(-10, 10); //TODO: ensure wpos bounds
                 target.y = (rng.random_range(-5..10) + pos.y).clamp(-10, 10);
-
-                // dbg!(target);
             }
         }
     }

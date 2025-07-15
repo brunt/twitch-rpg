@@ -2,13 +2,13 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use serde::{Deserialize, Serialize};
-use tatami_dungeon::Floor;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GameSnapShot {
     pub party: Vec<PlayerSnapshot>,
+    pub party_position: Option<tatami_dungeon::Position>,
     pub floor_positions: Option<Vec<String>>,
-    pub floor: Option<Floor>,
+    pub floor: Option<Vec<Vec<u8>>>,
     pub shop_items: Option<HashMap<MenuItem, ShopItem>>,
     pub ready_timer: Option<SerializedCountdownTimer>
 }

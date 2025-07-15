@@ -1,10 +1,9 @@
-use std::time::Duration;
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::{Health, HealthComponent, Level, Money, Name, Position, Projectile};
-use crate::ecs::resources::{CountdownTimer, GameState, ShopInventory};
+use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
 use common::{Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
 use specs::{Join, ReadExpect, ReadStorage, System};
-use tatami_dungeon::Dungeon;
+use std::time::Duration;
 use tokio::sync::broadcast::Sender;
 
 pub struct Rendering {
@@ -23,7 +22,7 @@ impl<'a> System<'a> for Rendering {
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
         ReadExpect<'a, ShopInventory>,
-        ReadExpect<'a, Dungeon>,
+        ReadExpect<'a, Option<Adventure>>,
         // inventory
     );
 
@@ -40,15 +39,16 @@ impl<'a> System<'a> for Rendering {
             game_state,
             countdown,
             shop_inventory,
-            dungeon,
+            adventure,
         ): Self::SystemData,
     ) {
         let state = &*game_state;
         match state {
-            GameState::OutOfDungeon => {
+            GameState::InTown => {
                 // TODO: builder method for this?
                 let mut gs = GameSnapShot {
                     party: Vec::new(),
+                    party_position: None,
                     floor_positions: None,
                     floor: None,
                     shop_items: Some(shop_inventory.items.clone()),
@@ -69,11 +69,12 @@ impl<'a> System<'a> for Rendering {
                 }
                 _ = self.sender.send(gs);
             }
-            GameState::InDungeon => {
+            GameState::OnAdventure => {
                 let mut gs = GameSnapShot {
+                    party_position: adventure.clone().and_then(|ad| Some(ad.dungeon.player_position)),
                     party: Vec::new(),
                     floor_positions: Some(vec![]),
-                    floor: dungeon.floors.get(0).cloned(), //TODO: transition between dungeon floors
+                    floor: adventure.clone().map_or(None, |dungeon| Option::from(dungeon.get_floor_data())), //TODO: transition between dungeon floors
                     shop_items: None,
                     ready_timer: None,
                 };
@@ -87,7 +88,7 @@ impl<'a> System<'a> for Rendering {
                         health: health.0.clone(),
                         level: level.0.clone(),
                         gold: money.0,
-                        form: Form::Normal // TODO: not always normal
+                        form: Form::Normal, // TODO: not always normal
                     });
                 }
                 for (pos, health, proj) in (&positions, &health, &projectiles).join() {

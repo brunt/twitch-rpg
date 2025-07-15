@@ -105,7 +105,6 @@ pub enum ArmorType {
     Legs,
 }
 
-
 // Armor component
 #[derive(Debug, Clone)]
 pub struct Armor {
@@ -265,7 +264,6 @@ pub struct Stats {
 }
 
 impl Stats {
-    
     /// starting stats sum to 30?
     pub(crate) fn new(class: &PlayerClass) -> Self {
         match class {
@@ -298,7 +296,7 @@ impl Stats {
                 strength: 9,
                 agility: 9,
                 intelligence: 12,
-            }
+            },
         }
     }
 }

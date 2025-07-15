@@ -2,7 +2,6 @@ pub mod components;
 pub mod systems;
 
 use crate::commands::RpgCommand;
-pub(crate) use crate::ecs::resources::DungeonExt;
 use crate::ecs::resources::{CountdownTimer, DeltaTime};
 use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::countdown::CountdownSystem;
@@ -64,7 +63,11 @@ pub fn run_game_server(
             "countdown",
             &["command_handler"],
         )
-        .with(ShopPopulation, "shop_population", &["rendering", "command_handler"])
+        .with(
+            ShopPopulation,
+            "shop_population",
+            &["rendering", "command_handler"],
+        )
         .build();
 
     let mut last_frame_time = std::time::Instant::now();

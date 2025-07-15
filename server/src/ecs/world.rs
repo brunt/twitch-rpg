@@ -1,12 +1,12 @@
 use crate::ecs::components::class::CharacterClass;
+use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::{
-    Experience, HealthComponent, Level, Money, MovementAI, MovementSpeed, Name,
-    Player, Position, Projectile, Resource, Stats, TargetPosition,
+    Experience, HealthComponent, Level, Money, MovementAI, MovementSpeed, Name, Player, Position,
+    Projectile, Resource, Stats, TargetPosition,
 };
-use crate::ecs::resources::{CountdownTimer, DeltaTime, GameState, ShopInventory};
+use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
+use crate::ecs::shop::{ShopItemPool, initialize_shop_items};
 use specs::{World, WorldExt};
-use crate::ecs::components::inventory::{Equipment};
-use crate::ecs::shop::{initialize_shop_items, ShopItemPool};
 
 pub fn create_world() -> World {
     let mut world = World::new();
@@ -27,12 +27,13 @@ pub fn create_world() -> World {
     world.register::<Money>();
 
     // resources
-    world.insert(GameState::OutOfDungeon);
+    world.insert(GameState::InTown);
     world.insert::<Option<CountdownTimer>>(None);
     world.insert(DeltaTime::default());
-    world.insert(ShopItemPool{ all_items: initialize_shop_items() });
+    world.insert(ShopItemPool {
+        all_items: initialize_shop_items(),
+    });
     world.insert(ShopInventory::default());
-    // world.insert(tatami_dungeon::Dungeon::generate_with_params(..GenerateDungeonParams::default()))
-    world.insert(tatami_dungeon::Dungeon::generate());
+    world.insert(Option::<Adventure>::None);
     world
 }

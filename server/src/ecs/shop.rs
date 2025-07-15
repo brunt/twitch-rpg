@@ -1,6 +1,5 @@
 use common::{EquipmentSlot, ItemQuality, ItemStats, ShopItem};
 
-
 #[derive(Default)]
 pub struct ShopItemPool {
     pub all_items: Vec<ShopItem>,
@@ -8,7 +7,7 @@ pub struct ShopItemPool {
 
 pub fn initialize_shop_items() -> Vec<ShopItem> {
     vec![
-        ShopItem{
+        ShopItem {
             sprite: "white_wizard_hat".to_string(),
             name: "Academy Teacher's Hat".to_string(),
             quality: ItemQuality::Legendary,
@@ -21,7 +20,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 230,
             description: "Spells have longer durations and affect larger areas".to_string(),
         },
-        ShopItem{
+        ShopItem {
             sprite: "mace".to_string(),
             name: "Mace".to_string(),
             quality: ItemQuality::Common,
@@ -34,7 +33,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 15,
             description: "Staggers opponents on hit".to_string(),
         },
-        ShopItem{
+        ShopItem {
             sprite: "trident".to_string(),
             name: "Trident".to_string(),
             quality: ItemQuality::Common,
@@ -48,7 +47,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             },
             description: "Melee attacks have longer reach".to_string(),
         },
-        ShopItem{
+        ShopItem {
             sprite: "trident".to_string(),
             name: "Trident".to_string(),
             quality: ItemQuality::Common,
@@ -61,7 +60,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 18,
             description: "Melee attacks have longer reach".to_string(),
         },
-        ShopItem{
+        ShopItem {
             sprite: "greatsword".to_string(),
             name: "Greatsword".to_string(),
             quality: ItemQuality::Uncommon,
@@ -74,7 +73,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 28,
             description: "Melee attacks have longer reach".to_string(),
         },
-        ShopItem{
+        ShopItem {
             sprite: "longsword".to_string(),
             name: "Longsword".to_string(),
             quality: ItemQuality::Rare,
@@ -87,7 +86,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 34,
             description: "Melee attacks have longer reach".to_string(),
         },
-        ShopItem{
+        ShopItem {
             sprite: "scimitar".to_string(),
             name: "Scimitar".to_string(),
             quality: ItemQuality::Uncommon,
@@ -100,7 +99,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 20,
             description: "Melee attacks cut deeper".to_string(),
         },
-        ShopItem{
+        ShopItem {
             sprite: "purple_tip_wood_staff".to_string(),
             name: "Netherwood Staff".to_string(),
             quality: ItemQuality::Uncommon,
@@ -113,7 +112,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 20,
             description: "Curses last longer".to_string(),
         },
-        ShopItem{
+        ShopItem {
             sprite: "purple_tip_silver_staff".to_string(),
             name: "Nether-orb Staff".to_string(),
             quality: ItemQuality::Rare,
@@ -126,7 +125,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 40,
             description: "More elemental damage".to_string(),
         },
-        ShopItem{
+        ShopItem {
             sprite: "red_cloth_boots".to_string(),
             name: "Cinder Slippers".to_string(),
             quality: ItemQuality::Rare,
@@ -139,7 +138,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 40,
             description: "More elemental resistance".to_string(),
         },
-        ShopItem{
+        ShopItem {
             sprite: "green_leather_boots".to_string(),
             name: "Elven Boots".to_string(),
             quality: ItemQuality::Uncommon,

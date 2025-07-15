@@ -1,5 +1,5 @@
 use crate::commands::PlayerCommand::{Buy, Use};
-use crate::commands::{RpgCommand};
+use crate::commands::RpgCommand;
 use common::{MenuItem, PlayerClass};
 use winnow::Parser;
 use winnow::ascii::{Caseless, alpha1, digit1, space1};
@@ -57,8 +57,8 @@ fn parse_class(input: &mut &str) -> Result<PlayerClass, EmptyError> {
 
 #[cfg(test)]
 mod tests {
-    use common::MenuItem;
     use super::*;
+    use common::MenuItem;
     #[test]
     fn test_parse_class() {
         let input = "wizard";
