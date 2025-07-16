@@ -1,6 +1,30 @@
 use crate::sprites::SpriteRect;
 
-// pub fn get_terrain()
+pub enum TileSet {
+    Woods,
+    Mountain,
+    Tundra,
+    Desert,
+    MagmaMountain,
+    Dungeon,
+    DemonHall,
+    Library,
+}
+
+pub fn get_terrain(tileset: &TileSet) -> [SpriteRect; 2] {
+    // TODO: extend to alternate floors, walls, doors, doodads
+    match tileset {
+        TileSet::Woods => {
+            // floor, wall
+            [TERRAIN_SPRITE_1044, TERRAIN_SPRITE_467]
+        }
+        TileSet::Mountain => [TERRAIN_SPRITE_930, TERRAIN_SPRITE_428],
+        TileSet::Desert => [TERRAIN_SPRITE_620, SpriteRect::at(10.0, 22.0)],
+        TileSet::Tundra => [TERRAIN_SPRITE_619, TERRAIN_SPRITE_299],
+        _ => unimplemented!(),
+    }
+}
+
 #[allow(dead_code)]
 pub const TERRAIN_SPRITE_0: SpriteRect = SpriteRect::at(0.0, 0.0);
 #[allow(dead_code)]

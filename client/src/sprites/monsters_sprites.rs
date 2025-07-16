@@ -8,9 +8,9 @@ pub enum VisualState {
     Invisible,
 }
 
-pub fn player_sprite(player: &PlayerSnapshot) -> &'static SpriteRect {
-    match player.form.clone() {
-        Form::Normal => match (player.class.clone(), player.level) {
+pub fn player_sprite((form, class, level): (&Form, &PlayerClass, u32)) -> &'static SpriteRect {
+    match form {
+        Form::Normal => match (class, level) {
             (PlayerClass::Rogue, level) => {
                 if level <= 5 {
                     &MONSTERS_SPRITE_878
@@ -101,6 +101,11 @@ pub fn player_sprite(player: &PlayerSnapshot) -> &'static SpriteRect {
     //         MONSTERS_SPRITE_914
     //     }
     // }
+}
+
+pub fn enemy_sprite() -> &'static SpriteRect {
+    //TODO: match on dungeon difficulty, rng, return multiple things
+    &MONSTERS_SPRITE_8
 }
 
 #[allow(dead_code)]

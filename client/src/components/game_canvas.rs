@@ -3,7 +3,7 @@ use crate::dungeon_floor::draw_dungeon_floor;
 use crate::item_shop::draw_shop_interface;
 use common::GameSnapShot;
 use leptos::html::Canvas;
-use leptos::prelude::{Effect, Get, GetUntracked, NodeRef, NodeRefAttribute, Signal};
+use leptos::prelude::{Effect, Get, NodeRef, NodeRefAttribute, Signal};
 use leptos::{IntoView, component, view};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -81,15 +81,22 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
             ctx.fill_rect(0.0, 0.0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
             if let Some(snapshot) = latest_snapshot.borrow().as_ref() {
-                if let Some((floor, position)) = gs.get_untracked().and_then(|gs| Some((gs.floor, gs.party_position))) {
+                if let (Some(floor), Some(position), Some(difficulty), Some(positions)) = (
+                    snapshot.floor.as_ref(),
+                    snapshot.party_position.as_ref(),
+                    snapshot.difficulty,
+                    snapshot.floor_positions.as_ref(),
+                ) {
                     draw_dungeon_floor(
                         &ctx,
                         &closure_terrain_image,
                         &closure_monster_image,
-                        &floor.unwrap(),
+                        &floor,
                         CANVAS_WIDTH,
                         CANVAS_HEIGHT,
-                        (position.unwrap().x, position.unwrap().x),
+                        (position.x, position.x),
+                        difficulty,
+                        positions,
                     );
                 } else {
                     if let Some(ready_timer) = &snapshot.ready_timer {
@@ -104,14 +111,9 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                         )
                         .expect("failed to count down");
                     }
-                    draw_shop_interface(
-                        &ctx,
-                        &closure_item_image,
-                        &gs.get().unwrap().shop_items.unwrap_or_default(),
-                        30.0,
-                        30.0,
-                        4,
-                    )
+                    if let Some(shop_items) = snapshot.shop_items.as_ref() {
+                        draw_shop_interface(&ctx, &closure_item_image, &shop_items, 30.0, 30.0, 4)
+                    };
                 }
             }
             let window = window().unwrap();

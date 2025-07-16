@@ -52,7 +52,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
             ref entities,
         ): Self::SystemData,
     ) {
-        while let Some((player_name, command, _is_privileged)) = command_queue.pop_front() {
+        while let Some((player_name, command, is_privileged)) = command_queue.pop_front() {
             match *game_state {
                 GameState::InTown => {
                     match command {
@@ -85,7 +85,14 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 .expect("failed to set class");
 
                             money
-                                .insert(player_entity, Money::default())
+                                .insert(
+                                    player_entity,
+                                    if is_privileged {
+                                        Money::new(100)
+                                    } else {
+                                        Money::default()
+                                    },
+                                )
                                 .expect("failed to set default money");
                             players
                                 .insert(player_entity, Player)
@@ -122,7 +129,8 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 });
 
                                 money.get_mut(e).map(|gold| {
-                                    let price = shop_inventory.items.get(&item).unwrap().price; //TODO: and_then
+                                    let price =
+                                        shop_inventory.items.get(&item).map_or(5, |f| f.price);
                                     if gold.0 < price {
                                         return;
                                     }
@@ -130,10 +138,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 });
                             }
                         }
-                        _ => {
-                            // Command not allowed in this state
-                            println!("Command {:?} not allowed in OutOfDungeon state", command);
-                        }
+                        _ => {}
                     }
                 }
                 GameState::OnAdventure => {

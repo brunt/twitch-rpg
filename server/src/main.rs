@@ -51,7 +51,6 @@ async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand, bool)>) {
                 match m {
                     tmi::Message::Privmsg(msg) => {
                         if let Some(command) = get_command(&mut msg.text()) {
-                            dbg!(&command);
                             _ = tx.try_send((
                                 msg.sender().name().to_string(),
                                 command,

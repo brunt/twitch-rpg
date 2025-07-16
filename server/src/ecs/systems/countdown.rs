@@ -1,8 +1,10 @@
-use crate::ecs::components::{Name, Player};
+use crate::ecs::components::{
+    Enemy, HealthComponent, Level, MovementSpeed, Name, Player, Position, Stats,
+};
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState};
-use specs::{Join, Read, ReadStorage, System, WriteExpect};
+use common::Health;
+use specs::{Entities, Join, Read, ReadStorage, System, WriteExpect, WriteStorage};
 use std::time;
-use tatami_dungeon::Tile;
 
 pub struct CountdownSystem {
     /// The minimum number of players in a lobby before the countdown timer starts.
@@ -15,12 +17,32 @@ impl<'a> System<'a> for CountdownSystem {
         WriteExpect<'a, GameState>,
         WriteExpect<'a, Option<Adventure>>,
         ReadStorage<'a, Player>,
+        WriteStorage<'a, Enemy>,
+        WriteStorage<'a, Position>,
+        WriteStorage<'a, HealthComponent>,
+        WriteStorage<'a, Level>,
+        WriteStorage<'a, Name>,
+        WriteStorage<'a, MovementSpeed>,
         Read<'a, DeltaTime>,
+        Entities<'a>,
     );
 
     fn run(
         &mut self,
-        (mut game_timer, mut game_state, mut dungeon, players, delta_time): Self::SystemData,
+        (
+            mut game_timer,
+            mut game_state,
+            mut adventure,
+            players,
+            mut enemies,
+            mut positions,
+            mut healths,
+            mut levels,
+            mut names,
+            mut movementspeeds,
+            delta_time,
+            mut entities,
+        ): Self::SystemData,
     ) {
         let player_count = players.join().count();
         if matches!(*game_state, GameState::InTown)
@@ -35,7 +57,43 @@ impl<'a> System<'a> for CountdownSystem {
             timer.remaining = timer.remaining.saturating_sub(elapsed);
             if timer.remaining.is_zero() {
                 // generate a dungeon and add it to ECS here
-                *dungeon = Some(Adventure::default());
+                let adv = Adventure::default();
+                // insert everything from dungeon into ECS
+
+                for (entity, _player) in (&entities, &players).join() {
+                    // add positions to ECS
+                    positions
+                        .insert(
+                            entity,
+                            Position {
+                                x: adv.dungeon.player_position.x,
+                                y: adv.dungeon.player_position.y,
+                            },
+                        )
+                        .expect("Failed to insert player position");
+                }
+
+                adv.get_enemy_data().iter().for_each(|pos| {
+                    let enemy = entities.create();
+                    names
+                        .insert(enemy, Name::default())
+                        .expect("Failed to insert enemy name");
+                    enemies.insert(enemy, Enemy).expect("Failed to be an enemy");
+                    levels
+                        .insert(enemy, Level(1))
+                        .expect("Failed to insert level");
+                    healths
+                        .insert(enemy, HealthComponent(Health::Alive { hp: 10, max_hp: 10 }))
+                        .expect("Failed to add health");
+                    positions
+                        .insert(enemy, Position { x: pos.x, y: pos.y })
+                        .expect("Failed to insert enemy position");
+                    movementspeeds
+                        .insert(enemy, MovementSpeed(1))
+                        .expect("Failed to insert movement speed");
+                });
+
+                *adventure = Some(adv);
                 *game_state = GameState::OnAdventure;
                 *game_timer = None;
             }

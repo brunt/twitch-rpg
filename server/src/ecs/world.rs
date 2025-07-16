@@ -1,8 +1,8 @@
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::{
-    Experience, HealthComponent, Level, Money, MovementAI, MovementSpeed, Name, Player, Position,
-    Projectile, Resource, Stats, TargetPosition,
+    Enemy, Experience, HealthComponent, Level, Money, MovementAI, MovementSpeed, Name, Player,
+    Position, Projectile, Resource, Stats, TargetPosition,
 };
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
 use crate::ecs::shop::{ShopItemPool, initialize_shop_items};
@@ -25,6 +25,7 @@ pub fn create_world() -> World {
     world.register::<Projectile>();
     world.register::<Level>();
     world.register::<Money>();
+    world.register::<Enemy>();
 
     // resources
     world.insert(GameState::InTown);

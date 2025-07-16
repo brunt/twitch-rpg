@@ -1,4 +1,5 @@
 pub(crate) use common::{Health, PlayerClass};
+use serde_json::Value;
 use specs::prelude::*;
 use specs_derive::Component;
 use std::cmp::Ordering;
@@ -10,30 +11,30 @@ pub mod inventory;
 // Entity's coordinates in the world
 #[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct Position {
-    pub x: i32,
-    pub y: i32,
+    pub x: u32,
+    pub y: u32,
 }
 
 #[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
-pub struct MovementSpeed(pub i32);
+pub struct MovementSpeed(pub u32);
 
-impl PartialEq<i32> for MovementSpeed {
-    fn eq(&self, other: &i32) -> bool {
+impl PartialEq<u32> for MovementSpeed {
+    fn eq(&self, other: &u32) -> bool {
         self.0 == *other
     }
 }
-impl PartialEq<MovementSpeed> for i32 {
+impl PartialEq<MovementSpeed> for u32 {
     fn eq(&self, other: &MovementSpeed) -> bool {
         *self == other.0
     }
 }
-impl PartialOrd<i32> for MovementSpeed {
-    fn partial_cmp(&self, other: &i32) -> Option<Ordering> {
+impl PartialOrd<u32> for MovementSpeed {
+    fn partial_cmp(&self, other: &u32) -> Option<Ordering> {
         self.0.partial_cmp(other)
     }
 }
 
-impl PartialOrd<MovementSpeed> for i32 {
+impl PartialOrd<MovementSpeed> for u32 {
     fn partial_cmp(&self, other: &MovementSpeed) -> Option<Ordering> {
         self.partial_cmp(&other.0)
     }
@@ -41,8 +42,8 @@ impl PartialOrd<MovementSpeed> for i32 {
 
 #[derive(Debug, Component)]
 pub struct TargetPosition {
-    pub x: i32,
-    pub y: i32,
+    pub x: u32,
+    pub y: u32,
 }
 
 #[derive(Debug, Component)]
@@ -146,6 +147,10 @@ impl Default for Level {
 #[derive(Debug, Component, Clone, Default)]
 #[storage(NullStorage)]
 pub struct Player;
+
+#[derive(Debug, Component, Clone, Default)]
+#[storage(NullStorage)]
+pub struct Enemy;
 
 // Immobile component for entities that can't move
 #[derive(Component, Debug)]
@@ -255,13 +260,15 @@ pub struct ExperienceReward {
     pub level_multiplier: f32, // Multiplier based on entity level
 }
 
-// Stats component for RPG attributes
+/// Stats component for RPG attributes
 #[derive(Debug, Component, Clone)]
 pub struct Stats {
     pub strength: u32,
     pub agility: u32,
     pub intelligence: u32,
 }
+
+//TODO: stats for enemies
 
 impl Stats {
     /// starting stats sum to 30?
@@ -344,11 +351,23 @@ pub enum MovementAIKind {
 #[derive(Debug, Component, Clone)]
 pub struct Name(pub String);
 
+impl Default for Name {
+    fn default() -> Self {
+        Self(String::from("Enemy"))
+    }
+}
+
 #[derive(Debug, Component, Clone)]
 pub struct Money(pub u32);
 
+impl Money {
+    pub fn new(value: u32) -> Self {
+        Self(value)
+    }
+}
+
 impl Default for Money {
     fn default() -> Self {
-        Self(0)
+        Self(15)
     }
 }

@@ -7,11 +7,24 @@ use serde::{Deserialize, Serialize};
 pub struct GameSnapShot {
     pub party: Vec<PlayerSnapshot>,
     pub party_position: Option<tatami_dungeon::Position>,
-    pub floor_positions: Option<Vec<String>>,
+    pub floor_positions: Option<Vec<EntityPosition>>, //TODO: use component position type?
     pub floor: Option<Vec<Vec<u8>>>,
     pub shop_items: Option<HashMap<MenuItem, ShopItem>>,
-    pub ready_timer: Option<SerializedCountdownTimer>
+    pub ready_timer: Option<SerializedCountdownTimer>,
+    pub difficulty: Option<u32>,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EntityPosition {
+    pub class: String,
+    pub position: tatami_dungeon::Position,
+    pub level: u32 // 
+}
+
+// pub struct Position {
+//     pub x: u32,
+//     pub y: u32,
+// }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerSnapshot {
@@ -69,16 +82,16 @@ impl FromStr for PlayerClass {
     type Err = std::io::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "fighter" => Ok(Self::Fighter),
-            "druid" => Ok(Self::Druid),
-            "wizard" => Ok(Self::Wizard),
-            "ranger" => Ok(Self::Ranger),
-            "rogue" => Ok(Self::Rogue),
-            "cleric" => Ok(Self::Cleric),
-            "paladin" => Ok(Self::Paladin),
-            "warlock" => Ok(Self::Warlock),
+            "Fighter" => Ok(Self::Fighter),
+            "Druid" => Ok(Self::Druid),
+            "Wizard" => Ok(Self::Wizard),
+            "Ranger" => Ok(Self::Ranger),
+            "Rogue" => Ok(Self::Rogue),
+            "Cleric" => Ok(Self::Cleric),
+            "Paladin" => Ok(Self::Paladin),
+            "Warlock" => Ok(Self::Warlock),
             // "monk" => Ok(Self::Monk),
-            "sorcerer" => Ok(Self::Sorcerer),
+            "Sorcerer" => Ok(Self::Sorcerer),
             _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "invalid player class"))
         }
     }

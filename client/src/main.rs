@@ -3,8 +3,7 @@ mod dungeon_floor;
 mod item_shop;
 mod sprites;
 
-use std::collections::HashMap;
-use common::{EquipmentSlot, Form, GameSnapShot, Health, ItemQuality, MenuItem, PlayerClass, PlayerSnapshot, SerializedCountdownTimer, ShopItem};
+use common::GameSnapShot;
 use components::bottom_panel::BottomPanel;
 use components::game_canvas::GameCanvas;
 use components::side_panel::SidePanelCharacterSheet;
@@ -14,8 +13,8 @@ use leptos::prelude::{
     signal,
 };
 use leptos::{IntoView, component, view};
-use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use wasm_bindgen::closure::Closure;
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{EventSource, MessageEvent};
 
 fn main() {
@@ -108,7 +107,7 @@ fn App() -> impl IntoView {
             }
         }) as Box<dyn FnMut(MessageEvent)>);
         sse_event.set_onmessage(Some(callback.as_ref().unchecked_ref()));
-    
+
         callback.forget();
     });
 
@@ -124,7 +123,7 @@ fn App() -> impl IntoView {
 //TODO: delete after local testing
 // fn generate_hardcoded_shop_inventory() -> HashMap<MenuItem, ShopItem> {
 //     let mut items = HashMap::new();
-// 
+//
 //     items.insert(
 //         MenuItem(0),
 //             ShopItem {
@@ -136,7 +135,7 @@ fn App() -> impl IntoView {
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
 //     );
-// 
+//
 //     items.insert(
 //         MenuItem(1),
 //             ShopItem {
@@ -148,10 +147,10 @@ fn App() -> impl IntoView {
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
 //     );
-// 
+//
 //     items.insert(
 //         MenuItem(2),
-// 
+//
 //             ShopItem {
 //                 sprite: "greatsword".parse().unwrap(),
 //                 name: "Greatsword".parse().unwrap(),
@@ -161,10 +160,10 @@ fn App() -> impl IntoView {
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
 //     );
-// 
+//
 //     items.insert(
 //         MenuItem(3),
-// 
+//
 //             ShopItem {
 //                 sprite: "purple_tip_silver_staff".parse().unwrap(),
 //                 name: "Nether-orb Staff".parse().unwrap(),
@@ -173,12 +172,12 @@ fn App() -> impl IntoView {
 //                 price: 40,
 //                 description: "More elemental damage".parse().unwrap(),
 //             },
-// 
+//
 //     );
-// 
+//
 //     items.insert(
 //         MenuItem(4),
-// 
+//
 //             ShopItem {
 //                 sprite: "green_leather_boots".parse().unwrap(),
 //                 name: "Elven Boots".parse().unwrap(),
@@ -187,12 +186,12 @@ fn App() -> impl IntoView {
 //                 price: 30,
 //                 description: "More movement speed".parse().unwrap(),
 //             },
-// 
+//
 //     );
-// 
+//
 //     items.insert(
 //         MenuItem(5),
-// 
+//
 //             ShopItem {
 //                 sprite: "trident".parse().unwrap(),
 //                 name: "Trident".parse().unwrap(),
@@ -201,12 +200,12 @@ fn App() -> impl IntoView {
 //                 price: 18,
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
-// 
+//
 //     );
-// 
+//
 //     items.insert(
 //         MenuItem(6),
-// 
+//
 //             ShopItem {
 //                 sprite: "white_wizard_hat".parse().unwrap(),
 //                 name: "Academy Teacher's Hat".parse().unwrap(),
@@ -215,12 +214,12 @@ fn App() -> impl IntoView {
 //                 price: 230,
 //                 description: "Spells have longer durations and affect larger areas".parse().unwrap(),
 //             },
-// 
+//
 //     );
-// 
+//
 //     items.insert(
 //         MenuItem(7),
-// 
+//
 //             ShopItem {
 //                 sprite: "red_cloth_boots".parse().unwrap(),
 //                 name: "Cinder Slippers".parse().unwrap(),
@@ -229,8 +228,8 @@ fn App() -> impl IntoView {
 //                 price: 40,
 //                 description: "More elemental resistance".parse().unwrap(),
 //             },
-// 
+//
 //     );
-// 
+//
 //     items
 // }

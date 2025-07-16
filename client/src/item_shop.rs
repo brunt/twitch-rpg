@@ -1,10 +1,9 @@
-use std::collections::HashMap;
 use crate::components::draw_item_sprite;
 use crate::sprites::items_sprites::ITEMS_SPRITES;
 use crate::sprites::{ITEM_SPRITE_DIMENSION, SpriteRect};
 use common::{ItemQuality, MenuItem, ShopItem};
+use std::collections::HashMap;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
-
 
 // TODO: reshape shop item
 // /////////////////////////
@@ -107,7 +106,7 @@ pub(crate) fn draw_shop_interface(
             ITEM_SLOT_WIDTH - 16.0,
             14.0,
         );
-        
+
         // Draw equipment slot value
         draw_wrapped_text(
             ctx,
@@ -117,8 +116,7 @@ pub(crate) fn draw_shop_interface(
             ITEM_SLOT_WIDTH - 16.0,
             14.0,
         );
-        
-        
+
         // Draw Menu Item #
         ctx.set_fill_style_str("#fff");
         ctx.set_font("bold 16px sans-serif");
