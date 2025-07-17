@@ -5,23 +5,14 @@
 Idle RPG controlled through Twitch chat
 
 ### Current challenges
-~~* Simple ECS god I should be better at this~~
-* What can I store in game state?
-~~* Sprite mapping/animation~~
 * Smooth character movement
-* Tying dungeon levels to ECS
-* Having safe, non-dungeon shop time for players
+* AI
+* Spells and abilities
 
 ### Architecture
 * leptos frontend, reacting to server sent events, no events, click, submit etc
-* webserver that receives user interactions through POST calls, continuously sends server-sent events every 2s or so
+* webserver that receives user interactions continuously sends server-sent events
 * internal ECS server that models player characters, enemies, combat, pathfinding
-
-### Ideas (to come up with)
-* items
-* quests
-* general character progression
-* [classes?](https://archeage.fandom.com/wiki/Classes)
 
 ### Build
 * compile frontend first (may need a makefile or build.rs file)
@@ -31,3 +22,11 @@ Idle RPG controlled through Twitch chat
 ### Quick local run
 * front end: `cd` into client folder, run `nix develop`
 * back end: `cargo run --package twitch-rpg-server --bin twitch-rpg-server`
+
+All tiles have been drawn by David E. Gervais, and are published under the [Creative Commons licence](http://creativecommons.org/licenses/by/3.0/).
+Note: There's been at least one tiny change made to the tiles.
+
+The tiles can be downloaded here: http://pousse.rapiere.free.fr/tome/
+
+The tiles were originally created for [Dungeon Odyssey](http://www.malfador.com/domain.html).
+                

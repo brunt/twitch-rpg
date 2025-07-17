@@ -1,50 +1,13 @@
+pub(crate) use crate::ecs::components::movement::Position;
 pub(crate) use common::{Health, PlayerClass};
-use serde_json::Value;
 use specs::prelude::*;
 use specs_derive::Component;
-use std::cmp::Ordering;
-use std::fmt::{Display, Formatter};
+use std::fmt::Display;
 
 pub mod class;
 pub mod inventory;
+pub mod movement;
 
-// Entity's coordinates in the world
-#[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
-pub struct Position {
-    pub x: u32,
-    pub y: u32,
-}
-
-#[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
-pub struct MovementSpeed(pub u32);
-
-impl PartialEq<u32> for MovementSpeed {
-    fn eq(&self, other: &u32) -> bool {
-        self.0 == *other
-    }
-}
-impl PartialEq<MovementSpeed> for u32 {
-    fn eq(&self, other: &MovementSpeed) -> bool {
-        *self == other.0
-    }
-}
-impl PartialOrd<u32> for MovementSpeed {
-    fn partial_cmp(&self, other: &u32) -> Option<Ordering> {
-        self.0.partial_cmp(other)
-    }
-}
-
-impl PartialOrd<MovementSpeed> for u32 {
-    fn partial_cmp(&self, other: &MovementSpeed) -> Option<Ordering> {
-        self.partial_cmp(&other.0)
-    }
-}
-
-#[derive(Debug, Component)]
-pub struct TargetPosition {
-    pub x: u32,
-    pub y: u32,
-}
 
 #[derive(Debug, Component)]
 pub struct HealthComponent(pub Health);
@@ -80,9 +43,8 @@ impl HealthComponent {
 
 // Corpse component for defeated entities
 #[derive(Debug, Component)]
-pub struct Corpse {
-    //pub time_of_death: std::time::Instant,
-}
+#[storage(NullStorage)]
+pub struct Corpse;
 
 // Equipment types
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -151,6 +113,10 @@ pub struct Player;
 #[derive(Debug, Component, Clone, Default)]
 #[storage(NullStorage)]
 pub struct Enemy;
+
+#[derive(Debug, Component, Clone, Default)]
+#[storage(NullStorage)]
+pub struct DungeonItem;
 
 // Immobile component for entities that can't move
 #[derive(Component, Debug)]

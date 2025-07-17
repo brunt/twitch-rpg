@@ -1,6 +1,7 @@
 use specs::{Join, ReadStorage, System, WriteStorage};
 
-use crate::ecs::components::{MovementSpeed, Position, TargetPosition};
+use crate::ecs::components::Position;
+use crate::ecs::components::movement::{MovementSpeed, TargetPosition};
 
 pub struct Movement;
 
@@ -13,34 +14,28 @@ impl<'a> System<'a> for Movement {
 
     fn run(&mut self, (mut positions, speed, target): Self::SystemData) {
         for (pos, speed, target) in (&mut positions, &speed, &target).join() {
-            // Calculate direction vector (dx, dy)
-            let dx = target.x - pos.x;
-            let dy = target.y - pos.y;
+            let dx = target.x as i32 - pos.x as i32;
+            let dy = target.y as i32 - pos.y as i32;
 
-            // If already at target, skip
+            // Already at the target
             if dx == 0 && dy == 0 {
                 continue;
             }
 
-            // distance formula (chebyshev)
-            let dist = dx.max(dy);
+            let dist = dx.abs().max(dy.abs()); // Chebyshev distance
+            let steps = speed.0.min(dist as u32); // steps we can take this tick
 
-            // Compute step in x and y, limited by speed
-            let step_x = dx.min(speed.0);
+            // Normalize direction to -1, 0, 1
+            let dir_x = dx.signum();
+            let dir_y = dy.signum();
 
-            let step_y = dy.min(speed.0);
+            // Move step-by-step toward target, not exceeding speed
+            let new_x = pos.x as i32 + dir_x * steps.min(dx.abs() as u32) as i32;
+            let new_y = pos.y as i32 + dir_y * steps.min(dy.abs() as u32) as i32;
 
-            if dist <= *speed {
-                pos.x = target.x;
-                pos.y = target.y;
-                continue;
-            }
-
-            //TODO: finish this
-            pos.x = pos.x + step_x;
-            pos.y = pos.y + step_y;
-
-            // dbg!(pos.x, pos.y);
+            pos.x = new_x as u32;
+            pos.y = new_y as u32;
+            dbg!();
         }
     }
 }

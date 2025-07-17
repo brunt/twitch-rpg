@@ -11,16 +11,16 @@ pub enum TileSet {
     Library,
 }
 
-pub fn get_terrain(tileset: &TileSet) -> [SpriteRect; 2] {
+pub fn get_terrain(tileset: &TileSet) -> [SpriteRect; 3] {
     // TODO: extend to alternate floors, walls, doors, doodads
     match tileset {
         TileSet::Woods => {
-            // floor, wall
-            [TERRAIN_SPRITE_1044, TERRAIN_SPRITE_467]
+            // floor, wall, chest
+            [TERRAIN_SPRITE_1044, TERRAIN_SPRITE_467, TERRAIN_SPRITE_514]
         }
-        TileSet::Mountain => [TERRAIN_SPRITE_930, TERRAIN_SPRITE_428],
-        TileSet::Desert => [TERRAIN_SPRITE_620, SpriteRect::at(10.0, 22.0)],
-        TileSet::Tundra => [TERRAIN_SPRITE_619, TERRAIN_SPRITE_299],
+        TileSet::Mountain => [TERRAIN_SPRITE_930, TERRAIN_SPRITE_428, TERRAIN_SPRITE_514],
+        TileSet::Desert => [TERRAIN_SPRITE_620, SpriteRect::at(10.0, 22.0), TERRAIN_SPRITE_514],
+        TileSet::Tundra => [TERRAIN_SPRITE_619, TERRAIN_SPRITE_299, TERRAIN_SPRITE_514],
         _ => unimplemented!(),
     }
 }

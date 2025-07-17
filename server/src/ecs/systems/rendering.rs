@@ -1,7 +1,5 @@
 use crate::ecs::components::class::CharacterClass;
-use crate::ecs::components::{
-    Enemy, Health, HealthComponent, Level, Money, Name, Player, Position, Projectile,
-};
+use crate::ecs::components::{DungeonItem, Enemy, Health, HealthComponent, Level, Money, Name, Player, Position, Projectile};
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
 use common::{EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
 use specs::{Join, ReadExpect, ReadStorage, System};
@@ -23,6 +21,7 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, Money>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Enemy>,
+        ReadStorage<'a, DungeonItem>,
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
         ReadExpect<'a, ShopInventory>,
@@ -42,6 +41,7 @@ impl<'a> System<'a> for Rendering {
             monies,
             players,
             enemies,
+            dungeon_items,
             game_state,
             countdown,
             shop_inventory,
@@ -103,6 +103,13 @@ impl<'a> System<'a> for Rendering {
                             level: level.0,
                         },
                     ))
+                    .chain((&positions, &names, &dungeon_items).join().map(|(pos, name, item)| {
+                        EntityPosition {
+                            class: "Item".to_string(),
+                            position: tatami_dungeon::Position { x: pos.x, y: pos.y },
+                            level: 0,
+                        }
+                    }))
                     .collect();
 
                 let mut gs = GameSnapShot {

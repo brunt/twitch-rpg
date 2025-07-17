@@ -2,7 +2,8 @@ use common::{MenuItem, SerializedCountdownTimer, ShopItem};
 use specs::{Entity, World};
 use std::collections::HashMap;
 use std::time::Duration;
-use tatami_dungeon::{Dungeon as TatamiDungeon, GenerateDungeonParams, Item, Position, Tile};
+
+use tatami_dungeon::{Dungeon as TatamiDungeon, GenerateDungeonParams, Item, Position, Room, Tile};
 
 #[derive(Debug, Clone)]
 pub enum GameState {
@@ -59,6 +60,23 @@ impl Adventure {
     }
 }
 
+pub(crate) trait RoomCheck {
+    fn contains(&self, p: Position) -> bool;
+}
+
+impl RoomCheck for Room {
+    fn contains(&self, p: Position) -> bool {
+        let rx = self.position.x;
+        let ry = self.position.y;
+        let rw = self.width;
+        let rh = self.height;
+
+        p.x >= rx && p.x < rx + rw &&
+            p.y >= ry && p.y < ry + rh
+    }
+}
+
+
 impl Default for Adventure {
     fn default() -> Self {
         Self::generate_with_params(GenerateDungeonParams::default())
@@ -89,7 +107,7 @@ impl CountdownTimer {
 
 impl Default for CountdownTimer {
     fn default() -> Self {
-        Self::new(Duration::from_secs(3))
+        Self::new(Duration::from_secs(2))
     }
 }
 

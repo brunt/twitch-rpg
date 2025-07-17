@@ -9,7 +9,7 @@ use crate::parser::get_command;
 use crate::webserver::start_web_server;
 use common::GameSnapShot;
 use dotenv::dotenv;
-use tmi::{Badge, Privmsg};
+use tmi::{Badge, BadgeData, Privmsg};
 use tokio::sync::{broadcast, mpsc};
 
 #[tokio::main]
@@ -25,7 +25,11 @@ async fn main() {
 }
 
 fn is_privileged_user(msg: &Privmsg) -> bool {
-    msg.badges().any(|b| matches!(b, Badge::Subscriber(..)))
+    msg.badges().any(|b| match b {
+        Badge::Subscriber(..) => true,
+        Badge::Other(badge) => badge.name() == "founder" || badge.name() == "premium",
+        _ => false,
+    })
 }
 
 fn is_channel_owner(msg: &Privmsg) -> bool {

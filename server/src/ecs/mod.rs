@@ -14,6 +14,8 @@ use common::GameSnapShot;
 use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
+use crate::ecs::systems::pathfinding::PathfindingSystem;
+use crate::ecs::systems::assign_room_target::AssignRoomTargetSystem;
 
 pub mod resources;
 mod shop;
@@ -44,7 +46,9 @@ pub fn run_game_server(
     // build dispatcher with systems
     let mut dispatcher = DispatcherBuilder::new()
         .with(CommandHandlerSystem, "command_handler", &[])
-        .with(Movement, "movement", &["command_handler"])
+        .with(AssignRoomTargetSystem, "assign_room_target", &["command_handler"])
+        .with(PathfindingSystem, "pathfinding", &["assign_room_target"])
+        .with(Movement, "movement", &["pathfinding"])
         .with(RandomWander, "idle", &["movement"])
         .with(
             Rendering {

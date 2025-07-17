@@ -1,6 +1,7 @@
-use crate::ecs::components::{MovementSpeed, Position, TargetPosition};
 use rand::{Rng, SeedableRng};
 use specs::{Join, ReadStorage, System, WriteStorage};
+use crate::ecs::components::movement::TargetPosition;
+use crate::ecs::components::Position;
 
 pub struct RandomWander;
 

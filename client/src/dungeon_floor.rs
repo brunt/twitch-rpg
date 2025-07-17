@@ -1,8 +1,6 @@
 use crate::components::draw_sprite;
 use crate::sprites::monsters_sprites::{enemy_sprite, player_sprite};
-use crate::sprites::terrain_sprites::{
-    TERRAIN_SPRITE_432, TERRAIN_SPRITE_467, TERRAIN_SPRITE_653, TileSet, get_terrain,
-};
+use crate::sprites::terrain_sprites::{TERRAIN_SPRITE_432, TERRAIN_SPRITE_467, TERRAIN_SPRITE_653, TileSet, get_terrain, TERRAIN_SPRITE_514};
 use crate::sprites::{SPRITE_DIMENSION, SpriteRect};
 use common::{EntityPosition, Form, PlayerClass};
 use std::str::FromStr;
@@ -39,7 +37,7 @@ pub fn draw_dungeon_floor(
     let offset_x = center_x - camera_screen_x;
     let offset_y = center_y - camera_screen_y;
 
-    let [floor_tile, wall_tile] = match difficulty {
+    let [floor_tile, wall_tile, item_tile] = match difficulty {
         1 => get_terrain(&TileSet::Woods),
         2 => get_terrain(&TileSet::Mountain),
         3 => get_terrain(&TileSet::Desert),
@@ -87,6 +85,7 @@ pub fn draw_dungeon_floor(
         // Draw the sprite at (x, y)
         match class.as_str() {
             "Enemy" => draw_sprite(ctx, monster_image, &enemy_sprite, x, y, 1.0, None),
+            "Item" => draw_sprite(ctx, terrain_image, &item_tile, x, y, 1.0, None),
             cl => {
                 if let Ok(player_class) = PlayerClass::from_str(cl) {
                     draw_sprite(

@@ -1,10 +1,10 @@
-use crate::ecs::components::{
-    Enemy, HealthComponent, Level, MovementSpeed, Name, Player, Position, Stats,
-};
+use crate::ecs::components::{Enemy, HealthComponent, Level, Name, Player, Position, Stats};
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState};
 use common::Health;
 use specs::{Entities, Join, Read, ReadStorage, System, WriteExpect, WriteStorage};
 use std::time;
+use crate::ecs::components::movement::{MovementSpeed, TargetPosition};
+use crate::ecs::systems::pathfinding::PathfindingSystem;
 
 pub struct CountdownSystem {
     /// The minimum number of players in a lobby before the countdown timer starts.
@@ -23,6 +23,7 @@ impl<'a> System<'a> for CountdownSystem {
         WriteStorage<'a, Level>,
         WriteStorage<'a, Name>,
         WriteStorage<'a, MovementSpeed>,
+        WriteStorage<'a, TargetPosition>,
         Read<'a, DeltaTime>,
         Entities<'a>,
     );
@@ -40,6 +41,7 @@ impl<'a> System<'a> for CountdownSystem {
             mut levels,
             mut names,
             mut movementspeeds,
+            mut targets,
             delta_time,
             mut entities,
         ): Self::SystemData,
@@ -71,6 +73,13 @@ impl<'a> System<'a> for CountdownSystem {
                             },
                         )
                         .expect("Failed to insert player position");
+                    movementspeeds.insert(entity, MovementSpeed(1)).expect("Failed to insert movement speed");
+                    // if let Some(room_maybe) = adv.dungeon.floors[adv.current_floor_index].rooms.iter().find(|room| {
+                    //     room.position.x == adv.dungeon.player_position.x
+                    //         && room.position.y == adv.dungeon.player_position.y
+                    // }) {
+                    //     targets.insert(entity, TargetPosition { x: room_maybe.position.x, y: room_maybe.position.y}).expect("Failed to insert target position");
+                    // }
                 }
 
                 adv.get_enemy_data().iter().for_each(|pos| {
