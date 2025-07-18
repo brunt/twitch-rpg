@@ -18,7 +18,9 @@ pub struct GameSnapShot {
 pub struct EntityPosition {
     pub class: String,
     pub position: tatami_dungeon::Position,
-    pub level: u32 // 
+    pub level: u32,
+    /// maybe this helps smooth animations
+    pub target_position: Option<tatami_dungeon::Position>,
 }
 
 // pub struct Position {

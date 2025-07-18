@@ -44,3 +44,6 @@ pub struct TargetPosition {
 pub struct Path {
     pub steps: Vec<(u32, u32)>, // next steps, from start to end
 }
+
+#[derive(Debug, Component, Clone)]
+pub struct Wander;

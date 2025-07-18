@@ -8,6 +8,22 @@ Idle RPG controlled through Twitch chat
 * Smooth character movement
 * AI
 * Spells and abilities
+* movement validation
+* Do I need a motion system?
+* bounding box around all players in party, when a player pushes an edge of the box outward the camera position moves
+* player pathfinding system
+```rust
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Moving {
+    pub from: Position,
+    pub to: Position,
+    pub start_time: f32,       // seconds since game start
+    pub duration: f32,         // total duration of movement animation
+}
+```
+
+
 
 ### Architecture
 * leptos frontend, reacting to server sent events, no events, click, submit etc

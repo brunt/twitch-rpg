@@ -1,4 +1,4 @@
-use specs::{Join, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 
 use crate::ecs::components::Position;
 use crate::ecs::components::movement::{MovementSpeed, TargetPosition};
@@ -7,18 +7,24 @@ pub struct Movement;
 
 impl<'a> System<'a> for Movement {
     type SystemData = (
+        Entities<'a>,
         WriteStorage<'a, Position>,
         ReadStorage<'a, MovementSpeed>,
-        ReadStorage<'a, TargetPosition>,
+        WriteStorage<'a, TargetPosition>,
     );
 
-    fn run(&mut self, (mut positions, speed, target): Self::SystemData) {
-        for (pos, speed, target) in (&mut positions, &speed, &target).join() {
+    fn run(&mut self, (entities, mut positions, speeds, mut targets): Self::SystemData) {
+        let mut to_remove = Vec::new();
+
+        for (entity, pos, speed, target) in
+            (&entities, &mut positions, &speeds, &mut targets).join()
+        {
             let dx = target.x as i32 - pos.x as i32;
             let dy = target.y as i32 - pos.y as i32;
 
             // Already at the target
             if dx == 0 && dy == 0 {
+                to_remove.push(entity);
                 continue;
             }
 
@@ -35,7 +41,10 @@ impl<'a> System<'a> for Movement {
 
             pos.x = new_x as u32;
             pos.y = new_y as u32;
-            dbg!();
+        }
+
+        for entity in to_remove {
+            targets.remove(entity);
         }
     }
 }

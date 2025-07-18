@@ -3,9 +3,12 @@ pub mod systems;
 
 use crate::commands::RpgCommand;
 use crate::ecs::resources::{CountdownTimer, DeltaTime};
+use crate::ecs::systems::assign_room_target::AssignRoomTargetSystem;
 use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::countdown::CountdownSystem;
 use crate::ecs::systems::movement::Movement;
+use crate::ecs::systems::movement_validation::MovementValidationSystem;
+use crate::ecs::systems::pathfinding::PathfindingSystem;
 use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
 use crate::ecs::systems::shop_population::ShopPopulation;
@@ -14,8 +17,6 @@ use common::GameSnapShot;
 use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
-use crate::ecs::systems::pathfinding::PathfindingSystem;
-use crate::ecs::systems::assign_room_target::AssignRoomTargetSystem;
 
 pub mod resources;
 mod shop;
@@ -46,7 +47,11 @@ pub fn run_game_server(
     // build dispatcher with systems
     let mut dispatcher = DispatcherBuilder::new()
         .with(CommandHandlerSystem, "command_handler", &[])
-        .with(AssignRoomTargetSystem, "assign_room_target", &["command_handler"])
+        .with(
+            AssignRoomTargetSystem,
+            "assign_room_target",
+            &["command_handler"],
+        )
         .with(PathfindingSystem, "pathfinding", &["assign_room_target"])
         .with(Movement, "movement", &["pathfinding"])
         .with(RandomWander, "idle", &["movement"])
@@ -68,6 +73,11 @@ pub fn run_game_server(
             ShopPopulation,
             "shop_population",
             &["rendering", "command_handler"],
+        )
+        .with(
+            MovementValidationSystem,
+            "movement_validation",
+            &["pathfinding"],
         )
         .build();
 

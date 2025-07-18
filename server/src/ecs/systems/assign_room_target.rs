@@ -1,8 +1,8 @@
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
-use crate::ecs::components::{Player, Position};
 use crate::ecs::components::movement::TargetPosition;
+use crate::ecs::components::{Player, Position};
 use crate::ecs::resources::Adventure;
 use crate::ecs::resources::RoomCheck;
+use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
 pub struct AssignRoomTargetSystem;
 
@@ -15,7 +15,10 @@ impl<'a> System<'a> for AssignRoomTargetSystem {
         Read<'a, Option<Adventure>>,
     );
 
-    fn run(&mut self, (entities, positions, mut targets, players, adventure_opt): Self::SystemData) {
+    fn run(
+        &mut self,
+        (entities, positions, mut targets, players, adventure_opt): Self::SystemData,
+    ) {
         let Some(adventure) = adventure_opt.as_ref() else {
             return;
         };
@@ -23,8 +26,11 @@ impl<'a> System<'a> for AssignRoomTargetSystem {
         let floor = &adventure.dungeon.floors[adventure.current_floor_index];
 
         for (entity, pos, _) in (&entities, &positions, &players).join() {
-            if let Some(room) = floor.rooms.iter().find(|room| room.contains(tatami_dungeon::Position{ x: pos.x, y: pos.y})) {
-
+            if let Some(room) = floor
+                .rooms
+                .iter()
+                .find(|room| room.contains(tatami_dungeon::Position { x: pos.x, y: pos.y }))
+            {
                 let target = if let Some(stair) = room.stairs.first() {
                     TargetPosition {
                         x: stair.position.x,

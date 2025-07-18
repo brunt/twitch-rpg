@@ -1,22 +1,22 @@
+use crate::ecs::components::DungeonItem;
+use crate::ecs::components::Enemy;
+use crate::ecs::components::Experience;
+use crate::ecs::components::HealthComponent;
+use crate::ecs::components::Level;
+use crate::ecs::components::Money;
+use crate::ecs::components::MovementAI;
+use crate::ecs::components::Name;
+use crate::ecs::components::Player;
+use crate::ecs::components::Position;
+use crate::ecs::components::Projectile;
+use crate::ecs::components::Resource;
+use crate::ecs::components::Stats;
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::inventory::Equipment;
-use crate::ecs::components::Resource;
-use crate::ecs::components::Projectile;
-use crate::ecs::components::Position;
-use crate::ecs::components::Player;
-use crate::ecs::components::Name;
-use crate::ecs::components::MovementAI;
-use crate::ecs::components::Money;
-use crate::ecs::components::Level;
-use crate::ecs::components::HealthComponent;
-use crate::ecs::components::Experience;
-use crate::ecs::components::Enemy;
-use crate::ecs::components::DungeonItem;
-use crate::ecs::components::Stats;
+use crate::ecs::components::movement::{MovementSpeed, Path, TargetPosition, Wander};
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
 use crate::ecs::shop::{ShopItemPool, initialize_shop_items};
 use specs::{World, WorldExt};
-use crate::ecs::components::movement::{MovementSpeed, Path, TargetPosition};
 
 pub fn create_world() -> World {
     let mut world = World::new();
@@ -38,6 +38,7 @@ pub fn create_world() -> World {
     world.register::<Enemy>();
     world.register::<DungeonItem>();
     world.register::<Path>();
+    world.register::<Wander>();
 
     // resources
     world.insert(GameState::InTown);

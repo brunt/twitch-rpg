@@ -1,8 +1,8 @@
+use crate::ecs::components::Position;
+use crate::ecs::components::movement::{Path, TargetPosition};
+use crate::ecs::resources::Adventure;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use tatami_dungeon::Tile;
-use crate::ecs::components::movement::{Path, TargetPosition};
-use crate::ecs::components::Position;
-use crate::ecs::resources::Adventure;
 
 pub struct PathfindingSystem;
 
@@ -16,10 +16,11 @@ impl<'a> System<'a> for PathfindingSystem {
     );
 
     fn run(&mut self, (entities, positions, targets, mut paths, adventures): Self::SystemData) {
-        let Some(adventure) = adventures.as_ref() else { return; };
-        
-        let mut new_paths = Vec::new();
+        let Some(adventure) = adventures.as_ref() else {
+            return;
+        };
 
+        let mut new_paths = Vec::new();
 
         for (entity, pos, target, _) in (&entities, &positions, &targets, !&paths).join() {
             let mut x = pos.x;
@@ -40,8 +41,12 @@ impl<'a> System<'a> for PathfindingSystem {
                 } else if y > target.y {
                     y -= 1;
                 }
-                
-                if matches!(adventure.dungeon.floors[adventure.current_floor_index].tile_at(tatami_dungeon::Position{ x,y }) , Tile::Floor) {
+
+                if matches!(
+                    adventure.dungeon.floors[adventure.current_floor_index]
+                        .tile_at(tatami_dungeon::Position { x, y }),
+                    Tile::Floor
+                ) {
                     path.push((x, y));
                 } else {
                     blocked = true;

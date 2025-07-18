@@ -3,7 +3,7 @@ use axum::extract::State;
 use axum::http::{Method, StatusCode, Uri, header};
 use axum::response::sse::Event;
 use axum::response::{Html, IntoResponse, Response, Sse};
-use axum::routing::{get, post};
+use axum::routing::get;
 use common::GameSnapShot;
 use rust_embed::RustEmbed;
 use std::convert::Infallible;

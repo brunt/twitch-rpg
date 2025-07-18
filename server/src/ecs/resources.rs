@@ -71,11 +71,9 @@ impl RoomCheck for Room {
         let rw = self.width;
         let rh = self.height;
 
-        p.x >= rx && p.x < rx + rw &&
-            p.y >= ry && p.y < ry + rh
+        p.x >= rx && p.x < rx + rw && p.y >= ry && p.y < ry + rh
     }
 }
-
 
 impl Default for Adventure {
     fn default() -> Self {

@@ -1,7 +1,7 @@
 use crate::components::draw_sprite;
+use crate::sprites::SPRITE_DIMENSION;
 use crate::sprites::monsters_sprites::{enemy_sprite, player_sprite};
-use crate::sprites::terrain_sprites::{TERRAIN_SPRITE_432, TERRAIN_SPRITE_467, TERRAIN_SPRITE_653, TileSet, get_terrain, TERRAIN_SPRITE_514};
-use crate::sprites::{SPRITE_DIMENSION, SpriteRect};
+use crate::sprites::terrain_sprites::{TileSet, get_terrain};
 use common::{EntityPosition, Form, PlayerClass};
 use std::str::FromStr;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
@@ -17,6 +17,7 @@ pub fn draw_dungeon_floor(
     difficulty: u32,
     floor_pos: &Vec<EntityPosition>,
 ) {
+    const DEFAULT_TERRAIN_SCALE: f64 = 1.05;
     let map_height = floor.len();
     let map_width = floor[0].len();
 
@@ -57,11 +58,35 @@ pub fn draw_dungeon_floor(
             let y = (col as f64 + row as f64) * (SPRITE_DIMENSION / 4.0) + offset_y;
 
             match val {
-                0 => draw_sprite(ctx, terrain_image, &floor_tile, x, y, 1.0, None),
+                0 => draw_sprite(
+                    ctx,
+                    terrain_image,
+                    &floor_tile,
+                    x,
+                    y,
+                    DEFAULT_TERRAIN_SCALE,
+                    None,
+                ),
                 1 => {
                     //draw both the floor and the wall so there are no gaps
-                    draw_sprite(ctx, terrain_image, &floor_tile, x, y, 1.0, None);
-                    draw_sprite(ctx, terrain_image, &wall_tile, x, y, 1.0, None)
+                    draw_sprite(
+                        ctx,
+                        terrain_image,
+                        &floor_tile,
+                        x,
+                        y,
+                        DEFAULT_TERRAIN_SCALE,
+                        None,
+                    );
+                    draw_sprite(
+                        ctx,
+                        terrain_image,
+                        &wall_tile,
+                        x,
+                        y,
+                        DEFAULT_TERRAIN_SCALE,
+                        None,
+                    )
                 }
                 _ => unimplemented!(),
             }
@@ -69,7 +94,13 @@ pub fn draw_dungeon_floor(
     }
 
     // Draw entities at positions
-    for EntityPosition{ class, position, level, .. } in floor_pos.iter() {
+    for EntityPosition {
+        class,
+        position,
+        level,
+        ..
+    } in floor_pos.iter()
+    {
         // Skip if out of map bounds to be robust
         let row = position.y as usize;
         let col = position.x as usize;

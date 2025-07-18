@@ -4,8 +4,8 @@ use crate::commands::{PlayerCommand, RpgCommand};
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::{
-    Experience, HealthComponent, Level, Money, MovementAI, MovementAIKind, Name,
-    Player, Position, Resource, Stats,
+    Experience, HealthComponent, Level, Money, MovementAI, MovementAIKind, Name, Player, Position,
+    Resource, Stats,
 };
 use crate::ecs::resources::{GameState, ShopInventory};
 use specs::{

@@ -1,8 +1,11 @@
 use crate::ecs::components::class::CharacterClass;
-use crate::ecs::components::{DungeonItem, Enemy, Health, HealthComponent, Level, Money, Name, Player, Position, Projectile};
+use crate::ecs::components::movement::TargetPosition;
+use crate::ecs::components::{
+    DungeonItem, Enemy, Health, HealthComponent, Level, Money, Name, Player, Position, Projectile,
+};
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
 use common::{EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
-use specs::{Join, ReadExpect, ReadStorage, System};
+use specs::{Join, LendJoin, ReadExpect, ReadStorage, System};
 use std::time::Duration;
 use tokio::sync::broadcast::Sender;
 
@@ -22,6 +25,7 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, Player>,
         ReadStorage<'a, Enemy>,
         ReadStorage<'a, DungeonItem>,
+        ReadStorage<'a, TargetPosition>,
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
         ReadExpect<'a, ShopInventory>,
@@ -42,6 +46,7 @@ impl<'a> System<'a> for Rendering {
             players,
             enemies,
             dungeon_items,
+            target_positions,
             game_state,
             countdown,
             shop_inventory,
@@ -77,39 +82,65 @@ impl<'a> System<'a> for Rendering {
                 _ = self.sender.send(gs);
             }
             GameState::OnAdventure => {
-                // for (pos, player, enemy) in (&positions, &players, &enemies).join() {
-                //
-                // }
-
-                // let in_game_players = (&players, &positions, &levels, &character_classes).join().map(|(player, name, pos, level)| {
-                //
-                // });
-
-                let positions: Vec<EntityPosition> = (&positions, &character_classes, &levels)
+                let positions: Vec<EntityPosition> = (
+                    &positions,
+                    &character_classes,
+                    &levels,
+                    target_positions.maybe(),
+                )
                     .join()
-                    .map(|(pos, class, lvl)| {
+                    .map(|(pos, class, lvl, target_pos_maybe)| {
                         let pos = pos.clone();
                         let class = class.clone();
                         EntityPosition {
                             class: class.to_string(),
                             position: tatami_dungeon::Position { x: pos.x, y: pos.y },
                             level: lvl.0,
+                            target_position: if let Some(target_pos) = target_pos_maybe {
+                                Some(tatami_dungeon::Position {
+                                    x: target_pos.x.clone(),
+                                    y: target_pos.y.clone(),
+                                })
+                            } else {
+                                None
+                            },
                         }
                     })
-                    .chain((&positions, &names, &levels, &enemies).join().map(
-                        |(pos, name, level, _)| EntityPosition {
-                            class: name.0.clone(),
-                            position: tatami_dungeon::Position { x: pos.x, y: pos.y },
-                            level: level.0,
-                        },
-                    ))
-                    .chain((&positions, &names, &dungeon_items).join().map(|(pos, name, item)| {
-                        EntityPosition {
-                            class: "Item".to_string(),
-                            position: tatami_dungeon::Position { x: pos.x, y: pos.y },
-                            level: 0,
-                        }
-                    }))
+                    .chain(
+                        (
+                            &positions,
+                            &names,
+                            &levels,
+                            &enemies,
+                            target_positions.maybe(),
+                        )
+                            .join()
+                            .map(
+                                |(pos, name, level, _, target_pos_maybe)| EntityPosition {
+                                    class: name.0.clone(),
+                                    position: tatami_dungeon::Position { x: pos.x, y: pos.y },
+                                    level: level.0,
+                                    target_position: if let Some(target_pos) = target_pos_maybe {
+                                        Some(tatami_dungeon::Position {
+                                            x: target_pos.x.clone(),
+                                            y: target_pos.y.clone(),
+                                        })
+                                    } else {
+                                        None
+                                    },
+                                },
+                            ),
+                    )
+                    .chain(
+                        (&positions, &names, &dungeon_items)
+                            .join()
+                            .map(|(pos, name, item)| EntityPosition {
+                                class: "Item".to_string(),
+                                position: tatami_dungeon::Position { x: pos.x, y: pos.y },
+                                level: 0,
+                                target_position: None,
+                            }),
+                    )
                     .collect();
 
                 let mut gs = GameSnapShot {

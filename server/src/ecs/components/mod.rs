@@ -8,7 +8,6 @@ pub mod class;
 pub mod inventory;
 pub mod movement;
 
-
 #[derive(Debug, Component)]
 pub struct HealthComponent(pub Health);
 
