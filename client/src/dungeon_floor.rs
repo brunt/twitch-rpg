@@ -102,8 +102,8 @@ pub fn draw_dungeon_floor(
     } in floor_pos.iter()
     {
         // Skip if out of map bounds to be robust
-        let row = position.y as usize;
-        let col = position.x as usize;
+        let row = position.x as usize;
+        let col = position.y as usize;
         if row >= map_height || col >= map_width {
             continue;
         }

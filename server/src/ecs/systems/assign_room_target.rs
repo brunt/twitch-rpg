@@ -29,7 +29,7 @@ impl<'a> System<'a> for AssignRoomTargetSystem {
             if let Some(room) = floor
                 .rooms
                 .iter()
-                .find(|room| room.contains(tatami_dungeon::Position::from(pos)))
+                .find(|room| room.contains(&tatami_dungeon::Position::from(pos)))
             {
                 let target = if let Some(stair) = room.stairs.first() {
                     TargetPosition::from(&stair.position)

@@ -49,4 +49,3 @@ Note: There's been at least one tiny change made to the tiles.
 The tiles can be downloaded here: http://pousse.rapiere.free.fr/tome/
 
 The tiles were originally created for [Dungeon Odyssey](http://www.malfador.com/domain.html).
-                

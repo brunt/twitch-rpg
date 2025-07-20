@@ -1,7 +1,7 @@
+use crate::ecs::components;
 use crate::ecs::components::Component;
 use crate::ecs::components::DenseVecStorage;
 use std::cmp::Ordering;
-use crate::ecs::components;
 
 // Entity's coordinates in the world
 #[derive(Component, Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]

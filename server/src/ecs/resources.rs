@@ -18,6 +18,9 @@ pub struct Adventure {
     /// index which tells the frontend which floor to render
     pub current_floor_index: usize,
 
+    /// index which tells what room the players are in
+    pub current_room_index: u32,
+
     /// difficulty determines enemies, tileset, loot quality, enemy density
     pub difficulty: usize,
 
@@ -29,12 +32,13 @@ impl Adventure {
     pub fn generate_with_params(params: GenerateDungeonParams) -> Self {
         let mut dungeon = TatamiDungeon::generate_with_params(params);
         let mut explored_rooms = HashSet::new();
-        explored_rooms.insert(dungeon.starting_room_id);
-
+        let starting_room_id = dungeon.starting_room_id;
+        explored_rooms.insert(starting_room_id);
 
         Self {
             dungeon,
             current_floor_index: 0,
+            current_room_index: starting_room_id,
             difficulty: 0,
             explored_rooms,
         }
@@ -71,7 +75,7 @@ impl Adventure {
             if visible_room_ids.contains(&room.id) {
                 let start_x = room.position.x as usize;
                 let start_y = room.position.y as usize;
-                let end_x = (start_x + room.width  as usize).min(width);
+                let end_x = (start_x + room.width as usize).min(width);
                 let end_y = (start_y + room.height as usize).min(height);
                 for y in start_y..end_y {
                     for x in start_x..end_x {
@@ -85,11 +89,11 @@ impl Adventure {
             .tiles
             .iter()
             .enumerate()
-            .map(|(y, row)| {
-                row.iter()
+            .map(|(x, col)| {
+                col.iter()
                     .enumerate()
-                    .map(|(x, tile)| {
-                        if visible[y][x] {
+                    .map(|(y, tile)| {
+                        if visible[x][y] {
                             match tile {
                                 Tile::Floor => 1,
                                 Tile::Wall => 2,
@@ -111,6 +115,15 @@ impl Adventure {
             .collect()
     }
 
+    pub fn get_item_data(&self) -> Vec<Position> {
+        let data = self.dungeon.floors[self.current_floor_index]
+            .rooms
+            .iter()
+            .flat_map(|room| room.items.iter().map(|item| item.position))
+            .collect();
+        data
+    }
+
     pub fn get_visible_enemy_data(&self) -> Vec<Position> {
         let floor = &self.dungeon.floors[self.current_floor_index];
         let explored = &self.explored_rooms;
@@ -121,15 +134,12 @@ impl Adventure {
             .flat_map(|room| room.enemies.iter().map(|enemy| enemy.position))
             .collect()
     }
-    
+
     // fn find_nearest_floor_spawn(start: Position, floor: &Floor) -> Option<Position> {
     pub(crate) fn find_nearest_floor_spawn(&self, start: &Position) -> Option<Position> {
         let floor = &self.dungeon.floors[self.current_floor_index];
 
-        let (width, height) = (
-            floor.tiles[0].len() as u32,
-            floor.tiles.len() as u32,
-        );
+        let (width, height) = (floor.tiles[0].len() as u32, floor.tiles.len() as u32);
 
         // First, try the given position
         if floor.tile_at(*start) == Tile::Floor {
@@ -147,11 +157,11 @@ impl Adventure {
 }
 
 pub(crate) trait RoomCheck {
-    fn contains(&self, p: Position) -> bool;
+    fn contains(&self, p: &Position) -> bool;
 }
 
 impl RoomCheck for Room {
-    fn contains(&self, p: Position) -> bool {
+    fn contains(&self, p: &Position) -> bool {
         let rx = self.position.x;
         let ry = self.position.y;
         let rw = self.width;
@@ -191,7 +201,7 @@ impl CountdownTimer {
 
 impl Default for CountdownTimer {
     fn default() -> Self {
-        Self::new(Duration::from_secs(2))
+        Self::new(Duration::from_secs(60))
     }
 }
 

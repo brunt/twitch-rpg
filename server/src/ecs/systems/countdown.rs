@@ -1,11 +1,13 @@
+use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::movement::{MovementSpeed, TargetPosition};
-use crate::ecs::components::{Enemy, HealthComponent, Level, Name, Player, Position, Stats};
+use crate::ecs::components::{
+    DungeonItem, Enemy, HealthComponent, Level, Name, Player, Position, Stats,
+};
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
 use crate::ecs::systems::pathfinding::PathfindingSystem;
 use common::{Health, PlayerClass};
 use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
 use std::time;
-use crate::ecs::components::class::CharacterClass;
 
 pub struct CountdownSystem {
     /// The minimum number of players in a lobby before the countdown timer starts.
@@ -25,6 +27,7 @@ impl<'a> System<'a> for CountdownSystem {
         WriteStorage<'a, Name>,
         WriteStorage<'a, MovementSpeed>,
         WriteStorage<'a, TargetPosition>,
+        WriteStorage<'a, DungeonItem>,
         Write<'a, ShopInventory>,
         Read<'a, DeltaTime>,
         Entities<'a>,
@@ -44,6 +47,7 @@ impl<'a> System<'a> for CountdownSystem {
             mut names,
             mut movementspeeds,
             mut targets,
+            mut dungeon_items,
             mut shop_inventory,
             delta_time,
             mut entities,
@@ -62,7 +66,7 @@ impl<'a> System<'a> for CountdownSystem {
         if let Some(timer) = game_timer.as_mut() {
             let elapsed = time::Duration::from_secs_f64(delta_time.0);
             timer.remaining = timer.remaining.saturating_sub(elapsed);
-            
+
             // start the dungeon! a lot of logic is here, perhaps it should move somewhere
             if timer.remaining.is_zero() {
                 let adv = Adventure::default();
@@ -70,14 +74,8 @@ impl<'a> System<'a> for CountdownSystem {
 
                 for (entity, _player) in (&entities, &players).join() {
                     // add positions to ECS
-                    let start_pos = adv.find_nearest_floor_spawn(&adv.dungeon.player_position).expect("Failed to find spawn");
-                    dbg!(&start_pos, adv.dungeon.player_position);
                     positions
-                        .insert(
-                            entity,
-                            // Position::from(&adv.dungeon.player_position),
-                            Position::from(&start_pos),
-                        )
+                        .insert(entity, Position::from(&adv.dungeon.player_position))
                         .expect("Failed to insert player position");
                     movementspeeds
                         .insert(entity, MovementSpeed(1))
@@ -86,7 +84,6 @@ impl<'a> System<'a> for CountdownSystem {
 
                 adv.get_enemy_data().iter().for_each(|pos| {
                     let enemy = entities.create();
-                    let floor_pos = Position::from(&adv.find_nearest_floor_spawn(pos).unwrap_or(*pos));
                     names
                         .insert(enemy, Name::default())
                         .expect("Failed to insert enemy name");
@@ -98,11 +95,19 @@ impl<'a> System<'a> for CountdownSystem {
                         .insert(enemy, HealthComponent(Health::Alive { hp: 10, max_hp: 10 }))
                         .expect("Failed to add health");
                     positions
-                        .insert(enemy, floor_pos)
+                        .insert(enemy, Position::from(pos))
                         .expect("Failed to insert enemy position");
                     movementspeeds
                         .insert(enemy, MovementSpeed(1))
                         .expect("Failed to insert movement speed");
+                });
+
+                adv.get_item_data().iter().for_each(|pos| {
+                    let item = entities.create();
+                    positions
+                        .insert(item, Position::from(pos))
+                        .expect("failed to insert item");
+                    dungeon_items.insert(item, DungeonItem).expect("failed to be an item");
                 });
 
                 *adventure = Some(adv);

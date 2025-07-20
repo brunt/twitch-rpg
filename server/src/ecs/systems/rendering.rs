@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::movement::TargetPosition;
 use crate::ecs::components::{
@@ -7,8 +6,8 @@ use crate::ecs::components::{
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
 use common::{EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
 use specs::{Join, LendJoin, ReadExpect, ReadStorage, System};
+use std::collections::HashSet;
 use tokio::sync::broadcast::Sender;
-
 
 /// This system generates a struct that will get serialized to JSON and sent to the frontend.
 /// Information from it will be used to draw to the canvas
@@ -129,9 +128,9 @@ impl<'a> System<'a> for Rendering {
                             ),
                     )
                     .chain(
-                        (&positions, &names, &dungeon_items)
+                        (&positions, &dungeon_items)
                             .join()
-                            .map(|(pos, name, item)| EntityPosition {
+                            .map(|(pos, item)| EntityPosition {
                                 class: "Item".to_string(),
                                 position: tatami_dungeon::Position::from(pos),
                                 level: 0,
@@ -139,7 +138,7 @@ impl<'a> System<'a> for Rendering {
                             }),
                     )
                     .collect();
-
+                
                 let mut gs = GameSnapShot {
                     party_position: adventure
                         .clone()

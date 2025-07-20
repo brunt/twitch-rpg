@@ -9,6 +9,7 @@ use crate::ecs::systems::countdown::CountdownSystem;
 use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::movement_validation::MovementValidationSystem;
 use crate::ecs::systems::pathfinding::PathfindingSystem;
+use crate::ecs::systems::player_ai::PlayerAI;
 use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
 use crate::ecs::systems::shop_population::ShopPopulation;
@@ -48,14 +49,6 @@ pub fn run_game_server(
     let mut dispatcher = DispatcherBuilder::new()
         .with(CommandHandlerSystem, "command_handler", &[])
         .with(
-            AssignRoomTargetSystem,
-            "assign_room_target",
-            &["command_handler"],
-        )
-        .with(PathfindingSystem, "pathfinding", &["assign_room_target"])
-        .with(Movement, "movement", &["pathfinding"])
-        .with(RandomWander, "idle", &["movement"])
-        .with(
             Rendering {
                 sender: gamestate_sender,
             },
@@ -63,22 +56,30 @@ pub fn run_game_server(
             &[],
         )
         .with(
-            CountdownSystem {
-                min_players: MIN_PLAYERS,
-            },
-            "countdown",
-            &["command_handler"],
-        )
-        .with(
             ShopPopulation,
             "shop_population",
             &["rendering", "command_handler"],
+        ).with(
+        CountdownSystem {
+            min_players: MIN_PLAYERS,
+        },
+        "countdown",
+        &["command_handler"],
         )
-        .with(
-            MovementValidationSystem,
-            "movement_validation",
-            &["pathfinding"],
-        )
+        // .with(
+        //     AssignRoomTargetSystem,
+        //     "assign_room_target",
+        //     &["command_handler"],
+        // )
+        // .with(RandomWander, "idle", &["movement"])
+        // .with(
+        //     MovementValidationSystem,
+        //     "movement_validation",
+        //     &["pathfinding"],
+        // )
+        .with(PathfindingSystem, "pathfinding", &[])
+        .with(Movement, "movement", &[])
+        .with(PlayerAI, "player_ai", &[])
         .build();
 
     let mut last_frame_time = std::time::Instant::now();
