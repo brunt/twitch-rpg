@@ -23,7 +23,11 @@ pub struct Moving {
 }
 ```
 
-
+### Player Pathfinding:
+* When in a room, target enemies 1 at a time until they're gone
+* Then target any treasure in the room
+* Then target stairs if any
+* Then target a corridor to go to another room
 
 ### Architecture
 * leptos frontend, reacting to server sent events, no events, click, submit etc
@@ -45,4 +49,3 @@ Note: There's been at least one tiny change made to the tiles.
 The tiles can be downloaded here: http://pousse.rapiere.free.fr/tome/
 
 The tiles were originally created for [Dungeon Odyssey](http://www.malfador.com/domain.html).
-                

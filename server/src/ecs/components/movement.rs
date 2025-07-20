@@ -1,3 +1,4 @@
+use crate::ecs::components;
 use crate::ecs::components::Component;
 use crate::ecs::components::DenseVecStorage;
 use std::cmp::Ordering;
@@ -7,6 +8,30 @@ use std::cmp::Ordering;
 pub struct Position {
     pub x: u32,
     pub y: u32,
+}
+
+impl From<&tatami_dungeon::Position> for Position {
+    fn from(p: &tatami_dungeon::Position) -> Self {
+        Position { x: p.x, y: p.y }
+    }
+}
+
+impl From<&Position> for tatami_dungeon::Position {
+    fn from(p: &Position) -> Self {
+        tatami_dungeon::Position { x: p.x, y: p.y }
+    }
+}
+
+impl From<&TargetPosition> for tatami_dungeon::Position {
+    fn from(p: &TargetPosition) -> Self {
+        tatami_dungeon::Position { x: p.x, y: p.y }
+    }
+}
+
+impl From<&tatami_dungeon::Position> for TargetPosition {
+    fn from(p: &tatami_dungeon::Position) -> Self {
+        TargetPosition { x: p.x, y: p.y }
+    }
 }
 
 #[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]

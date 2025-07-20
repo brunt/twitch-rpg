@@ -48,8 +48,8 @@ pub fn draw_dungeon_floor(
 
     let enemy_sprite = enemy_sprite();
 
-    for row in 0..map_width {
-        for col in 0..map_height {
+    for row in 0..map_height {
+        for col in 0..map_width {
             let val = floor[row][col];
 
             let x = (col as f64 - row as f64) * (SPRITE_DIMENSION / 2.0) + canvas_width / 2.0
@@ -58,7 +58,7 @@ pub fn draw_dungeon_floor(
             let y = (col as f64 + row as f64) * (SPRITE_DIMENSION / 4.0) + offset_y;
 
             match val {
-                0 => draw_sprite(
+                1 => draw_sprite(
                     ctx,
                     terrain_image,
                     &floor_tile,
@@ -67,7 +67,7 @@ pub fn draw_dungeon_floor(
                     DEFAULT_TERRAIN_SCALE,
                     None,
                 ),
-                1 => {
+                2 => {
                     //draw both the floor and the wall so there are no gaps
                     draw_sprite(
                         ctx,
@@ -88,7 +88,7 @@ pub fn draw_dungeon_floor(
                         None,
                     )
                 }
-                _ => unimplemented!(),
+                _ => {}
             }
         }
     }
@@ -102,8 +102,8 @@ pub fn draw_dungeon_floor(
     } in floor_pos.iter()
     {
         // Skip if out of map bounds to be robust
-        let row = position.y as usize;
-        let col = position.x as usize;
+        let row = position.x as usize;
+        let col = position.y as usize;
         if row >= map_height || col >= map_width {
             continue;
         }

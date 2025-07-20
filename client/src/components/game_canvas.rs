@@ -94,7 +94,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                         &floor,
                         CANVAS_WIDTH,
                         CANVAS_HEIGHT,
-                        (position.x, position.x),
+                        (position.x, position.y),
                         difficulty,
                         positions,
                     );
