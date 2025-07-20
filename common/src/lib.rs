@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use serde::{Deserialize, Serialize};
@@ -22,11 +22,6 @@ pub struct EntityPosition {
     /// maybe this helps smooth animations
     pub target_position: Option<tatami_dungeon::Position>,
 }
-
-// pub struct Position {
-//     pub x: u32,
-//     pub y: u32,
-// }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerSnapshot {

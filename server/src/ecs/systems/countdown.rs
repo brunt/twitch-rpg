@@ -2,9 +2,10 @@ use crate::ecs::components::movement::{MovementSpeed, TargetPosition};
 use crate::ecs::components::{Enemy, HealthComponent, Level, Name, Player, Position, Stats};
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
 use crate::ecs::systems::pathfinding::PathfindingSystem;
-use common::Health;
+use common::{Health, PlayerClass};
 use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
 use std::time;
+use crate::ecs::components::class::CharacterClass;
 
 pub struct CountdownSystem {
     /// The minimum number of players in a lobby before the countdown timer starts.
@@ -49,6 +50,8 @@ impl<'a> System<'a> for CountdownSystem {
         ): Self::SystemData,
     ) {
         let player_count = players.join().count();
+        // let player_count = 1; //TODO: remove when done testing
+
         if matches!(*game_state, GameState::InTown)
             && player_count >= self.min_players
             && game_timer.is_none()
@@ -59,19 +62,22 @@ impl<'a> System<'a> for CountdownSystem {
         if let Some(timer) = game_timer.as_mut() {
             let elapsed = time::Duration::from_secs_f64(delta_time.0);
             timer.remaining = timer.remaining.saturating_sub(elapsed);
+            
+            // start the dungeon! a lot of logic is here, perhaps it should move somewhere
             if timer.remaining.is_zero() {
                 let adv = Adventure::default();
                 // insert everything from dungeon into ECS
 
                 for (entity, _player) in (&entities, &players).join() {
                     // add positions to ECS
+                    let start_pos = adv.find_nearest_floor_spawn().expect("Failed to find spawn");
+                    dbg!(&start_pos, adv.dungeon.player_position);
+
                     positions
                         .insert(
                             entity,
-                            Position {
-                                x: adv.dungeon.player_position.x,
-                                y: adv.dungeon.player_position.y,
-                            },
+                            // Position::from(&adv.dungeon.player_position),
+                            Position::from(&start_pos),
                         )
                         .expect("Failed to insert player position");
                     movementspeeds

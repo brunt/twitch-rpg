@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::movement::TargetPosition;
 use crate::ecs::components::{
@@ -6,9 +7,11 @@ use crate::ecs::components::{
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
 use common::{EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
 use specs::{Join, LendJoin, ReadExpect, ReadStorage, System};
-use std::time::Duration;
 use tokio::sync::broadcast::Sender;
 
+
+/// This system generates a struct that will get serialized to JSON and sent to the frontend.
+/// Information from it will be used to draw to the canvas
 pub struct Rendering {
     pub sender: Sender<GameSnapShot>,
 }
@@ -97,10 +100,7 @@ impl<'a> System<'a> for Rendering {
                             position: tatami_dungeon::Position { x: pos.x, y: pos.y },
                             level: lvl.0,
                             target_position: if let Some(target_pos) = target_pos_maybe {
-                                Some(tatami_dungeon::Position {
-                                    x: target_pos.x.clone(),
-                                    y: target_pos.y.clone(),
-                                })
+                                Some(tatami_dungeon::Position::from(target_pos))
                             } else {
                                 None
                             },
@@ -118,13 +118,10 @@ impl<'a> System<'a> for Rendering {
                             .map(
                                 |(pos, name, level, _, target_pos_maybe)| EntityPosition {
                                     class: name.0.clone(),
-                                    position: tatami_dungeon::Position { x: pos.x, y: pos.y },
+                                    position: tatami_dungeon::Position::from(pos),
                                     level: level.0,
                                     target_position: if let Some(target_pos) = target_pos_maybe {
-                                        Some(tatami_dungeon::Position {
-                                            x: target_pos.x.clone(),
-                                            y: target_pos.y.clone(),
-                                        })
+                                        Some(tatami_dungeon::Position::from(target_pos))
                                     } else {
                                         None
                                     },
@@ -136,7 +133,7 @@ impl<'a> System<'a> for Rendering {
                             .join()
                             .map(|(pos, name, item)| EntityPosition {
                                 class: "Item".to_string(),
-                                position: tatami_dungeon::Position { x: pos.x, y: pos.y },
+                                position: tatami_dungeon::Position::from(pos),
                                 level: 0,
                                 target_position: None,
                             }),
@@ -151,7 +148,7 @@ impl<'a> System<'a> for Rendering {
                     floor_positions: Some(positions),
                     floor: adventure
                         .clone()
-                        .map_or(None, |dungeon| Some(dungeon.get_floor_data())), //TODO: transition between dungeon floors
+                        .map_or(None, |dungeon| Some(dungeon.filter_visible_rooms())), //TODO: transition between dungeon floors
                     shop_items: None,
                     ready_timer: None,
                     difficulty: Some(1), //TODO: decide how to set dungeon difficulty

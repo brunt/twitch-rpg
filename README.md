@@ -23,7 +23,11 @@ pub struct Moving {
 }
 ```
 
-
+### Player Pathfinding:
+* When in a room, target enemies 1 at a time until they're gone
+* Then target any treasure in the room
+* Then target stairs if any
+* Then target a corridor to go to another room
 
 ### Architecture
 * leptos frontend, reacting to server sent events, no events, click, submit etc
