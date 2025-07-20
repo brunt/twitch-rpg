@@ -1,9 +1,8 @@
 use common::{MenuItem, SerializedCountdownTimer, ShopItem};
-use specs::{Entity, World};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
-use tatami_dungeon::{Dungeon as TatamiDungeon, Floor, GenerateDungeonParams, Item, Position, Room, Tile};
+use tatami_dungeon::{Dungeon as TatamiDungeon, GenerateDungeonParams, Position, Room, Tile};
 
 #[derive(Debug, Clone)]
 pub enum GameState {
@@ -72,11 +71,11 @@ impl Adventure {
             if visible_room_ids.contains(&room.id) {
                 let start_x = room.position.x as usize;
                 let start_y = room.position.y as usize;
-                let end_x = (start_x + room.width as usize).min(width);
+                let end_x = (start_x + room.width  as usize).min(width);
                 let end_y = (start_y + room.height as usize).min(height);
                 for y in start_y..end_y {
                     for x in start_x..end_x {
-                        visible[y][x] = true;
+                        visible[x][y] = true;
                     }
                 }
             }
@@ -112,9 +111,19 @@ impl Adventure {
             .collect()
     }
 
+    pub fn get_visible_enemy_data(&self) -> Vec<Position> {
+        let floor = &self.dungeon.floors[self.current_floor_index];
+        let explored = &self.explored_rooms;
+        floor
+            .rooms
+            .iter()
+            .filter(|room| explored.contains(&room.id)) // Only explored rooms
+            .flat_map(|room| room.enemies.iter().map(|enemy| enemy.position))
+            .collect()
+    }
+    
     // fn find_nearest_floor_spawn(start: Position, floor: &Floor) -> Option<Position> {
-    pub(crate) fn find_nearest_floor_spawn(&self) -> Option<Position> {
-        let start = self.dungeon.player_position;
+    pub(crate) fn find_nearest_floor_spawn(&self, start: &Position) -> Option<Position> {
         let floor = &self.dungeon.floors[self.current_floor_index];
 
         let (width, height) = (
@@ -123,13 +132,13 @@ impl Adventure {
         );
 
         // First, try the given position
-        if floor.tiles[start.y as usize][start.x as usize] == Tile::Floor {
-            return Some(start);
+        if floor.tile_at(*start) == Tile::Floor {
+            return Some(*start);
         }
 
         // Try all adjacent-8 positions
         for adj in start.adjacent_8((width, height)) {
-            if floor.tiles[adj.y as usize][adj.x as usize] == Tile::Floor {
+            if floor.tile_at(adj) == Tile::Floor {
                 return Some(adj);
             }
         }

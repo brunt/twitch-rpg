@@ -70,9 +70,8 @@ impl<'a> System<'a> for CountdownSystem {
 
                 for (entity, _player) in (&entities, &players).join() {
                     // add positions to ECS
-                    let start_pos = adv.find_nearest_floor_spawn().expect("Failed to find spawn");
+                    let start_pos = adv.find_nearest_floor_spawn(&adv.dungeon.player_position).expect("Failed to find spawn");
                     dbg!(&start_pos, adv.dungeon.player_position);
-
                     positions
                         .insert(
                             entity,
@@ -87,6 +86,7 @@ impl<'a> System<'a> for CountdownSystem {
 
                 adv.get_enemy_data().iter().for_each(|pos| {
                     let enemy = entities.create();
+                    let floor_pos = Position::from(&adv.find_nearest_floor_spawn(pos).unwrap_or(*pos));
                     names
                         .insert(enemy, Name::default())
                         .expect("Failed to insert enemy name");
@@ -98,7 +98,7 @@ impl<'a> System<'a> for CountdownSystem {
                         .insert(enemy, HealthComponent(Health::Alive { hp: 10, max_hp: 10 }))
                         .expect("Failed to add health");
                     positions
-                        .insert(enemy, Position { x: pos.x, y: pos.y })
+                        .insert(enemy, floor_pos)
                         .expect("Failed to insert enemy position");
                     movementspeeds
                         .insert(enemy, MovementSpeed(1))
