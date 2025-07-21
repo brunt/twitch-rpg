@@ -21,7 +21,7 @@ pub struct Adventure {
     pub current_room_index: u32,
 
     /// difficulty determines enemies, tileset, loot quality, enemy density
-    pub difficulty: usize,
+    pub difficulty: u32,
 
     /// room IDs of rooms that players have visited (cleared when entering new floor?)
     pub explored_rooms: HashSet<u32>,
@@ -38,7 +38,7 @@ impl Adventure {
             dungeon,
             current_floor_index: 0,
             current_room_index: starting_room_id,
-            difficulty: 0,
+            difficulty: 1, //TODO: decide how to set dungeon difficulty
             explored_rooms,
         }
     }
@@ -67,8 +67,11 @@ impl Adventure {
         let height = floor.tiles.len();
         let width = floor.tiles.get(0).map(|row| row.len()).unwrap_or(0);
 
-        // Build a boolean mask of which tiles are visible
         let mut visible = vec![vec![false; width]; height];
+
+        use std::collections::HashSet;
+        let mut trap_positions = HashSet::new();
+        let mut teleporter_positions = HashSet::new();
 
         for room in &floor.rooms {
             if visible_room_ids.contains(&room.id) {
@@ -80,6 +83,12 @@ impl Adventure {
                     for x in start_x..end_x {
                         visible[x][y] = true;
                     }
+                }
+                for trap in &room.traps {
+                    trap_positions.insert((trap.position.x as usize, trap.position.y as usize));
+                }
+                for tele in &room.teleporters {
+                    teleporter_positions.insert((tele.position.x as usize, tele.position.y as usize));
                 }
             }
         }
@@ -93,9 +102,15 @@ impl Adventure {
                     .enumerate()
                     .map(|(y, tile)| {
                         if visible[x][y] {
-                            match tile {
-                                Tile::Floor => 1,
-                                Tile::Wall => 2,
+                            if teleporter_positions.contains(&(x, y)) {
+                                3
+                            } else if trap_positions.contains(&(x, y)) {
+                                4
+                            } else {
+                                match tile {
+                                    Tile::Floor => 1,
+                                    Tile::Wall => 2,
+                                }
                             }
                         } else {
                             0
@@ -121,6 +136,17 @@ impl Adventure {
             .flat_map(|room| room.items.iter().map(|item| item.position))
             .collect();
         data
+    }
+
+    pub fn get_visible_item_data(&self) -> Vec<Position> {
+        let floor = &self.dungeon.floors[self.current_floor_index];
+        let explored = &self.explored_rooms;
+        floor
+            .rooms
+            .iter()
+            .filter(|room| explored.contains(&room.id)) // Only explored rooms
+            .flat_map(|room| room.items.iter().map(|enemy| enemy.position))
+            .collect()
     }
 
     pub fn get_visible_enemy_data(&self) -> Vec<Position> {
@@ -200,7 +226,7 @@ impl CountdownTimer {
 
 impl Default for CountdownTimer {
     fn default() -> Self {
-        Self::new(Duration::from_secs(60))
+        Self::new(Duration::from_secs(1))
     }
 }
 

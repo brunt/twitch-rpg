@@ -82,7 +82,7 @@ impl<'a> System<'a> for CountdownSystem {
                         .expect("Failed to insert movement speed");
                 }
 
-                adv.get_enemy_data().iter().for_each(|pos| {
+                adv.get_visible_enemy_data().iter().for_each(|pos| {
                     let enemy = entities.create();
                     names
                         .insert(enemy, Name::default())
@@ -102,7 +102,7 @@ impl<'a> System<'a> for CountdownSystem {
                         .expect("Failed to insert movement speed");
                 });
 
-                adv.get_item_data().iter().for_each(|pos| {
+                adv.get_visible_item_data().iter().for_each(|pos| {
                     let item = entities.create();
                     positions
                         .insert(item, Position::from(pos))

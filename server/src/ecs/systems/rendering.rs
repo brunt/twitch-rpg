@@ -6,7 +6,6 @@ use crate::ecs::components::{
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
 use common::{EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
 use specs::{Join, LendJoin, ReadExpect, ReadStorage, System};
-use std::collections::HashSet;
 use tokio::sync::broadcast::Sender;
 
 /// This system generates a struct that will get serialized to JSON and sent to the frontend.
@@ -161,7 +160,7 @@ impl<'a> System<'a> for Rendering {
                         .map_or(None, |dungeon| Some(dungeon.filter_visible_rooms())), //TODO: transition between dungeon floors
                     shop_items: None,
                     ready_timer: None,
-                    difficulty: Some(1), //TODO: decide how to set dungeon difficulty
+                    difficulty: Some(adventure.clone().map_or(1, |adv| adv.difficulty)),
                 };
 
                 for (name, health, character_class, level, money) in

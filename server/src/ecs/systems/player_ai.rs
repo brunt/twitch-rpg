@@ -55,18 +55,53 @@ impl<'a> System<'a> for PlayerAI {
                 )
                 .map(|(_, _, pos)| pos)
                 .collect();
-            
+
             if let Some(enemy_pos) = enemies_in_room.first() {
-                targets
-                    .insert(
-                        player_entity,
-                        TargetPosition {
-                            x: enemy_pos.x,
-                            y: enemy_pos.y,
-                        },
-                    )
-                    .expect("Failed to insert target position");
+                let enemy_dungeon_pos = tatami_dungeon::Position::from(*enemy_pos);
+                let player_dungeon_pos = tatami_dungeon::Position::from(pos);
+
+                let floor = &adv.dungeon.floors[adv.current_floor_index];
+                let map_dimensions = (floor.tiles[0].len() as u32, floor.tiles.len() as u32);
+
+                let adjacents: Vec<_> = enemy_dungeon_pos
+                    .adjacent_8(map_dimensions)
+                    .into_iter()
+                    .filter(|adj| {
+                        let x = adj.x as usize;
+                        let y = adj.y as usize;
+                        floor.tiles
+                            .get(y)
+                            .and_then(|row| row.get(x))
+                            .map_or(false, |tile| matches!(tile, tatami_dungeon::Tile::Floor))
+                    })
+                    .collect();
+
+                if let Some(target_adj) = adjacents
+                    .into_iter()
+                    .min_by_key(|adj| adj.distance(player_dungeon_pos))
+                {
+                    targets
+                        .insert(
+                            player_entity,
+                            TargetPosition {
+                                x: target_adj.x,
+                                y: target_adj.y,
+                            },
+                        )
+                        .expect("Failed to insert target position");
+                } else {
+                    targets
+                        .insert(
+                            player_entity,
+                            TargetPosition {
+                                x: enemy_pos.x,
+                                y: enemy_pos.y,
+                            },
+                        )
+                        .expect("Failed to insert target position");
+                }
             }
+
             // Priority 2: Items
             else if let Some(item_pos) = items_in_room.first() {
                 targets
