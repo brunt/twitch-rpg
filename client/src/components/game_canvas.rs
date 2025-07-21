@@ -46,7 +46,6 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
         let latest_snapshot = latest_snapshot.clone();
         Effect::new(move |_| {
             *latest_snapshot.borrow_mut() = gs.get();
-            leptos::logging::log!("{:?}", &latest_snapshot);
         });
     }
 
@@ -83,7 +82,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
             if let Some(snapshot) = latest_snapshot.borrow().as_ref() {
                 if let (Some(floor), Some(position), Some(difficulty), Some(positions)) = (
                     snapshot.floor.as_ref(),
-                    snapshot.party_position.as_ref(),
+                    snapshot.camera_position.as_ref(),
                     snapshot.difficulty,
                     snapshot.floor_positions.as_ref(),
                 ) {

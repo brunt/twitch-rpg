@@ -31,7 +31,6 @@ impl AppState {
 }
 
 pub async fn start_web_server(game_state: broadcast::Sender<GameSnapShot>) -> anyhow::Result<()> {
-    dotenv::dotenv().ok();
     let default_port = std::env::var("PORT").unwrap_or_else(|_| "9090".to_string());
 
     let state = AppState::new(game_state);

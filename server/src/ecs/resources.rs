@@ -1,7 +1,6 @@
 use common::{MenuItem, SerializedCountdownTimer, ShopItem};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
-
 use tatami_dungeon::{Dungeon as TatamiDungeon, GenerateDungeonParams, Position, Room, Tile};
 
 #[derive(Debug, Clone)]

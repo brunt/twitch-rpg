@@ -5,31 +5,47 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GameSnapShot {
+    #[serde(rename = "a")]
     pub party: Vec<PlayerSnapshot>,
-    pub party_position: Option<tatami_dungeon::Position>,
+    #[serde(rename = "b")]
+    pub camera_position: Option<tatami_dungeon::Position>,
+    #[serde(rename = "c")]
     pub floor_positions: Option<Vec<EntityPosition>>, //TODO: use component position type?
+    #[serde(rename = "d")]
     pub floor: Option<Vec<Vec<u8>>>,
+    #[serde(rename = "e")]
     pub shop_items: Option<HashMap<MenuItem, ShopItem>>,
+    #[serde(rename = "f")]
     pub ready_timer: Option<SerializedCountdownTimer>,
+    #[serde(rename = "g")]
     pub difficulty: Option<u32>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityPosition {
+    #[serde(rename = "a")]
     pub class: String,
+    #[serde(rename = "b")]
     pub position: tatami_dungeon::Position,
+    #[serde(rename = "c")]
     pub level: u32,
-    /// maybe this helps smooth animations
+    #[serde(rename = "d")]
     pub target_position: Option<tatami_dungeon::Position>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerSnapshot {
+    #[serde(rename = "a")]
     pub name: String,
+    #[serde(rename = "b")]
     pub class: PlayerClass,
+    #[serde(rename = "c")]
     pub health: Health,
+    #[serde(rename = "d")]
     pub level: u32,
+    #[serde(rename = "e")]
     pub gold: u32,
+    #[serde(rename = "f")]
     pub form: Form,
     // pub buffs: Vec<String>,
 }
