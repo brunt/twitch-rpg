@@ -38,7 +38,7 @@ pub fn draw_dungeon_floor(
     let offset_x = center_x - camera_screen_x;
     let offset_y = center_y - camera_screen_y;
 
-    let [floor_tile, wall_tile, item_tile] = match difficulty {
+    let [floor_tile, wall_tile, item_tile, ud_door, lr_door, dd1, dd2] = match difficulty {
         1 => get_terrain(&TileSet::Woods),
         2 => get_terrain(&TileSet::Mountain),
         3 => get_terrain(&TileSet::Desert),
@@ -87,6 +87,67 @@ pub fn draw_dungeon_floor(
                         DEFAULT_TERRAIN_SCALE,
                         None,
                     )
+                }
+                // ud_door
+                3 => { //TODO: corridor direction
+                    draw_sprite(
+                        ctx,
+                        terrain_image,
+                        &floor_tile,
+                        x,
+                        y,
+                        DEFAULT_TERRAIN_SCALE,
+                        None,
+                    );
+                    draw_sprite(
+                        ctx,
+                        terrain_image,
+                        &ud_door,
+                        x,
+                        y,
+                        DEFAULT_TERRAIN_SCALE,
+                        None,
+                    );
+                }
+                4 => {
+                    draw_sprite(
+                        ctx,
+                        terrain_image,
+                        &floor_tile,
+                        x,
+                        y,
+                        DEFAULT_TERRAIN_SCALE,
+                        None,
+                    );
+                    draw_sprite(
+                        ctx,
+                        terrain_image,
+                        &dd1,
+                        x,
+                        y,
+                        DEFAULT_TERRAIN_SCALE,
+                        None,
+                    );
+                }
+                5 => {
+                    draw_sprite(
+                        ctx,
+                        terrain_image,
+                        &floor_tile,
+                        x,
+                        y,
+                        DEFAULT_TERRAIN_SCALE,
+                        None,
+                    );
+                    draw_sprite(
+                        ctx,
+                        terrain_image,
+                        &dd2,
+                        x,
+                        y,
+                        DEFAULT_TERRAIN_SCALE,
+                        None,
+                    );
                 }
                 _ => {}
             }

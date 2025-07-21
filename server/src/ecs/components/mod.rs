@@ -7,6 +7,7 @@ use std::fmt::Display;
 pub mod class;
 pub mod inventory;
 pub mod movement;
+pub mod combat;
 
 #[derive(Debug, Component)]
 pub struct HealthComponent(pub Health);

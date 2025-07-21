@@ -102,6 +102,7 @@ fn App() -> impl IntoView {
         let sse_event = EventSource::new("/sse").expect_throw("Failed to create EventSource");
         let callback = Closure::wrap(Box::new(move |event: MessageEvent| {
             if let Some(text) = event.data().as_string() {
+                leptos::logging::log!("{}", text);
                 set_gamestate
                     .set(serde_json::from_str(&text).expect_throw("Failed to parse game state"));
             }

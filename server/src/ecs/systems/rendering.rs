@@ -61,7 +61,7 @@ impl<'a> System<'a> for Rendering {
                 // TODO: builder method for this?
                 let mut gs = GameSnapShot {
                     party: Vec::new(),
-                    party_position: None,
+                    camera_position: None,
                     floor_positions: None,
                     floor: None,
                     shop_items: Some(shop_inventory.items.clone()),
@@ -84,7 +84,7 @@ impl<'a> System<'a> for Rendering {
                 _ = self.sender.send(gs);
             }
             GameState::OnAdventure => {
-                let positions: Vec<EntityPosition> = (
+                let entity_positions: Vec<EntityPosition> = (
                     &positions,
                     &character_classes,
                     &levels,
@@ -138,13 +138,24 @@ impl<'a> System<'a> for Rendering {
                             }),
                     )
                     .collect();
+
+
+                let mut min_x = u32::MAX;
+                let mut max_x = 0;
+                let mut min_y = u32::MAX;
+                let mut max_y = 0;
+
+                for (pos, _) in (&positions, &players).join() {
+                    min_x = min_x.min(pos.x);
+                    max_x = max_x.max(pos.x);
+                    min_y = min_y.min(pos.y);
+                    max_y = max_y.max(pos.y);
+                }
                 
                 let mut gs = GameSnapShot {
-                    party_position: adventure
-                        .clone()
-                        .and_then(|ad| Some(ad.dungeon.player_position)),
+                    camera_position: compute_camera_position(min_x, max_x, min_y, max_y),
                     party: Vec::new(),
-                    floor_positions: Some(positions),
+                    floor_positions: Some(entity_positions),
                     floor: adventure
                         .clone()
                         .map_or(None, |dungeon| Some(dungeon.filter_visible_rooms())), //TODO: transition between dungeon floors
@@ -171,5 +182,19 @@ impl<'a> System<'a> for Rendering {
                 _ = self.sender.send(gs);
             }
         }
+    }
+}
+
+fn compute_camera_position(min_x: u32, max_x: u32, min_y: u32, max_y: u32) -> Option<tatami_dungeon::Position> {
+    let center_x = (min_x + max_x) / 2;
+    let center_y = (min_y + max_y) / 2;
+
+    if min_x <= max_x && min_y <= max_y {
+        Some(tatami_dungeon::Position {
+            x: center_x,
+            y: center_y,
+        })
+    } else {
+        None
     }
 }

@@ -11,20 +11,22 @@ pub enum TileSet {
     Library,
 }
 
-pub fn get_terrain(tileset: &TileSet) -> [SpriteRect; 3] {
-    // TODO: extend to alternate floors, walls, doors, doodads
+pub fn get_terrain(tileset: &TileSet) -> [SpriteRect; 7] {
+
     match tileset {
+        /// floor, wall, chest, up-down door, left-right door, doodad A, doodad B
         TileSet::Woods => {
-            // floor, wall, chest
-            [TERRAIN_SPRITE_1044, TERRAIN_SPRITE_467, TERRAIN_SPRITE_514]
+            [TERRAIN_SPRITE_1044, TERRAIN_SPRITE_467, TERRAIN_SPRITE_514, TERRAIN_SPRITE_1154, TERRAIN_SPRITE_1154, TERRAIN_SPRITE_202, TERRAIN_SPRITE_202 ]
         }
-        TileSet::Mountain => [TERRAIN_SPRITE_930, TERRAIN_SPRITE_428, TERRAIN_SPRITE_514],
+        TileSet::Mountain => [TERRAIN_SPRITE_930, TERRAIN_SPRITE_428, TERRAIN_SPRITE_514, TERRAIN_SPRITE_1154, TERRAIN_SPRITE_1154, TERRAIN_SPRITE_1154, TERRAIN_SPRITE_1154],
         TileSet::Desert => [
             TERRAIN_SPRITE_620,
             SpriteRect::at(10.0, 22.0),
             TERRAIN_SPRITE_514,
+            TERRAIN_SPRITE_1154,
+            TERRAIN_SPRITE_1154,TERRAIN_SPRITE_1154,TERRAIN_SPRITE_1154
         ],
-        TileSet::Tundra => [TERRAIN_SPRITE_619, TERRAIN_SPRITE_299, TERRAIN_SPRITE_514],
+        TileSet::Tundra => [TERRAIN_SPRITE_619, TERRAIN_SPRITE_299, TERRAIN_SPRITE_514,TERRAIN_SPRITE_1154,TERRAIN_SPRITE_1154,TERRAIN_SPRITE_1154,TERRAIN_SPRITE_1154],
         _ => unimplemented!(),
     }
 }
