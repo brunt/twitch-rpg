@@ -8,3 +8,7 @@ pub(crate) mod player_ai;
 pub mod random_wander;
 pub(crate) mod rendering;
 pub(crate) mod shop_population;
+pub(crate) mod combat;
+pub(crate) mod death_handler;
+pub(crate) mod player_spacing;
+pub(crate) mod item_pickup;

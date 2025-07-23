@@ -1,8 +1,9 @@
 use crate::ecs::components::movement::TargetPosition;
-use crate::ecs::components::{DungeonItem, Enemy, Player, Position};
+use crate::ecs::components::{DungeonItem, Enemy, Opened, Player, Position};
 use crate::ecs::resources::{Adventure, RoomCheck};
 use specs::prelude::*;
-use tatami_dungeon::{Dungeon, Enemy as TatamiEnemy};
+use common::Health;
+use crate::ecs::components::combat::{AttackTarget, HealthComponent};
 
 pub struct PlayerAI;
 
@@ -11,9 +12,12 @@ impl<'a> System<'a> for PlayerAI {
         Entities<'a>,
         ReadStorage<'a, Position>,
         WriteStorage<'a, TargetPosition>,
+        WriteStorage<'a, AttackTarget>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Enemy>,
+        ReadStorage<'a, HealthComponent>,
         ReadStorage<'a, DungeonItem>,
+        ReadStorage<'a, Opened>,
         ReadExpect<'a, Option<Adventure>>,
     );
 
@@ -24,13 +28,14 @@ impl<'a> System<'a> for PlayerAI {
     /// * Then target a corridor to go to another room
     fn run(
         &mut self,
-        (entities, positions, mut targets, players, enemies, dungeon_items, adv): Self::SystemData,
+        (entities, positions, mut targets, mut attack_targets, players, enemies, healths, dungeon_items, opened, adv): Self::SystemData,
     ) {
         let Some(adv) = adv.as_ref() else {
             return;
         };
 
         for (player_entity, pos, _) in (&entities, &positions, &players).join() {
+
             let Some(current_room) = adv.dungeon.floors[adv.current_floor_index]
                 .rooms
                 .iter()
@@ -40,23 +45,24 @@ impl<'a> System<'a> for PlayerAI {
             };
             
             // Priority 1: Enemies
-            let enemies_in_room: Vec<&Position> =
-                (&entities, &enemies, &positions)
+            let enemies_in_room: Vec<(Entity, &Position)> =
+                (&entities, &enemies, &healths, &positions)
                     .join()
-                    .filter(|(_, _, pos)|
+                    .filter(|(enemy, _, health, pos)|
+                        !matches!(health.0, Health::Dead) &&
                         current_room.contains(&tatami_dungeon::Position::from(*pos))
                     )
-                    .map(|(_, _, pos)| pos)
+                    .map(|(enemy, _, _, pos)| (enemy ,pos))
                     .collect();
 
-            let items_in_room: Vec<&Position> = (&entities, &dungeon_items, &positions).join()
-                .filter(|(_, _, pos)|
-                    current_room.contains(&tatami_dungeon::Position::from(*pos))
+            let items_in_room: Vec<&Position> = (&entities, &dungeon_items, &positions, opened.maybe()).join()
+                .filter(|(_, _, pos, opened_maybe)|
+                    opened_maybe.is_none() && current_room.contains(&tatami_dungeon::Position::from(*pos))
                 )
-                .map(|(_, _, pos)| pos)
+                .map(|(_, _, pos, _)| pos)
                 .collect();
 
-            if let Some(enemy_pos) = enemies_in_room.first() {
+            if let Some((enemy_id, enemy_pos)) = enemies_in_room.first() {
                 let enemy_dungeon_pos = tatami_dungeon::Position::from(*enemy_pos);
                 let player_dungeon_pos = tatami_dungeon::Position::from(pos);
 
@@ -76,6 +82,7 @@ impl<'a> System<'a> for PlayerAI {
                     })
                     .collect();
 
+                attack_targets.insert(player_entity, AttackTarget{ entity: *enemy_id }).expect("failed to add attack target");
                 if let Some(target_adj) = adjacents
                     .into_iter()
                     .min_by_key(|adj| adj.distance(player_dungeon_pos))

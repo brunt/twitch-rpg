@@ -1,7 +1,6 @@
-use crate::ecs::components::DungeonItem;
+use crate::ecs::components::{ActiveEffects, DungeonItem, Opened};
 use crate::ecs::components::Enemy;
 use crate::ecs::components::Experience;
-use crate::ecs::components::HealthComponent;
 use crate::ecs::components::Level;
 use crate::ecs::components::Money;
 use crate::ecs::components::MovementAI;
@@ -14,9 +13,10 @@ use crate::ecs::components::Stats;
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::{MovementSpeed, Path, TargetPosition, Wander};
-use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
+use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, ShopInventory};
 use crate::ecs::shop::{ShopItemPool, initialize_shop_items};
 use specs::{World, WorldExt};
+use crate::ecs::components::combat::{AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker, RangedAttacker};
 
 pub fn create_world() -> World {
     let mut world = World::new();
@@ -39,6 +39,13 @@ pub fn create_world() -> World {
     world.register::<DungeonItem>();
     world.register::<Path>();
     world.register::<Wander>();
+    world.register::<AttackTarget>();
+    world.register::<AttackComponent>();
+    world.register::<MeleeAttacker>();
+    world.register::<RangedAttacker>();
+    world.register::<DefenseComponent>();
+    world.register::<ActiveEffects>();
+    world.register::<Opened>();
 
     // resources
     world.insert(GameState::InTown);
@@ -49,5 +56,6 @@ pub fn create_world() -> World {
     });
     world.insert(ShopInventory::default());
     world.insert(Option::<Adventure>::None);
+    world.insert(DungeonLoot::default());
     world
 }

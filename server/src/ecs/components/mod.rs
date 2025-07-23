@@ -9,38 +9,6 @@ pub mod inventory;
 pub mod movement;
 pub mod combat;
 
-#[derive(Debug, Component)]
-pub struct HealthComponent(pub Health);
-
-impl Default for HealthComponent {
-    fn default() -> Self {
-        Self(Health::Alive { hp: 1, max_hp: 1 })
-    }
-}
-
-impl HealthComponent {
-    pub fn is_alive(&self) -> bool {
-        match self.0 {
-            Health::Alive { .. } => true,
-            _ => false,
-        }
-    }
-
-    pub fn new_from_class(class: &PlayerClass) -> Self {
-        Self(match class {
-            PlayerClass::Fighter | PlayerClass::Paladin | PlayerClass::Ranger => {
-                Health::Alive { hp: 10, max_hp: 10 }
-            }
-            PlayerClass::Rogue
-            | PlayerClass::Cleric
-            | PlayerClass::Druid
-            // | PlayerClass::Monk
-            | PlayerClass::Warlock => Health::Alive { hp: 8, max_hp: 8 },
-            PlayerClass::Wizard | PlayerClass::Sorcerer => Health::Alive { hp: 6, max_hp: 6 },
-        })
-    }
-}
-
 // Corpse component for defeated entities
 #[derive(Debug, Component)]
 #[storage(NullStorage)]
@@ -117,6 +85,11 @@ pub struct Enemy;
 #[derive(Debug, Component, Clone, Default)]
 #[storage(NullStorage)]
 pub struct DungeonItem;
+
+/// for chests and doors-- retain visibility
+#[derive(Debug, Component, Clone, Default)]
+#[storage(NullStorage)]
+pub struct Opened;
 
 // Immobile component for entities that can't move
 #[derive(Component, Debug)]
@@ -316,6 +289,12 @@ pub enum MovementAIKind {
 
 #[derive(Debug, Component, Clone)]
 pub struct Name(pub String);
+
+impl Name {
+    pub fn new(name: String) -> Self {
+        Self(name)
+    }
+}
 
 impl Default for Name {
     fn default() -> Self {

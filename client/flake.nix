@@ -33,7 +33,7 @@
           RUSTFLAGS = "-C target-feature=+crt-static";
 
           shellHook = ''
-            trunk serve
+            trunk build --release
            '';
         };
       });

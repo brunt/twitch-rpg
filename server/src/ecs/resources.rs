@@ -207,6 +207,11 @@ pub struct ShopInventory {
     pub items: HashMap<MenuItem, ShopItem>,
 }
 
+#[derive(Default)]
+pub struct DungeonLoot {
+    pub items: HashMap<MenuItem, ShopItem>, // TODO: like a shop, but free? 🤔
+}
+
 #[derive(Clone)]
 pub struct CountdownTimer {
     pub remaining: Duration,

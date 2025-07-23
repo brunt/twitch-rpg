@@ -103,9 +103,15 @@ pub fn player_sprite((form, class, level): (&Form, &PlayerClass, u32)) -> &'stat
     // }
 }
 
-pub fn enemy_sprite() -> &'static SpriteRect {
-    //TODO: match on dungeon difficulty, rng, return multiple things
-    &MONSTERS_SPRITE_8
+pub fn enemy_sprites(difficulty: u32) -> [&'static SpriteRect; 3] {
+    match difficulty {
+        // TODO: more enemy sprites
+        1 => [&MONSTERS_SPRITE_689, &MONSTERS_SPRITE_761, &MONSTERS_SPRITE_617], // spiders
+        _ => [&MONSTERS_SPRITE_8, &MONSTERS_SPRITE_8, &MONSTERS_SPRITE_8], // mr skeltal
+    }
+
+    
+    
 }
 
 #[allow(dead_code)]

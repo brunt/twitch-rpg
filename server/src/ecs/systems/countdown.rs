@@ -1,13 +1,15 @@
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::movement::{MovementSpeed, TargetPosition};
 use crate::ecs::components::{
-    DungeonItem, Enemy, HealthComponent, Level, Name, Player, Position, Stats,
+    DungeonItem, Enemy, Level, Name, Player, Position, Stats,
 };
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
 use crate::ecs::systems::pathfinding::PathfindingSystem;
 use common::{Health, PlayerClass};
 use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
 use std::time;
+use rand::seq::{IndexedRandom};
+use crate::ecs::components::combat::{AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker};
 
 pub struct CountdownSystem {
     /// The minimum number of players in a lobby before the countdown timer starts.
@@ -28,6 +30,10 @@ impl<'a> System<'a> for CountdownSystem {
         WriteStorage<'a, MovementSpeed>,
         WriteStorage<'a, TargetPosition>,
         WriteStorage<'a, DungeonItem>,
+        WriteStorage<'a, AttackComponent>,
+        WriteStorage<'a, DefenseComponent>,
+        WriteStorage<'a, AttackTarget>,
+        WriteStorage<'a, MeleeAttacker>,
         Write<'a, ShopInventory>,
         Read<'a, DeltaTime>,
         Entities<'a>,
@@ -48,6 +54,10 @@ impl<'a> System<'a> for CountdownSystem {
             mut movementspeeds,
             mut targets,
             mut dungeon_items,
+            mut attack_components,
+            mut defense_components,
+            mut attack_targets,
+            mut melee,
             mut shop_inventory,
             delta_time,
             mut entities,
@@ -71,7 +81,7 @@ impl<'a> System<'a> for CountdownSystem {
             if timer.remaining.is_zero() {
                 let adv = Adventure::default();
                 // insert everything from dungeon into ECS
-
+                
                 for (entity, _player) in (&entities, &players).join() {
                     // add positions to ECS
                     positions
@@ -80,19 +90,33 @@ impl<'a> System<'a> for CountdownSystem {
                     movementspeeds
                         .insert(entity, MovementSpeed(1))
                         .expect("Failed to insert movement speed");
+                    //TODO: build from class
+                    attack_components.insert(entity, AttackComponent {
+                        damage: 1,
+                        hit_rating: 1,
+                        range: 1,
+                        cooldown: 1000,
+                    }).expect("failed to add attack_component");
+                    defense_components.insert(entity, DefenseComponent { 
+                        defense: 0,
+                        evasion: 0,
+                    }).expect("failed to add defense_component");
+                    melee.insert(entity, MeleeAttacker).expect("failed to add melee");
                 }
+
+                let player_entities: Vec<_> = (&entities, &players).join().map(|(e, _)| e).collect();
 
                 adv.get_visible_enemy_data().iter().for_each(|pos| {
                     let enemy = entities.create();
                     names
-                        .insert(enemy, Name::default())
+                        .insert(enemy, Name::new(format!("E{}", adv.difficulty))) //TODO: use dungeon floor enemy difficulty variance
                         .expect("Failed to insert enemy name");
                     enemies.insert(enemy, Enemy).expect("Failed to be an enemy");
                     levels
                         .insert(enemy, Level(1))
                         .expect("Failed to insert level");
                     healths
-                        .insert(enemy, HealthComponent(Health::Alive { hp: 10, max_hp: 10 }))
+                        .insert(enemy, HealthComponent(Health::Alive { hp: 2, max_hp: 2 }))
                         .expect("Failed to add health");
                     positions
                         .insert(enemy, Position::from(pos))
@@ -100,6 +124,23 @@ impl<'a> System<'a> for CountdownSystem {
                     movementspeeds
                         .insert(enemy, MovementSpeed(1))
                         .expect("Failed to insert movement speed");
+                    attack_components.insert(enemy, AttackComponent {
+                        damage: 1,
+                        hit_rating: 1,
+                        range: 1,
+                        cooldown: 2000,
+                    }).expect("failed to add attack_component");
+                    defense_components.insert(enemy, DefenseComponent {
+                        defense: 0,
+                        evasion: 0,
+                    }).expect("failed to add defense_component");
+                    melee.insert(enemy, MeleeAttacker).expect("failed to add melee");
+                    
+                    if !player_entities.is_empty() {
+                        let target_entity = *player_entities.choose(&mut rand::rngs::ThreadRng::default()).expect("RNG Failed to choose player");
+                        attack_targets.insert(enemy, AttackTarget { entity: target_entity }).expect("Failed to assign AttackTarget");
+                    }
+                    
                 });
 
                 adv.get_visible_item_data().iter().for_each(|pos| {

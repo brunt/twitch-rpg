@@ -4,7 +4,7 @@ use crate::commands::{PlayerCommand, RpgCommand};
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::{
-    Experience, HealthComponent, Level, Money, MovementAI, MovementAIKind, Name, Player, Position,
+    Experience, Level, Money, MovementAI, MovementAIKind, Name, Player, Position,
     Resource, Stats,
 };
 use crate::ecs::resources::{GameState, ShopInventory};
@@ -13,6 +13,7 @@ use specs::{
 };
 use std::collections::VecDeque;
 use tatami_dungeon::Dungeon;
+use crate::ecs::components::combat::HealthComponent;
 
 // A queue to store commands to be processed
 pub type CommandQueue = VecDeque<(String, RpgCommand, bool)>;

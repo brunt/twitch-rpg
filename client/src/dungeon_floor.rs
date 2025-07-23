@@ -1,8 +1,8 @@
 use crate::components::draw_sprite;
 use crate::sprites::SPRITE_DIMENSION;
-use crate::sprites::monsters_sprites::{enemy_sprite, player_sprite};
-use crate::sprites::terrain_sprites::{TileSet, get_terrain};
-use common::{EntityPosition, Form, PlayerClass};
+use crate::sprites::monsters_sprites::{enemy_sprites, player_sprite};
+use crate::sprites::terrain_sprites::{TileSet, get_terrain, get_dead_sprite};
+use common::{EntityPosition, Form, Health, PlayerClass};
 use std::str::FromStr;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
@@ -38,7 +38,7 @@ pub fn draw_dungeon_floor(
     let offset_x = center_x - camera_screen_x;
     let offset_y = center_y - camera_screen_y;
 
-    let [floor_tile, wall_tile, item_tile, ud_door, lr_door, dd1, dd2] = match difficulty {
+    let [floor_tile, wall_tile, item_tile, opened_tile, ud_door, lr_door, dd1, dd2] = match difficulty {
         1 => get_terrain(&TileSet::Woods),
         2 => get_terrain(&TileSet::Mountain),
         3 => get_terrain(&TileSet::Desert),
@@ -46,7 +46,6 @@ pub fn draw_dungeon_floor(
         _ => unimplemented!(),
     };
 
-    let enemy_sprite = enemy_sprite();
 
     for row in 0..map_height {
         for col in 0..map_width {
@@ -156,9 +155,10 @@ pub fn draw_dungeon_floor(
 
     // Draw entities at positions
     for EntityPosition {
-        class,
+        entity_type: class,
         position,
         level,
+        health,
         ..
     } in floor_pos.iter()
     {
@@ -175,20 +175,27 @@ pub fn draw_dungeon_floor(
         let y = (col as f64 + row as f64) * (SPRITE_DIMENSION / 4.0) + offset_y;
 
         // Draw the sprite at (x, y)
-        match class.as_str() {
-            "Enemy" => draw_sprite(ctx, monster_image, &enemy_sprite, x, y, 1.0, None),
-            "Item" => draw_sprite(ctx, terrain_image, &item_tile, x, y, 1.0, None),
-            cl => {
-                if let Ok(player_class) = PlayerClass::from_str(cl) {
-                    draw_sprite(
-                        ctx,
-                        monster_image,
-                        player_sprite((&Form::Normal, &player_class, *level)),
-                        x,
-                        y,
-                        1.0,
-                        None,
-                    )
+        if let Some(Health::Dead) = health {
+            draw_sprite(ctx, terrain_image, &get_dead_sprite(), x, y, 1.0, None)
+        } else {
+            match class.as_str() {
+                "E1" => draw_sprite(ctx, monster_image, enemy_sprites(difficulty)[0], x, y, 1.0, None),
+                "E2" => draw_sprite(ctx, monster_image, enemy_sprites(difficulty)[1], x, y, 1.0, None),
+                "E3" => draw_sprite(ctx, monster_image, enemy_sprites(difficulty)[2], x, y, 1.0, None),
+                "Item" => draw_sprite(ctx, terrain_image, &item_tile, x, y, 1.0, None),
+                "Opened" => draw_sprite(ctx, terrain_image, &opened_tile, x, y, 1.0, None),
+                cl => {
+                    if let Ok(player_class) = PlayerClass::from_str(cl) {
+                        draw_sprite(
+                            ctx,
+                            monster_image,
+                            player_sprite((&Form::Normal, &player_class, *level)),
+                            x,
+                            y,
+                            1.0,
+                            None,
+                        )
+                    }
                 }
             }
         }

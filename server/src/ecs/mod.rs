@@ -18,6 +18,10 @@ use common::GameSnapShot;
 use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
+use crate::ecs::systems::combat::CombatSystem;
+use crate::ecs::systems::death_handler::DeathCleanupSystem;
+use crate::ecs::systems::item_pickup::ItemPickup;
+use crate::ecs::systems::player_spacing::PartySpacing;
 
 pub mod resources;
 mod shop;
@@ -80,6 +84,10 @@ pub fn run_game_server(
         .with(PathfindingSystem, "pathfinding", &[])
         .with(Movement, "movement", &[])
         .with(PlayerAI, "player_ai", &[])
+        .with(CombatSystem, "combat", &[])
+        .with(DeathCleanupSystem, "death_cleanup", &[])
+        .with(PartySpacing, "player_spacing", &["movement"])
+        .with(ItemPickup, "item_pickup", &["movement"])
         .build();
 
     let mut last_frame_time = std::time::Instant::now();

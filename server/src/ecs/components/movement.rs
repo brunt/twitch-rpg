@@ -10,6 +10,12 @@ pub struct Position {
     pub y: u32,
 }
 
+impl Position {
+    pub fn distance_to(&self, other: &Position) -> u32 {
+        self.x.abs_diff(other.x).max(self.y.abs_diff(other.y))
+    }
+}
+
 impl From<&tatami_dungeon::Position> for Position {
     fn from(p: &tatami_dungeon::Position) -> Self {
         Position { x: p.x, y: p.y }

@@ -24,13 +24,15 @@ pub struct GameSnapShot {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityPosition {
     #[serde(rename = "a")]
-    pub class: String,
+    pub entity_type: String,
     #[serde(rename = "b")]
     pub position: tatami_dungeon::Position,
     #[serde(rename = "c")]
     pub level: u32,
     #[serde(rename = "d")]
     pub target_position: Option<tatami_dungeon::Position>,
+    #[serde(rename = "e")]
+    pub health: Option<Health>
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

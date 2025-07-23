@@ -1,12 +1,11 @@
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::movement::TargetPosition;
-use crate::ecs::components::{
-    DungeonItem, Enemy, Health, HealthComponent, Level, Money, Name, Player, Position, Projectile,
-};
+use crate::ecs::components::{DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Projectile};
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
 use common::{EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
 use specs::{Join, LendJoin, ReadExpect, ReadStorage, System};
 use tokio::sync::broadcast::Sender;
+use crate::ecs::components::combat::HealthComponent;
 
 /// This system generates a struct that will get serialized to JSON and sent to the frontend.
 /// Information from it will be used to draw to the canvas
@@ -26,6 +25,7 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, Player>,
         ReadStorage<'a, Enemy>,
         ReadStorage<'a, DungeonItem>,
+        ReadStorage<'a, Opened>,
         ReadStorage<'a, TargetPosition>,
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
@@ -47,6 +47,7 @@ impl<'a> System<'a> for Rendering {
             players,
             enemies,
             dungeon_items,
+            opened,
             target_positions,
             game_state,
             countdown,
@@ -87,14 +88,15 @@ impl<'a> System<'a> for Rendering {
                     &positions,
                     &character_classes,
                     &levels,
+                    &health,
                     target_positions.maybe(),
                 )
                     .join()
-                    .map(|(pos, class, lvl, target_pos_maybe)| {
+                    .map(|(pos, class, lvl, health, target_pos_maybe)| {
                         let pos = pos.clone();
                         let class = class.clone();
                         EntityPosition {
-                            class: class.to_string(),
+                            entity_type: class.to_string(),
                             position: tatami_dungeon::Position { x: pos.x, y: pos.y },
                             level: lvl.0,
                             target_position: if let Some(target_pos) = target_pos_maybe {
@@ -102,6 +104,7 @@ impl<'a> System<'a> for Rendering {
                             } else {
                                 None
                             },
+                            health: Some(health.0.clone()),
                         }
                     })
                     .chain(
@@ -110,12 +113,13 @@ impl<'a> System<'a> for Rendering {
                             &names,
                             &levels,
                             &enemies,
+                            &health,
                             target_positions.maybe(),
                         )
                             .join()
                             .map(
-                                |(pos, name, level, _, target_pos_maybe)| EntityPosition {
-                                    class: name.0.clone(),
+                                |(pos, name, level, _, health, target_pos_maybe)| EntityPosition {
+                                    entity_type: name.0.clone(),
                                     position: tatami_dungeon::Position::from(pos),
                                     level: level.0,
                                     target_position: if let Some(target_pos) = target_pos_maybe {
@@ -123,17 +127,19 @@ impl<'a> System<'a> for Rendering {
                                     } else {
                                         None
                                     },
+                                    health: Some(health.0.clone()),
                                 },
                             ),
                     )
                     .chain(
-                        (&positions, &dungeon_items)
+                        (&positions, &dungeon_items, opened.maybe())
                             .join()
-                            .map(|(pos, item)| EntityPosition {
-                                class: "Item".to_string(),
+                            .map(|(pos, item, opened_maybe)| EntityPosition {
+                                entity_type: if opened_maybe.is_some() {"Opened".to_string() } else { "Item".to_string()},
                                 position: tatami_dungeon::Position::from(pos),
                                 level: 0,
                                 target_position: None,
+                                health: None,
                             }),
                     )
                     .collect();
