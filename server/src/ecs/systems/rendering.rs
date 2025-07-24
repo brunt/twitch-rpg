@@ -1,11 +1,13 @@
 use crate::ecs::components::class::CharacterClass;
+use crate::ecs::components::combat::HealthComponent;
 use crate::ecs::components::movement::TargetPosition;
-use crate::ecs::components::{DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Projectile};
+use crate::ecs::components::{
+    DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Projectile,
+};
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
 use common::{EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
 use specs::{Join, LendJoin, ReadExpect, ReadStorage, System};
 use tokio::sync::broadcast::Sender;
-use crate::ecs::components::combat::HealthComponent;
 
 /// This system generates a struct that will get serialized to JSON and sent to the frontend.
 /// Information from it will be used to draw to the canvas
@@ -131,19 +133,20 @@ impl<'a> System<'a> for Rendering {
                                 },
                             ),
                     )
-                    .chain(
-                        (&positions, &dungeon_items, opened.maybe())
-                            .join()
-                            .map(|(pos, item, opened_maybe)| EntityPosition {
-                                entity_type: if opened_maybe.is_some() {"Opened".to_string() } else { "Item".to_string()},
-                                position: tatami_dungeon::Position::from(pos),
-                                level: 0,
-                                target_position: None,
-                                health: None,
-                            }),
-                    )
+                    .chain((&positions, &dungeon_items, opened.maybe()).join().map(
+                        |(pos, item, opened_maybe)| EntityPosition {
+                            entity_type: if opened_maybe.is_some() {
+                                "Opened".to_string()
+                            } else {
+                                "Item".to_string()
+                            },
+                            position: tatami_dungeon::Position::from(pos),
+                            level: 0,
+                            target_position: None,
+                            health: None,
+                        },
+                    ))
                     .collect();
-
 
                 let mut min_x = u32::MAX;
                 let mut max_x = 0;
@@ -156,7 +159,7 @@ impl<'a> System<'a> for Rendering {
                     min_y = min_y.min(pos.y);
                     max_y = max_y.max(pos.y);
                 }
-                
+
                 let mut gs = GameSnapShot {
                     camera_position: compute_camera_position(min_x, max_x, min_y, max_y),
                     party: Vec::new(),
@@ -186,11 +189,22 @@ impl<'a> System<'a> for Rendering {
                 // }
                 _ = self.sender.send(gs);
             }
+            GameState::AfterDungeon => {
+                // surviving players receive gold
+                // surviving players gain experience
+                // surviving players automatically roll for looted items
+                // whole party is saved to db
+            }
         }
     }
 }
 
-fn compute_camera_position(min_x: u32, max_x: u32, min_y: u32, max_y: u32) -> Option<tatami_dungeon::Position> {
+fn compute_camera_position(
+    min_x: u32,
+    max_x: u32,
+    min_y: u32,
+    max_y: u32,
+) -> Option<tatami_dungeon::Position> {
     let center_x = (min_x + max_x) / 2;
     let center_y = (min_y + max_y) / 2;
 

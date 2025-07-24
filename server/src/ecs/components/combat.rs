@@ -1,14 +1,13 @@
-use crate::ecs::components::NullStorage;
-use specs::Entity;
-use common::{Health, PlayerClass};
 use crate::ecs::components::Component;
 use crate::ecs::components::DenseVecStorage;
-
+use crate::ecs::components::NullStorage;
+use common::{Health, PlayerClass};
+use specs::Entity;
 
 /// the entity that this entity is attacking
 #[derive(Component)]
 pub struct AttackTarget {
-    pub(crate) entity: Entity
+    pub(crate) entity: Entity,
 }
 
 #[derive(Component)]

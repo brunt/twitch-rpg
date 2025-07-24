@@ -23,7 +23,7 @@ impl<'a> System<'a> for AssignRoomTargetSystem {
             return;
         };
 
-        let floor = &adventure.dungeon.floors[adventure.current_floor_index];
+        let floor = adventure.get_current_floor();
 
         for (entity, pos, _) in (&entities, &positions, &players).join() {
             if let Some(room) = floor

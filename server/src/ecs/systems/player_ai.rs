@@ -1,9 +1,9 @@
+use crate::ecs::components::combat::{AttackTarget, HealthComponent};
 use crate::ecs::components::movement::TargetPosition;
 use crate::ecs::components::{DungeonItem, Enemy, Opened, Player, Position};
 use crate::ecs::resources::{Adventure, RoomCheck};
-use specs::prelude::*;
 use common::Health;
-use crate::ecs::components::combat::{AttackTarget, HealthComponent};
+use specs::prelude::*;
 
 pub struct PlayerAI;
 
@@ -28,45 +28,59 @@ impl<'a> System<'a> for PlayerAI {
     /// * Then target a corridor to go to another room
     fn run(
         &mut self,
-        (entities, positions, mut targets, mut attack_targets, players, enemies, healths, dungeon_items, opened, adv): Self::SystemData,
+        (
+            entities,
+            positions,
+            mut targets,
+            mut attack_targets,
+            players,
+            enemies,
+            healths,
+            dungeon_items,
+            opened,
+            adv,
+        ): Self::SystemData,
     ) {
         let Some(adv) = adv.as_ref() else {
             return;
         };
 
         for (player_entity, pos, _) in (&entities, &positions, &players).join() {
-
-            let Some(current_room) = adv.dungeon.floors[adv.current_floor_index]
+            let Some(current_room) = adv
+                .get_current_floor()
                 .rooms
                 .iter()
                 .find(|r| r.id == adv.current_room_index)
             else {
                 return;
             };
-            
+
             // Priority 1: Enemies
             let enemies_in_room: Vec<(Entity, &Position)> =
                 (&entities, &enemies, &healths, &positions)
                     .join()
-                    .filter(|(enemy, _, health, pos)|
-                        !matches!(health.0, Health::Dead) &&
-                        current_room.contains(&tatami_dungeon::Position::from(*pos))
-                    )
-                    .map(|(enemy, _, _, pos)| (enemy ,pos))
+                    .filter(|(enemy, _, health, pos)| {
+                        !matches!(health.0, Health::Dead)
+                            && current_room.contains(&tatami_dungeon::Position::from(*pos))
+                    })
+                    .map(|(enemy, _, _, pos)| (enemy, pos))
                     .collect();
 
-            let items_in_room: Vec<&Position> = (&entities, &dungeon_items, &positions, opened.maybe()).join()
-                .filter(|(_, _, pos, opened_maybe)|
-                    opened_maybe.is_none() && current_room.contains(&tatami_dungeon::Position::from(*pos))
-                )
-                .map(|(_, _, pos, _)| pos)
-                .collect();
+            let items_in_room: Vec<&Position> =
+                (&entities, &dungeon_items, &positions, opened.maybe())
+                    .join()
+                    .filter(|(_, _, pos, opened_maybe)| {
+                        opened_maybe.is_none()
+                            && current_room.contains(&tatami_dungeon::Position::from(*pos))
+                    })
+                    .map(|(_, _, pos, _)| pos)
+                    .collect();
 
             if let Some((enemy_id, enemy_pos)) = enemies_in_room.first() {
                 let enemy_dungeon_pos = tatami_dungeon::Position::from(*enemy_pos);
                 let player_dungeon_pos = tatami_dungeon::Position::from(pos);
 
-                let floor = &adv.dungeon.floors[adv.current_floor_index];
+                let floor = adv.get_current_floor();
                 let map_dimensions = (floor.tiles[0].len() as u32, floor.tiles.len() as u32);
 
                 let adjacents: Vec<_> = enemy_dungeon_pos
@@ -75,14 +89,17 @@ impl<'a> System<'a> for PlayerAI {
                     .filter(|adj| {
                         let x = adj.x as usize;
                         let y = adj.y as usize;
-                        floor.tiles
+                        floor
+                            .tiles
                             .get(y)
                             .and_then(|row| row.get(x))
                             .map_or(false, |tile| matches!(tile, tatami_dungeon::Tile::Floor))
                     })
                     .collect();
 
-                attack_targets.insert(player_entity, AttackTarget{ entity: *enemy_id }).expect("failed to add attack target");
+                attack_targets
+                    .insert(player_entity, AttackTarget { entity: *enemy_id })
+                    .expect("failed to add attack target");
                 if let Some(target_adj) = adjacents
                     .into_iter()
                     .min_by_key(|adj| adj.distance(player_dungeon_pos))
@@ -108,7 +125,6 @@ impl<'a> System<'a> for PlayerAI {
                         .expect("Failed to insert target position");
                 }
             }
-
             // Priority 2: Items
             else if let Some(item_pos) = items_in_room.first() {
                 targets
@@ -134,16 +150,23 @@ impl<'a> System<'a> for PlayerAI {
                     .expect("Failed to insert target position");
             }
             // Priority 4: Connection doors
-            else if let Some(conn) = current_room.connections.first() {
-                targets
-                    .insert(
-                        player_entity,
-                        TargetPosition {
-                            x: conn.door.x,
-                            y: conn.door.y,
-                        },
-                    )
-                    .expect("Failed to insert target position");
+            else {
+                let next_conn = current_room
+                    .connections
+                    .iter()
+                    .find(|c| adv.explored_rooms.contains(&c.id))
+                    .or_else(|| current_room.connections.first());
+                if let Some(conn) = next_conn {
+                    targets
+                        .insert(
+                            player_entity,
+                            TargetPosition {
+                                x: conn.door.x,
+                                y: conn.door.y,
+                            },
+                        )
+                        .expect("Failed to insert target position");
+                }
             }
         }
     }

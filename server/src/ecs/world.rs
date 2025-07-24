@@ -1,4 +1,3 @@
-use crate::ecs::components::{ActiveEffects, DungeonItem, Opened};
 use crate::ecs::components::Enemy;
 use crate::ecs::components::Experience;
 use crate::ecs::components::Level;
@@ -11,12 +10,17 @@ use crate::ecs::components::Projectile;
 use crate::ecs::components::Resource;
 use crate::ecs::components::Stats;
 use crate::ecs::components::class::CharacterClass;
+use crate::ecs::components::combat::{
+    AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker, RangedAttacker,
+};
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::{MovementSpeed, Path, TargetPosition, Wander};
-use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, ShopInventory};
+use crate::ecs::components::{ActiveEffects, DungeonItem, Opened};
+use crate::ecs::resources::{
+    Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, ShopInventory,
+};
 use crate::ecs::shop::{ShopItemPool, initialize_shop_items};
 use specs::{World, WorldExt};
-use crate::ecs::components::combat::{AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker, RangedAttacker};
 
 pub fn create_world() -> World {
     let mut world = World::new();

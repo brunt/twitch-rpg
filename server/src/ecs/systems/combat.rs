@@ -1,9 +1,11 @@
-use specs::prelude::*;
-use rand::Rng;
-use common::Health;
-use crate::ecs::components::combat::{AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker};
+use crate::ecs::components::combat::{
+    AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
+};
 use crate::ecs::components::{Enemy, Player, Position};
 use crate::ecs::resources::DeltaTime;
+use common::Health;
+use rand::Rng;
+use specs::prelude::*;
 
 pub struct CombatSystem;
 
@@ -35,7 +37,9 @@ impl<'a> System<'a> for CombatSystem {
             delta_time,
         ) = data;
 
-        for (attacker_entity, attack, attack_target, position) in (&entities, &attacks, &targets, &positions).join() {
+        for (attacker_entity, attack, attack_target, position) in
+            (&entities, &attacks, &targets, &positions).join()
+        {
             // Attacker must be Player or Enemy
             let attacker_is_player = players.get(attacker_entity).is_some();
             let attacker_is_enemy = enemies.get(attacker_entity).is_some();
@@ -46,13 +50,15 @@ impl<'a> System<'a> for CombatSystem {
             let target_is_enemy = enemies.get(target_entity).is_some();
 
             // Enforce opposing teams
-            if (attacker_is_player && !target_is_enemy) ||
-                (attacker_is_enemy && !target_is_player) {
+            if (attacker_is_player && !target_is_enemy) || (attacker_is_enemy && !target_is_player)
+            {
                 continue;
             }
-            
+
             // attacker must have attack range to hit target
-            let Some(target_pos) = positions.get(target_entity) else { continue };
+            let Some(target_pos) = positions.get(target_entity) else {
+                continue;
+            };
             if attack.range < target_pos.distance_to(position) {
                 // Out of range
                 continue;

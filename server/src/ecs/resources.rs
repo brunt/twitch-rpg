@@ -7,6 +7,7 @@ use tatami_dungeon::{Dungeon as TatamiDungeon, GenerateDungeonParams, Position, 
 pub enum GameState {
     InTown,
     OnAdventure,
+    AfterDungeon,
 }
 
 #[derive(Clone)]
@@ -43,8 +44,12 @@ impl Adventure {
         }
     }
 
+    pub fn get_current_floor(&self) -> &tatami_dungeon::Floor {
+        &self.dungeon.floors[self.current_floor_index]
+    }
+
     pub fn get_floor_data(&self) -> Vec<Vec<u8>> {
-        let floor = &self.dungeon.floors[self.current_floor_index];
+        let floor = &self.get_current_floor();
 
         floor
             .tiles
@@ -61,7 +66,7 @@ impl Adventure {
     }
 
     pub fn filter_visible_rooms(&self) -> Vec<Vec<u8>> {
-        let floor = &self.dungeon.floors[self.current_floor_index];
+        let floor = &self.get_current_floor();
         let visible_room_ids = &self.explored_rooms;
 
         let height = floor.tiles.len();
@@ -88,7 +93,8 @@ impl Adventure {
                     trap_positions.insert((trap.position.x as usize, trap.position.y as usize));
                 }
                 for tele in &room.teleporters {
-                    teleporter_positions.insert((tele.position.x as usize, tele.position.y as usize));
+                    teleporter_positions
+                        .insert((tele.position.x as usize, tele.position.y as usize));
                 }
             }
         }
@@ -122,7 +128,7 @@ impl Adventure {
     }
 
     pub fn get_enemy_data(&self) -> Vec<Position> {
-        self.dungeon.floors[self.current_floor_index]
+        self.get_current_floor()
             .rooms
             .iter()
             .flat_map(|room| room.enemies.iter().map(|enemy| enemy.position))
@@ -130,7 +136,8 @@ impl Adventure {
     }
 
     pub fn get_item_data(&self) -> Vec<Position> {
-        let data = self.dungeon.floors[self.current_floor_index]
+        let data = self
+            .get_current_floor()
             .rooms
             .iter()
             .flat_map(|room| room.items.iter().map(|item| item.position))
@@ -139,7 +146,7 @@ impl Adventure {
     }
 
     pub fn get_visible_item_data(&self) -> Vec<Position> {
-        let floor = &self.dungeon.floors[self.current_floor_index];
+        let floor = &self.get_current_floor();
         let explored = &self.explored_rooms;
         floor
             .rooms
@@ -149,20 +156,30 @@ impl Adventure {
             .collect()
     }
 
-    pub fn get_visible_enemy_data(&self) -> Vec<Position> {
-        let floor = &self.dungeon.floors[self.current_floor_index];
-        let explored = &self.explored_rooms;
+    // pub fn get_room_enemy_data(&self) -> Vec<Position> {
+    //     let floor = &self.get_current_floor();
+    //     let explored = &self.explored_rooms;
+    //     floor
+    //         .rooms
+    //         .iter()
+    //         .filter(|room| self.current_room_index == room.id)
+    //         .flat_map(|room| room.enemies.iter().map(|enemy| enemy.position))
+    //         .collect()
+    // }
+
+    pub fn get_room_enemy_data(&self, room_id: u32) -> Vec<Position> {
+        let floor = &self.get_current_floor();
         floor
             .rooms
             .iter()
-            .filter(|room| explored.contains(&room.id)) // Only explored rooms
+            .filter(|room| room.id == room_id)
             .flat_map(|room| room.enemies.iter().map(|enemy| enemy.position))
             .collect()
     }
 
     // fn find_nearest_floor_spawn(start: Position, floor: &Floor) -> Option<Position> {
     pub(crate) fn find_nearest_floor_spawn(&self, start: &Position) -> Option<Position> {
-        let floor = &self.dungeon.floors[self.current_floor_index];
+        let floor = &self.get_current_floor();
 
         let (width, height) = (floor.tiles[0].len() as u32, floor.tiles.len() as u32);
 
@@ -209,7 +226,7 @@ pub struct ShopInventory {
 
 #[derive(Default)]
 pub struct DungeonLoot {
-    pub items: HashMap<MenuItem, ShopItem>, // TODO: like a shop, but free? 🤔
+    pub items: u32,
 }
 
 #[derive(Clone)]

@@ -4,12 +4,16 @@ pub mod systems;
 use crate::commands::RpgCommand;
 use crate::ecs::resources::{CountdownTimer, DeltaTime};
 use crate::ecs::systems::assign_room_target::AssignRoomTargetSystem;
+use crate::ecs::systems::combat::CombatSystem;
 use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::countdown::CountdownSystem;
+use crate::ecs::systems::death_handler::DeathCleanupSystem;
+use crate::ecs::systems::item_pickup::ItemPickup;
 use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::movement_validation::MovementValidationSystem;
 use crate::ecs::systems::pathfinding::PathfindingSystem;
 use crate::ecs::systems::player_ai::PlayerAI;
+use crate::ecs::systems::player_spacing::PartySpacing;
 use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
 use crate::ecs::systems::shop_population::ShopPopulation;
@@ -18,10 +22,7 @@ use common::GameSnapShot;
 use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
-use crate::ecs::systems::combat::CombatSystem;
-use crate::ecs::systems::death_handler::DeathCleanupSystem;
-use crate::ecs::systems::item_pickup::ItemPickup;
-use crate::ecs::systems::player_spacing::PartySpacing;
+use crate::ecs::systems::room_exploration::RoomExplorationSystem;
 
 pub mod resources;
 mod shop;
@@ -63,12 +64,13 @@ pub fn run_game_server(
             ShopPopulation,
             "shop_population",
             &["rendering", "command_handler"],
-        ).with(
-        CountdownSystem {
-            min_players: MIN_PLAYERS,
-        },
-        "countdown",
-        &["command_handler"],
+        )
+        .with(
+            CountdownSystem {
+                min_players: MIN_PLAYERS,
+            },
+            "countdown",
+            &["command_handler"],
         )
         // .with(
         //     AssignRoomTargetSystem,
@@ -88,6 +90,7 @@ pub fn run_game_server(
         .with(DeathCleanupSystem, "death_cleanup", &[])
         .with(PartySpacing, "player_spacing", &["movement"])
         .with(ItemPickup, "item_pickup", &["movement"])
+        .with(RoomExplorationSystem, "room_exploration", &["movement"])
         .build();
 
     let mut last_frame_time = std::time::Instant::now();

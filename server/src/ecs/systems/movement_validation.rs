@@ -18,7 +18,7 @@ impl<'a> System<'a> for MovementValidationSystem {
         let Some(adventure) = adventure_maybe.as_ref() else {
             return;
         };
-        let map = &adventure.dungeon.floors[adventure.current_floor_index];
+        let map = adventure.get_current_floor();
 
         let mut to_remove = Vec::new();
 

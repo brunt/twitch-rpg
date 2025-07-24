@@ -5,9 +5,9 @@ use specs_derive::Component;
 use std::fmt::Display;
 
 pub mod class;
+pub mod combat;
 pub mod inventory;
 pub mod movement;
-pub mod combat;
 
 // Corpse component for defeated entities
 #[derive(Debug, Component)]
