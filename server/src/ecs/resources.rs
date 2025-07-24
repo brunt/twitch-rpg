@@ -1,7 +1,7 @@
 use common::{MenuItem, SerializedCountdownTimer, ShopItem};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
-use tatami_dungeon::{Dungeon as TatamiDungeon, GenerateDungeonParams, Position, Room, Tile};
+use tatami_dungeon::{Direction, Dungeon as TatamiDungeon, GenerateDungeonParams, Position, Room, Tile};
 
 #[derive(Debug, Clone)]
 pub enum GameState {
@@ -210,6 +210,21 @@ impl RoomCheck for Room {
         let rh = self.height;
 
         p.x >= rx && p.x < rx + rw && p.y >= ry && p.y < ry + rh
+    }
+}
+
+pub (crate) trait DirectionOffset {
+    fn to_offset(&self) -> (i32, i32);
+}
+
+impl DirectionOffset for tatami_dungeon::Direction {
+    fn to_offset(&self) -> (i32, i32) {
+        match self {
+            Direction::Up => (0, 1),
+            Direction::Down => (0, -1),
+            Direction::Right  => (-1, 0),
+            Direction::Left  => (1, 0),
+        }
     }
 }
 

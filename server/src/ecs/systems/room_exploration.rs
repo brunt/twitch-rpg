@@ -1,12 +1,13 @@
 use crate::ecs::components::combat::{
     AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
 };
-use crate::ecs::components::movement::MovementSpeed;
+use crate::ecs::components::movement::{MovementSpeed, PrevPosition};
 use crate::ecs::components::{Enemy, Level, Name, Player, Position};
-use crate::ecs::resources::Adventure;
+use crate::ecs::resources::{Adventure, DirectionOffset, RoomCheck};
 use common::Health;
 use rand::seq::IndexedRandom;
 use specs::{Entities, Join, ReadStorage, System, WriteExpect, WriteStorage};
+use tatami_dungeon::Position as TatamiPosition;
 
 pub struct RoomExplorationSystem;
 
@@ -16,6 +17,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
         ReadStorage<'a, Player>,
         WriteStorage<'a, Enemy>,
         WriteStorage<'a, Position>,
+        WriteStorage<'a, PrevPosition>,
         WriteStorage<'a, Name>,
         WriteStorage<'a, HealthComponent>,
         WriteStorage<'a, MovementSpeed>,
@@ -34,6 +36,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
             players,
             mut enemies,
             mut positions,
+            mut prev_positions,
             mut names,
             mut healths,
             mut movement_speeds,
@@ -45,30 +48,26 @@ impl<'a> System<'a> for RoomExplorationSystem {
             mut adventure,
         ): Self::SystemData,
     ) {
-        let Some(adv) = adventure.as_mut() else {
-            return;
-        };
+        let Some(adv) = adventure.as_mut() else { return; };
 
         let current_room_id = adv.current_room_index;
-        let floor = {
-            let f = adv.get_current_floor();
-            f.clone()
-        };
-        let Some(current_room) = floor.rooms.iter().find(|r| r.id == current_room_id) else {return};
+        let floor = adv.get_current_floor().clone();
+        let Some(current_room) = floor.rooms.iter().find(|r| r.id == current_room_id) else { return };
 
         for (pos, _) in (&positions, &players).join() {
             for conn in &current_room.connections {
-                if pos.x == conn.door.x && pos.y == conn.door.y {
-                    if adv.explored_rooms.contains(&conn.id) {
-                        adv.current_room_index = conn.id;
+                let Some(next_room) = floor.rooms.iter().find(|r| r.id == conn.id) else { continue };
+
+                if next_room.contains(&TatamiPosition::from(pos)) {
+                    if adv.explored_rooms.contains(&next_room.id) {
+                        adv.current_room_index = next_room.id;
                         return;
                     }
 
-                    let enemy_positions = adv.get_room_enemy_data(conn.id);
-                    let player_entities: Vec<_> =
-                        (&entities, &players).join().map(|(e, _)| e).collect();
+                    let enemy_positions = adv.get_room_enemy_data(next_room.id);
+                    let player_entities: Vec<_> = (&entities, &players).join().map(|(e, _)| e).collect();
 
-                    // adv.current_room_index = conn.id;
+                    adv.current_room_index = next_room.id;
 
                     for enemy_pos in enemy_positions {
                         let enemy = entities.create();
@@ -91,7 +90,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
                             .insert(
                                 enemy,
                                 AttackComponent {
-                                    damage: 1,
+                                    damage: 0,
                                     hit_rating: 1,
                                     range: 1,
                                     cooldown: 2000,

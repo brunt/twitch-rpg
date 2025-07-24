@@ -154,18 +154,18 @@ impl<'a> System<'a> for PlayerAI {
                 let next_conn = current_room
                     .connections
                     .iter()
-                    .find(|c| adv.explored_rooms.contains(&c.id))
+                    .find(|c| !adv.explored_rooms.contains(&c.id))
                     .or_else(|| current_room.connections.first());
                 if let Some(conn) = next_conn {
-                    targets
-                        .insert(
-                            player_entity,
-                            TargetPosition {
-                                x: conn.door.x,
-                                y: conn.door.y,
-                            },
-                        )
-                        .expect("Failed to insert target position");
+                    if let Some(next_room) = adv.get_current_floor().rooms.iter().find(|r| r.id == conn.id) {
+                        targets
+                            .insert(
+                                player_entity,
+                                TargetPosition::from(&next_room.center()),
+                            )
+                            .expect("Failed to insert target position");
+                    }
+
                 }
             }
         }

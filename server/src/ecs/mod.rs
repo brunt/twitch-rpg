@@ -78,12 +78,13 @@ pub fn run_game_server(
         //     &["command_handler"],
         // )
         // .with(RandomWander, "idle", &["movement"])
+
+        // .with(PathfindingSystem, "pathfinding", &[])
         // .with(
         //     MovementValidationSystem,
         //     "movement_validation",
         //     &["pathfinding"],
         // )
-        .with(PathfindingSystem, "pathfinding", &[])
         .with(Movement, "movement", &[])
         .with(PlayerAI, "player_ai", &[])
         .with(CombatSystem, "combat", &[])

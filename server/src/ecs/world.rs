@@ -14,7 +14,7 @@ use crate::ecs::components::combat::{
     AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker, RangedAttacker,
 };
 use crate::ecs::components::inventory::Equipment;
-use crate::ecs::components::movement::{MovementSpeed, Path, TargetPosition, Wander};
+use crate::ecs::components::movement::{MovementSpeed, Path, PrevPosition, TargetPosition, Wander};
 use crate::ecs::components::{ActiveEffects, DungeonItem, Opened};
 use crate::ecs::resources::{
     Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, ShopInventory,
@@ -26,6 +26,7 @@ pub fn create_world() -> World {
     let mut world = World::new();
     world.register::<Name>();
     world.register::<Position>();
+    world.register::<PrevPosition>();
     world.register::<MovementSpeed>();
     world.register::<TargetPosition>();
     world.register::<CharacterClass>();
