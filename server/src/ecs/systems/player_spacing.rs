@@ -1,3 +1,4 @@
+use rand::seq::IteratorRandom;
 use crate::ecs::components::movement::TargetPosition;
 use crate::ecs::components::{Player, Position};
 use crate::ecs::resources::Adventure;
@@ -19,22 +20,28 @@ impl<'a> System<'a> for PartySpacing {
             return;
         };
 
-        let party_positions: Vec<_> = (&positions, &players).join().collect();
-
+        let party_positions: Vec<_> = (&entities, &positions, &players)
+            .join()
+            .map(|(e, p, _)| (e, p))
+            .collect();
+        
         for (entity, pos, _) in (&entities, &positions, &players).join() {
             let too_close = party_positions
                 .iter()
-                .filter(|(other_pos, _)| *other_pos != pos)
-                .any(|(other_pos, _)| pos.distance_to(other_pos) <= 1);
+                .any(|(other_entity, other_pos)| {
+                    *other_entity != entity && **other_pos == *pos
+                });
+
 
             if too_close {
-                let floor = &adv.dungeon.floors[adv.current_floor_index];
+                let floor = &adv.get_current_floor();
                 let map_dimensions = (floor.tiles[0].len() as u32, floor.tiles.len() as u32);
 
                 if let Some(new_pos) = tatami_dungeon::Position::from(pos)
                     .adjacent_8(map_dimensions)
                     .iter()
-                    .find(|pos| floor.tile_at(**pos) != tatami_dungeon::Tile::Wall)
+                    .filter(|pos| floor.tile_at(**pos) != tatami_dungeon::Tile::Wall)
+                    .choose(&mut rand::rngs::ThreadRng::default())
                 {
                     targets.insert(entity, TargetPosition::from(new_pos)).ok();
                 }

@@ -29,11 +29,11 @@ fn App() -> impl IntoView {
     // Effect::new(move |_| {
     //     let mock_snapshot = GameSnapShot {
     //         // Fill with test data
-    //         floor: Some(),
+    //         floor: None,
     //         // ready_timer: Some(SerializedCountdownTimer { remaining: 4 }),
     //         ready_timer: None,
-    //         // shop_items: Some(generate_hardcoded_shop_inventory()),
-    //         shop_items: None,
+    //         shop_items: Some(generate_hardcoded_shop_inventory()),
+    //         // shop_items: None,
     //         party: vec![
     //             PlayerSnapshot {
     //                 name: "xMellowMonkeyx".to_string(),
@@ -92,7 +92,9 @@ fn App() -> impl IntoView {
     //                 form: Form::Normal,
     //             },
     //         ],
+    //         camera_position: None,
     //         floor_positions: None,
+    //         difficulty: None,
     //     };
     //     set_gamestate.set(Some(mock_snapshot));
     // });
@@ -133,6 +135,11 @@ fn App() -> impl IntoView {
 //                 quality: ItemQuality::Rare,
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 34,
+//                 stats: ItemStats {
+//                     strength: None,
+//                     intelligence: None,
+//                     dexterity: None,
+//                 },
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
 //     );
@@ -145,6 +152,11 @@ fn App() -> impl IntoView {
 //                 quality: ItemQuality::Common,
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 18,
+//                 stats: ItemStats {
+//                     strength: None,
+//                     intelligence: None,
+//                     dexterity: None,
+//                 },
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
 //     );
@@ -158,6 +170,11 @@ fn App() -> impl IntoView {
 //                 quality: ItemQuality::Uncommon,
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 28,
+//                 stats: ItemStats {
+//                     strength: None,
+//                     intelligence: None,
+//                     dexterity: None,
+//                 },
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
 //     );
@@ -171,6 +188,11 @@ fn App() -> impl IntoView {
 //                 quality: ItemQuality::Rare,
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 40,
+//                 stats: ItemStats {
+//                     strength: None,
+//                     intelligence: None,
+//                     dexterity: None,
+//                 },
 //                 description: "More elemental damage".parse().unwrap(),
 //             },
 //
@@ -185,6 +207,11 @@ fn App() -> impl IntoView {
 //                 quality: ItemQuality::Uncommon,
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 30,
+//                 stats: ItemStats {
+//                     strength: None,
+//                     intelligence: None,
+//                     dexterity: None,
+//                 },
 //                 description: "More movement speed".parse().unwrap(),
 //             },
 //
@@ -199,6 +226,11 @@ fn App() -> impl IntoView {
 //                 quality: ItemQuality::Common,
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 18,
+//                 stats: ItemStats {
+//                     strength: None,
+//                     intelligence: None,
+//                     dexterity: None,
+//                 },
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
 //
@@ -213,6 +245,11 @@ fn App() -> impl IntoView {
 //                 quality: ItemQuality::Legendary,
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 230,
+//                 stats: ItemStats {
+//                     strength: None,
+//                     intelligence: None,
+//                     dexterity: None,
+//                 },
 //                 description: "Spells have longer durations and affect larger areas".parse().unwrap(),
 //             },
 //
@@ -227,9 +264,13 @@ fn App() -> impl IntoView {
 //                 quality: ItemQuality::Rare,
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 40,
+//                 stats: ItemStats {
+//                     strength: None,
+//                     intelligence: None,
+//                     dexterity: None,
+//                 },
 //                 description: "More elemental resistance".parse().unwrap(),
 //             },
-//
 //     );
 //
 //     items

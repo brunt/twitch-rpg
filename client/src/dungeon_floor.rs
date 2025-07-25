@@ -1,7 +1,7 @@
 use crate::components::draw_sprite;
 use crate::sprites::SPRITE_DIMENSION;
 use crate::sprites::monsters_sprites::{enemy_sprites, player_sprite};
-use crate::sprites::terrain_sprites::{TileSet, get_terrain, get_dead_sprite};
+use crate::sprites::terrain_sprites::{TileSet, get_dead_sprite, get_terrain};
 use common::{EntityPosition, Form, Health, PlayerClass};
 use std::str::FromStr;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
@@ -38,14 +38,23 @@ pub fn draw_dungeon_floor(
     let offset_x = center_x - camera_screen_x;
     let offset_y = center_y - camera_screen_y;
 
-    let [floor_tile, wall_tile, item_tile, opened_tile, ud_door, lr_door, dd1, dd2] = match difficulty {
+    let [
+        floor_tile,
+        wall_tile,
+        item_tile,
+        opened_tile,
+        ud_door,
+        lr_door,
+        stair_tile,
+        dd1,
+        dd2,
+    ] = match difficulty {
         1 => get_terrain(&TileSet::Woods),
         2 => get_terrain(&TileSet::Mountain),
         3 => get_terrain(&TileSet::Desert),
         4 => get_terrain(&TileSet::Tundra),
         _ => unimplemented!(),
     };
-
 
     for row in 0..map_height {
         for col in 0..map_width {
@@ -88,7 +97,8 @@ pub fn draw_dungeon_floor(
                     )
                 }
                 // ud_door
-                3 => { //TODO: corridor direction
+                3 => {
+                    //TODO: corridor direction
                     draw_sprite(
                         ctx,
                         terrain_image,
@@ -118,15 +128,7 @@ pub fn draw_dungeon_floor(
                         DEFAULT_TERRAIN_SCALE,
                         None,
                     );
-                    draw_sprite(
-                        ctx,
-                        terrain_image,
-                        &dd1,
-                        x,
-                        y,
-                        DEFAULT_TERRAIN_SCALE,
-                        None,
-                    );
+                    draw_sprite(ctx, terrain_image, &dd1, x, y, DEFAULT_TERRAIN_SCALE, None);
                 }
                 5 => {
                     draw_sprite(
@@ -138,15 +140,7 @@ pub fn draw_dungeon_floor(
                         DEFAULT_TERRAIN_SCALE,
                         None,
                     );
-                    draw_sprite(
-                        ctx,
-                        terrain_image,
-                        &dd2,
-                        x,
-                        y,
-                        DEFAULT_TERRAIN_SCALE,
-                        None,
-                    );
+                    draw_sprite(ctx, terrain_image, &stair_tile, x, y, DEFAULT_TERRAIN_SCALE, None);
                 }
                 _ => {}
             }
@@ -179,9 +173,33 @@ pub fn draw_dungeon_floor(
             draw_sprite(ctx, terrain_image, &get_dead_sprite(), x, y, 1.0, None)
         } else {
             match class.as_str() {
-                "E1" => draw_sprite(ctx, monster_image, enemy_sprites(difficulty)[0], x, y, 1.0, None),
-                "E2" => draw_sprite(ctx, monster_image, enemy_sprites(difficulty)[1], x, y, 1.0, None),
-                "E3" => draw_sprite(ctx, monster_image, enemy_sprites(difficulty)[2], x, y, 1.0, None),
+                "E1" => draw_sprite(
+                    ctx,
+                    monster_image,
+                    enemy_sprites(difficulty)[0],
+                    x,
+                    y,
+                    1.0,
+                    None,
+                ),
+                "E2" => draw_sprite(
+                    ctx,
+                    monster_image,
+                    enemy_sprites(difficulty)[1],
+                    x,
+                    y,
+                    1.0,
+                    None,
+                ),
+                "E3" => draw_sprite(
+                    ctx,
+                    monster_image,
+                    enemy_sprites(difficulty)[2],
+                    x,
+                    y,
+                    1.0,
+                    None,
+                ),
                 "Item" => draw_sprite(ctx, terrain_image, &item_tile, x, y, 1.0, None),
                 "Opened" => draw_sprite(ctx, terrain_image, &opened_tile, x, y, 1.0, None),
                 cl => {

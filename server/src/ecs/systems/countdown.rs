@@ -2,7 +2,7 @@ use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::combat::{
     AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
 };
-use crate::ecs::components::movement::{MovementSpeed, TargetPosition};
+use crate::ecs::components::movement::{MovementSpeed, PrevPosition, TargetPosition};
 use crate::ecs::components::{DungeonItem, Enemy, Level, Name, Player, Position, Stats};
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
 use crate::ecs::systems::pathfinding::PathfindingSystem;
@@ -28,6 +28,7 @@ impl<'a> System<'a> for CountdownSystem {
         WriteStorage<'a, Level>,
         WriteStorage<'a, Name>,
         WriteStorage<'a, MovementSpeed>,
+        WriteStorage<'a, PrevPosition>,
         WriteStorage<'a, TargetPosition>,
         WriteStorage<'a, DungeonItem>,
         WriteStorage<'a, AttackComponent>,
@@ -52,6 +53,7 @@ impl<'a> System<'a> for CountdownSystem {
             mut levels,
             mut names,
             mut movementspeeds,
+            mut prev_positions,
             mut targets,
             mut dungeon_items,
             mut attack_components,
@@ -90,6 +92,8 @@ impl<'a> System<'a> for CountdownSystem {
                     movementspeeds
                         .insert(entity, MovementSpeed(1))
                         .expect("Failed to insert movement speed");
+                    prev_positions.insert(entity, PrevPosition::default()).expect("Failed to insert prev_position for enemy");
+
                     //TODO: build from class
                     attack_components
                         .insert(
@@ -137,6 +141,8 @@ impl<'a> System<'a> for CountdownSystem {
                     movementspeeds
                         .insert(enemy, MovementSpeed(1))
                         .expect("Failed to insert movement speed");
+                    prev_positions.insert(enemy, PrevPosition::default()).expect("Failed to insert prev_position for enemy");
+                    targets.insert(enemy, TargetPosition::from(&adv.dungeon.player_position)).expect("Failed to insert enemy target position");
                     attack_components
                         .insert(
                             enemy,

@@ -15,24 +15,54 @@ pub fn get_dead_sprite() -> SpriteRect {
     SpriteRect::at(23.0, 6.0)
 }
 
-pub fn get_terrain(tileset: &TileSet) -> [SpriteRect; 8] {
-
+pub fn get_terrain(tileset: &TileSet) -> [SpriteRect; 9] {
     match tileset {
-        /// floor, wall, chest, opened chest, up-down door, left-right door, doodad A, doodad B
+        /// floor, wall, chest, opened chest, up-down door, left-right door, stair, doodad A, doodad B
         // TODO: 1154 is an invisible sprite, use correct door sprites where appropriate
-        TileSet::Woods => {
-            [TERRAIN_SPRITE_1044, TERRAIN_SPRITE_467, TERRAIN_SPRITE_752, TERRAIN_SPRITE_717, TERRAIN_SPRITE_1154, TERRAIN_SPRITE_1154, TERRAIN_SPRITE_202, TERRAIN_SPRITE_202 ]
-        }
-        TileSet::Mountain => [TERRAIN_SPRITE_930, TERRAIN_SPRITE_428, TERRAIN_SPRITE_752, TERRAIN_SPRITE_717, TERRAIN_SPRITE_1154, TERRAIN_SPRITE_1154, TERRAIN_SPRITE_200, TERRAIN_SPRITE_200],
+        TileSet::Woods => [
+            TERRAIN_SPRITE_1044,
+            TERRAIN_SPRITE_467,
+            TERRAIN_SPRITE_752,
+            TERRAIN_SPRITE_717,
+            TERRAIN_SPRITE_1154,
+            TERRAIN_SPRITE_1154,
+            TERRAIN_SPRITE_189,
+            TERRAIN_SPRITE_202,
+            TERRAIN_SPRITE_202,
+        ],
+        TileSet::Mountain => [
+            TERRAIN_SPRITE_930,
+            TERRAIN_SPRITE_428,
+            TERRAIN_SPRITE_752,
+            TERRAIN_SPRITE_717,
+            TERRAIN_SPRITE_1154,
+            TERRAIN_SPRITE_1154,
+            TERRAIN_SPRITE_189,
+            TERRAIN_SPRITE_200,
+            TERRAIN_SPRITE_200,
+        ],
         TileSet::Desert => [
             TERRAIN_SPRITE_620,
             SpriteRect::at(10.0, 22.0),
             TERRAIN_SPRITE_752,
             TERRAIN_SPRITE_717,
             TERRAIN_SPRITE_1154,
-            TERRAIN_SPRITE_1154,TERRAIN_SPRITE_202,TERRAIN_SPRITE_202
+            TERRAIN_SPRITE_1154,
+            TERRAIN_SPRITE_189,
+            TERRAIN_SPRITE_202,
+            TERRAIN_SPRITE_202,
         ],
-        TileSet::Tundra => [TERRAIN_SPRITE_619, TERRAIN_SPRITE_299, TERRAIN_SPRITE_752, TERRAIN_SPRITE_717, TERRAIN_SPRITE_1154,TERRAIN_SPRITE_1154,TERRAIN_SPRITE_329,TERRAIN_SPRITE_329],
+        TileSet::Tundra => [
+            TERRAIN_SPRITE_619,
+            TERRAIN_SPRITE_299,
+            TERRAIN_SPRITE_752,
+            TERRAIN_SPRITE_717,
+            TERRAIN_SPRITE_1154,
+            TERRAIN_SPRITE_1154,
+            TERRAIN_SPRITE_189,
+            TERRAIN_SPRITE_329,
+            TERRAIN_SPRITE_329,
+        ],
         _ => unimplemented!(),
     }
 }

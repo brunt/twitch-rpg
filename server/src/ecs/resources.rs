@@ -77,6 +77,7 @@ impl Adventure {
         use std::collections::HashSet;
         let mut trap_positions = HashSet::new();
         let mut teleporter_positions = HashSet::new();
+        let mut stairs_positions = HashSet::new();
 
         for room in &floor.rooms {
             if visible_room_ids.contains(&room.id) {
@@ -96,6 +97,10 @@ impl Adventure {
                     teleporter_positions
                         .insert((tele.position.x as usize, tele.position.y as usize));
                 }
+                for stairs in &room.stairs {
+                    stairs_positions
+                        .insert((stairs.position.x as usize, stairs.position.y as usize));
+                }
             }
         }
 
@@ -112,7 +117,9 @@ impl Adventure {
                                 3
                             } else if trap_positions.contains(&(x, y)) {
                                 4
-                            } else {
+                            } else if stairs_positions.contains(&(x, y)) {
+                                5
+                        } else {
                                 match tile {
                                     Tile::Floor => 1,
                                     Tile::Wall => 2,

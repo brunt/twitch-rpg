@@ -54,7 +54,8 @@ impl<'a> System<'a> for PlayerAI {
             else {
                 return;
             };
-
+            
+            
             // Priority 1: Enemies
             let enemies_in_room: Vec<(Entity, &Position)> =
                 (&entities, &enemies, &healths, &positions)

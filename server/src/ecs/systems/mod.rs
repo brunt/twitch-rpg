@@ -13,3 +13,4 @@ pub mod random_wander;
 pub(crate) mod rendering;
 pub(crate) mod room_exploration;
 pub(crate) mod shop_population;
+pub(crate) mod enemy_ai;

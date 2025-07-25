@@ -8,7 +8,6 @@ Idle RPG controlled through Twitch chat
 * Smooth character movement
 * AI
 * Spells and abilities
-* movement validation
 * Do I need a motion system?
 * bounding box around all players in party, when a player pushes an edge of the box outward the camera position moves
 * player pathfinding system

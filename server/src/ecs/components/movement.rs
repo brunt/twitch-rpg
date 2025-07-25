@@ -77,6 +77,12 @@ pub struct TargetPosition {
     pub y: u32,
 }
 
+impl From<&Position> for TargetPosition {
+    fn from(p: &Position) -> Self {
+        TargetPosition { x: p.x, y: p.y }   
+    }
+}
+
 #[derive(Debug, Component, Clone)]
 pub struct Path {
     pub steps: Vec<(u32, u32)>, // next steps, from start to end

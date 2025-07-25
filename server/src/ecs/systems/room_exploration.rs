@@ -1,7 +1,7 @@
 use crate::ecs::components::combat::{
     AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
 };
-use crate::ecs::components::movement::{MovementSpeed, PrevPosition};
+use crate::ecs::components::movement::{MovementSpeed, PrevPosition, TargetPosition};
 use crate::ecs::components::{Enemy, Level, Name, Player, Position};
 use crate::ecs::resources::{Adventure, DirectionOffset, RoomCheck};
 use common::Health;
@@ -21,6 +21,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
         WriteStorage<'a, Name>,
         WriteStorage<'a, HealthComponent>,
         WriteStorage<'a, MovementSpeed>,
+        WriteStorage<'a, TargetPosition>,
         WriteStorage<'a, AttackComponent>,
         WriteStorage<'a, DefenseComponent>,
         WriteStorage<'a, MeleeAttacker>,
@@ -40,6 +41,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
             mut names,
             mut healths,
             mut movement_speeds,
+            mut target_positions,
             mut attack_components,
             mut defense_components,
             mut melee,
@@ -54,11 +56,16 @@ impl<'a> System<'a> for RoomExplorationSystem {
         let floor = adv.get_current_floor().clone();
         let Some(current_room) = floor.rooms.iter().find(|r| r.id == current_room_id) else { return };
 
-        for (pos, _) in (&positions, &players).join() {
+        let player_positions: Vec<_> = (&positions, &players)
+            .join()
+            .map(|(pos, _)| pos.clone())
+            .collect();
+        
+        for player_pos in player_positions {
             for conn in &current_room.connections {
                 let Some(next_room) = floor.rooms.iter().find(|r| r.id == conn.id) else { continue };
 
-                if next_room.contains(&TatamiPosition::from(pos)) {
+                if next_room.contains(&TatamiPosition::from(&player_pos)) {
                     if adv.explored_rooms.contains(&next_room.id) {
                         adv.current_room_index = next_room.id;
                         return;
@@ -86,14 +93,15 @@ impl<'a> System<'a> for RoomExplorationSystem {
                         movement_speeds
                             .insert(enemy, MovementSpeed(1))
                             .expect("Failed to insert movement speed");
+                        target_positions.insert(enemy, TargetPosition::from(&player_pos)).expect("Failed to insert enemy target position");
                         attack_components
                             .insert(
                                 enemy,
                                 AttackComponent {
-                                    damage: 0,
+                                    damage: 1,
                                     hit_rating: 1,
                                     range: 1,
-                                    cooldown: 2000,
+                                    cooldown: 3000,
                                 },
                             )
                             .expect("Failed to insert attack_component");
