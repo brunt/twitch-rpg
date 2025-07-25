@@ -218,8 +218,37 @@ pub struct EquippedItem {
     //TODO: how to grant abilities?
 }
 
+#[derive(Clone,Debug, Serialize, Deserialize)]
+pub struct AttackModifiers {
+    pub damage_bonus: i32,
+    pub hit_rating_bonus: i32,
+    pub range_bonus: i32,
+    pub cooldown_reduction_ms: i32, // negative for faster attacking
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct DefenseModifiers {
+    pub damage_reduction: i32,
+    pub evasion_rating: i32,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct OtherModifiers {
+    pub movement_speed_increase: u32
+    // others as necessary
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ItemStats {
+    //TODO: too many Option<>s?
+    /// direct modifiers to attack components
+    pub attack_modifiers: Option<AttackModifiers>,
+    /// direct modifiers to defense components
+    pub defense_modifiers: Option<DefenseModifiers>,
+    
+    /// other modifiers
+    pub other_modifiers: Option<OtherModifiers>,
+    
     /// physical damage, health
     pub strength: Option<u32>,
     /// spell damage, duration, radius

@@ -208,7 +208,7 @@ pub struct Stats {
 }
 
 //TODO: stats for enemies
-
+// TODO: stats based on level
 impl Stats {
     /// starting stats sum to 30?
     pub(crate) fn new(class: &PlayerClass) -> Self {

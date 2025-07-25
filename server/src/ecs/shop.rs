@@ -1,4 +1,4 @@
-use common::{EquipmentSlot, ItemQuality, ItemStats, ShopItem};
+use common::{AttackModifiers, DefenseModifiers, EquipmentSlot, ItemQuality, ItemStats, OtherModifiers, ShopItem};
 
 #[derive(Default)]
 pub struct ShopItemPool {
@@ -13,8 +13,12 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             quality: ItemQuality::Legendary,
             equip_slot: EquipmentSlot::Head,
             stats: ItemStats {
+                attack_modifiers: None,
+                defense_modifiers: Some(DefenseModifiers{ damage_reduction: 1, evasion_rating: 0}),
+                other_modifiers: None,
+
                 strength: None,
-                intelligence: None,
+                intelligence: Some(9),
                 dexterity: None,
             },
             price: 230,
@@ -24,8 +28,16 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             sprite: "mace".to_string(),
             name: "Mace".to_string(),
             quality: ItemQuality::Common,
-            equip_slot: EquipmentSlot::Head,
+            equip_slot: EquipmentSlot::MainHand,
             stats: ItemStats {
+                attack_modifiers: Some(AttackModifiers{
+                    damage_bonus: 1,
+                    hit_rating_bonus: 3,
+                    range_bonus: 0,
+                    cooldown_reduction_ms: 0,
+                }),
+                defense_modifiers: None,
+                other_modifiers: None,
                 strength: None,
                 intelligence: None,
                 dexterity: None,
@@ -36,11 +48,14 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
         ShopItem {
             sprite: "trident".to_string(),
             name: "Trident".to_string(),
-            quality: ItemQuality::Common,
-            equip_slot: EquipmentSlot::Head,
+            quality: ItemQuality::Uncommon,
+            equip_slot: EquipmentSlot::MainHand,
 
             price: 18,
             stats: ItemStats {
+                attack_modifiers: None,
+                defense_modifiers: None,
+                other_modifiers: None,
                 strength: None,
                 intelligence: None,
                 dexterity: None,
@@ -51,8 +66,11 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             sprite: "trident".to_string(),
             name: "Trident".to_string(),
             quality: ItemQuality::Common,
-            equip_slot: EquipmentSlot::Head,
+            equip_slot: EquipmentSlot::MainHand,
             stats: ItemStats {
+                attack_modifiers: None,
+                defense_modifiers: None,
+                other_modifiers: None,
                 strength: None,
                 intelligence: None,
                 dexterity: None,
@@ -64,8 +82,16 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             sprite: "greatsword".to_string(),
             name: "Greatsword".to_string(),
             quality: ItemQuality::Uncommon,
-            equip_slot: EquipmentSlot::Head,
+            equip_slot: EquipmentSlot::MainHand,
             stats: ItemStats {
+                attack_modifiers: Some(AttackModifiers{
+                    damage_bonus: 3,
+                    hit_rating_bonus: 2,
+                    range_bonus: 2,
+                    cooldown_reduction_ms: 0,
+                }),
+                defense_modifiers: None,
+                other_modifiers: None,
                 strength: None,
                 intelligence: None,
                 dexterity: None,
@@ -79,6 +105,9 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             quality: ItemQuality::Rare,
             equip_slot: EquipmentSlot::Head,
             stats: ItemStats {
+                attack_modifiers: None,
+                defense_modifiers: None,
+                other_modifiers: None,
                 strength: None,
                 intelligence: None,
                 dexterity: None,
@@ -90,8 +119,11 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             sprite: "scimitar".to_string(),
             name: "Scimitar".to_string(),
             quality: ItemQuality::Uncommon,
-            equip_slot: EquipmentSlot::Head,
+            equip_slot: EquipmentSlot::MainHand,
             stats: ItemStats {
+                attack_modifiers: None,
+                defense_modifiers: None,
+                other_modifiers: None,
                 strength: None,
                 intelligence: None,
                 dexterity: None,
@@ -103,8 +135,11 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             sprite: "purple_tip_wood_staff".to_string(),
             name: "Netherwood Staff".to_string(),
             quality: ItemQuality::Uncommon,
-            equip_slot: EquipmentSlot::Head,
+            equip_slot: EquipmentSlot::MainHand,
             stats: ItemStats {
+                attack_modifiers: None,
+                defense_modifiers: None,
+                other_modifiers: None,
                 strength: None,
                 intelligence: None,
                 dexterity: None,
@@ -116,8 +151,11 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             sprite: "purple_tip_silver_staff".to_string(),
             name: "Nether-orb Staff".to_string(),
             quality: ItemQuality::Rare,
-            equip_slot: EquipmentSlot::Head,
+            equip_slot: EquipmentSlot::MainHand,
             stats: ItemStats {
+                attack_modifiers: None,
+                defense_modifiers: None,
+                other_modifiers: None,
                 strength: None,
                 intelligence: None,
                 dexterity: None,
@@ -129,8 +167,11 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             sprite: "red_cloth_boots".to_string(),
             name: "Cinder Slippers".to_string(),
             quality: ItemQuality::Rare,
-            equip_slot: EquipmentSlot::Head,
+            equip_slot: EquipmentSlot::Feet,
             stats: ItemStats {
+                attack_modifiers: None,
+                defense_modifiers: None,
+                other_modifiers: Some(OtherModifiers{ movement_speed_increase: 1 }),
                 strength: None,
                 intelligence: None,
                 dexterity: None,
@@ -144,6 +185,9 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             quality: ItemQuality::Uncommon,
             equip_slot: EquipmentSlot::Head,
             stats: ItemStats {
+                attack_modifiers: None,
+                defense_modifiers: None,
+                other_modifiers: Some(OtherModifiers{ movement_speed_increase: 5 }),
                 strength: None,
                 intelligence: None,
                 dexterity: None,

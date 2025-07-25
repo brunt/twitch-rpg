@@ -54,8 +54,7 @@ impl<'a> System<'a> for PlayerAI {
             else {
                 return;
             };
-            
-            
+
             // Priority 1: Enemies
             let enemies_in_room: Vec<(Entity, &Position)> =
                 (&entities, &enemies, &healths, &positions)
@@ -156,17 +155,20 @@ impl<'a> System<'a> for PlayerAI {
                     .connections
                     .iter()
                     .find(|c| !adv.explored_rooms.contains(&c.id))
-                    .or_else(|| current_room.connections.first());
+                    .or_else(|| {
+                        current_room.connections.first()
+                    });
                 if let Some(conn) = next_conn {
-                    if let Some(next_room) = adv.get_current_floor().rooms.iter().find(|r| r.id == conn.id) {
+                    if let Some(next_room) = adv
+                        .get_current_floor()
+                        .rooms
+                        .iter()
+                        .find(|r| r.id == conn.id)
+                    {
                         targets
-                            .insert(
-                                player_entity,
-                                TargetPosition::from(&next_room.center()),
-                            )
+                            .insert(player_entity, TargetPosition::from(&next_room.center()))
                             .expect("Failed to insert target position");
                     }
-
                 }
             }
         }

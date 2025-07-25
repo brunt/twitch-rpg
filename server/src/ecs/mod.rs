@@ -8,6 +8,7 @@ use crate::ecs::systems::combat::CombatSystem;
 use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::countdown::CountdownSystem;
 use crate::ecs::systems::death_handler::DeathCleanupSystem;
+use crate::ecs::systems::enemy_ai::EnemyAISystem;
 use crate::ecs::systems::item_pickup::ItemPickup;
 use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::movement_validation::MovementValidationSystem;
@@ -16,14 +17,13 @@ use crate::ecs::systems::player_ai::PlayerAI;
 use crate::ecs::systems::player_spacing::PartySpacing;
 use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
+use crate::ecs::systems::room_exploration::RoomExplorationSystem;
 use crate::ecs::systems::shop_population::ShopPopulation;
 use crate::ecs::world::create_world;
 use common::GameSnapShot;
 use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
-use crate::ecs::systems::enemy_ai::EnemyAISystem;
-use crate::ecs::systems::room_exploration::RoomExplorationSystem;
 
 pub mod resources;
 mod shop;
@@ -79,7 +79,6 @@ pub fn run_game_server(
         //     &["command_handler"],
         // )
         // .with(RandomWander, "idle", &["movement"])
-
         // .with(PathfindingSystem, "pathfinding", &[])
         // .with(
         //     MovementValidationSystem,

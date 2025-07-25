@@ -2,6 +2,8 @@ use crate::ecs::components;
 use crate::ecs::components::Component;
 use crate::ecs::components::DenseVecStorage;
 use std::cmp::Ordering;
+use common::{DefenseModifiers, OtherModifiers};
+use crate::ecs::components::inventory::Equipment;
 
 // Entity's coordinates in the world
 #[derive(Component, Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
@@ -49,6 +51,22 @@ impl From<&tatami_dungeon::Position> for TargetPosition {
 #[derive(Debug, Component, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct MovementSpeed(pub u32);
 
+impl MovementSpeed {
+    //TODO: from buffs as well
+    pub fn from_items(equipment: &Equipment) -> Self {
+        let other_mods = equipment.slots.iter().map(|(_slot, item)| item).fold(OtherModifiers {
+            movement_speed_increase: 0,
+        }, |mut m, item| {
+            if let Some(modifiers) = &item.stats.other_modifiers {
+                m.movement_speed_increase += modifiers.movement_speed_increase;
+            }
+            m
+        });
+
+        Self(other_mods.movement_speed_increase.max(1))
+    }
+}
+
 impl PartialEq<u32> for MovementSpeed {
     fn eq(&self, other: &u32) -> bool {
         self.0 == *other
@@ -79,7 +97,7 @@ pub struct TargetPosition {
 
 impl From<&Position> for TargetPosition {
     fn from(p: &Position) -> Self {
-        TargetPosition { x: p.x, y: p.y }   
+        TargetPosition { x: p.x, y: p.y }
     }
 }
 

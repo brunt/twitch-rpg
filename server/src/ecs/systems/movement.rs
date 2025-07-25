@@ -38,7 +38,7 @@ impl<'a> System<'a> for Movement {
             // Move step-by-step toward target, not exceeding speed
             let new_x = pos.x as i32 + dir_x * steps.min(dx.abs() as u32) as i32;
             let new_y = pos.y as i32 + dir_y * steps.min(dy.abs() as u32) as i32;
-            
+
             pos.x = new_x as u32;
             pos.y = new_y as u32;
         }

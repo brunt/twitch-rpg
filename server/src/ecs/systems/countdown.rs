@@ -2,6 +2,7 @@ use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::combat::{
     AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
 };
+use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::{MovementSpeed, PrevPosition, TargetPosition};
 use crate::ecs::components::{DungeonItem, Enemy, Level, Name, Player, Position, Stats};
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
@@ -25,10 +26,11 @@ impl<'a> System<'a> for CountdownSystem {
         WriteStorage<'a, Enemy>,
         WriteStorage<'a, Position>,
         WriteStorage<'a, HealthComponent>,
+        ReadStorage<'a, Stats>,
+        ReadStorage<'a, Equipment>,
         WriteStorage<'a, Level>,
         WriteStorage<'a, Name>,
         WriteStorage<'a, MovementSpeed>,
-        WriteStorage<'a, PrevPosition>,
         WriteStorage<'a, TargetPosition>,
         WriteStorage<'a, DungeonItem>,
         WriteStorage<'a, AttackComponent>,
@@ -50,10 +52,11 @@ impl<'a> System<'a> for CountdownSystem {
             mut enemies,
             mut positions,
             mut healths,
+            stats,
+            equipment,
             mut levels,
             mut names,
             mut movementspeeds,
-            mut prev_positions,
             mut targets,
             mut dungeon_items,
             mut attack_components,
@@ -85,25 +88,27 @@ impl<'a> System<'a> for CountdownSystem {
                 // insert everything from dungeon into ECS
 
                 for (entity, _player) in (&entities, &players).join() {
+                    let equipped_items = equipment
+                        .get(entity)
+                        .expect("failed to read equipment");
+                    
+                    
                     // add positions to ECS
                     positions
                         .insert(entity, Position::from(&adv.dungeon.player_position))
                         .expect("Failed to insert player position");
                     movementspeeds
-                        .insert(entity, MovementSpeed(1))
+                        .insert(entity, MovementSpeed::from_items(equipped_items))
                         .expect("Failed to insert movement speed");
-                    prev_positions.insert(entity, PrevPosition::default()).expect("Failed to insert prev_position for enemy");
 
-                    //TODO: build from class
+                    let st = stats.get(entity).expect("failed to read stats");
+                    let equipped_items = equipment
+                        .get(entity)
+                        .expect("failed to read equipment");
                     attack_components
                         .insert(
                             entity,
-                            AttackComponent {
-                                damage: 1,
-                                hit_rating: 1,
-                                range: 1,
-                                cooldown: 1000,
-                            },
+                            AttackComponent::from_stats_and_items(st, equipped_items),
                         )
                         .expect("failed to add attack_component");
                     defense_components
@@ -123,64 +128,67 @@ impl<'a> System<'a> for CountdownSystem {
                 let player_entities: Vec<_> =
                     (&entities, &players).join().map(|(e, _)| e).collect();
 
-                adv.get_room_enemy_data(adv.current_room_index).iter().for_each(|pos| {
-                    let enemy = entities.create();
-                    names
-                        .insert(enemy, Name::new(format!("E{}", adv.difficulty))) //TODO: use dungeon floor enemy difficulty variance
-                        .expect("Failed to insert enemy name");
-                    enemies.insert(enemy, Enemy).expect("Failed to be an enemy");
-                    levels
-                        .insert(enemy, Level(1))
-                        .expect("Failed to insert level");
-                    healths
-                        .insert(enemy, HealthComponent(Health::Alive { hp: 2, max_hp: 2 }))
-                        .expect("Failed to add health");
-                    positions
-                        .insert(enemy, Position::from(pos))
-                        .expect("Failed to insert enemy position");
-                    movementspeeds
-                        .insert(enemy, MovementSpeed(1))
-                        .expect("Failed to insert movement speed");
-                    prev_positions.insert(enemy, PrevPosition::default()).expect("Failed to insert prev_position for enemy");
-                    targets.insert(enemy, TargetPosition::from(&adv.dungeon.player_position)).expect("Failed to insert enemy target position");
-                    attack_components
-                        .insert(
-                            enemy,
-                            AttackComponent {
-                                damage: 1,
-                                hit_rating: 1,
-                                range: 1,
-                                cooldown: 2000,
-                            },
-                        )
-                        .expect("failed to add attack_component");
-                    defense_components
-                        .insert(
-                            enemy,
-                            DefenseComponent {
-                                defense: 0,
-                                evasion: 0,
-                            },
-                        )
-                        .expect("failed to add defense_component");
-                    melee
-                        .insert(enemy, MeleeAttacker)
-                        .expect("failed to add melee");
-
-                    if !player_entities.is_empty() {
-                        let target_entity = *player_entities
-                            .choose(&mut rand::rngs::ThreadRng::default())
-                            .expect("RNG Failed to choose player");
-                        attack_targets
+                adv.get_room_enemy_data(adv.current_room_index)
+                    .iter()
+                    .for_each(|pos| {
+                        let enemy = entities.create();
+                        names
+                            .insert(enemy, Name::new(format!("E{}", adv.difficulty))) //TODO: use dungeon floor enemy difficulty variance
+                            .expect("Failed to insert enemy name");
+                        enemies.insert(enemy, Enemy).expect("Failed to be an enemy");
+                        levels
+                            .insert(enemy, Level(1))
+                            .expect("Failed to insert level");
+                        healths
+                            .insert(enemy, HealthComponent(Health::Alive { hp: 2, max_hp: 2 }))
+                            .expect("Failed to add health");
+                        positions
+                            .insert(enemy, Position::from(pos))
+                            .expect("Failed to insert enemy position");
+                        movementspeeds
+                            .insert(enemy, MovementSpeed(1))
+                            .expect("Failed to insert movement speed");
+                        targets
+                            .insert(enemy, TargetPosition::from(&adv.dungeon.player_position))
+                            .expect("Failed to insert enemy target position");
+                        attack_components
                             .insert(
                                 enemy,
-                                AttackTarget {
-                                    entity: target_entity,
+                                AttackComponent {
+                                    damage: 1,
+                                    hit_rating: 1,
+                                    range: 1,
+                                    cooldown: 2000,
                                 },
                             )
-                            .expect("Failed to assign AttackTarget");
-                    }
-                });
+                            .expect("failed to add attack_component");
+                        defense_components
+                            .insert(
+                                enemy,
+                                DefenseComponent {
+                                    defense: 0,
+                                    evasion: 0,
+                                },
+                            )
+                            .expect("failed to add defense_component");
+                        melee
+                            .insert(enemy, MeleeAttacker)
+                            .expect("failed to add melee");
+
+                        if !player_entities.is_empty() {
+                            let target_entity = *player_entities
+                                .choose(&mut rand::rngs::ThreadRng::default())
+                                .expect("RNG Failed to choose player");
+                            attack_targets
+                                .insert(
+                                    enemy,
+                                    AttackTarget {
+                                        entity: target_entity,
+                                    },
+                                )
+                                .expect("Failed to assign AttackTarget");
+                        }
+                    });
 
                 adv.get_visible_item_data().iter().for_each(|pos| {
                     let item = entities.create();

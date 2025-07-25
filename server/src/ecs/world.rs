@@ -26,7 +26,6 @@ pub fn create_world() -> World {
     let mut world = World::new();
     world.register::<Name>();
     world.register::<Position>();
-    world.register::<PrevPosition>();
     world.register::<MovementSpeed>();
     world.register::<TargetPosition>();
     world.register::<CharacterClass>();

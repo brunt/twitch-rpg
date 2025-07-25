@@ -1,7 +1,7 @@
-use rand::seq::IteratorRandom;
 use crate::ecs::components::movement::TargetPosition;
 use crate::ecs::components::{Player, Position};
 use crate::ecs::resources::Adventure;
+use rand::seq::IteratorRandom;
 use specs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage};
 
 pub struct PartySpacing;
@@ -24,14 +24,11 @@ impl<'a> System<'a> for PartySpacing {
             .join()
             .map(|(e, p, _)| (e, p))
             .collect();
-        
+
         for (entity, pos, _) in (&entities, &positions, &players).join() {
             let too_close = party_positions
                 .iter()
-                .any(|(other_entity, other_pos)| {
-                    *other_entity != entity && **other_pos == *pos
-                });
-
+                .any(|(other_entity, other_pos)| *other_entity != entity && **other_pos == *pos);
 
             if too_close {
                 let floor = &adv.get_current_floor();

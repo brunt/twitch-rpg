@@ -1,6 +1,6 @@
 use crate::ecs::components::Component;
 use crate::ecs::components::DenseVecStorage;
-use common::{EquipmentSlot, EquippedItem};
+use common::{AttackModifiers, EquipmentSlot, EquippedItem};
 use std::collections::HashMap;
 
 #[derive(Component, Debug, Default)]

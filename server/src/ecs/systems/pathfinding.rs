@@ -43,7 +43,8 @@ impl<'a> System<'a> for PathfindingSystem {
                 }
 
                 if matches!(
-                    adventure.get_current_floor()
+                    adventure
+                        .get_current_floor()
                         .tile_at(tatami_dungeon::Position { x, y }),
                     Tile::Floor
                 ) {
