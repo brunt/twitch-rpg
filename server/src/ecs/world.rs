@@ -9,7 +9,7 @@ use crate::ecs::components::Position;
 use crate::ecs::components::Projectile;
 use crate::ecs::components::Resource;
 use crate::ecs::components::Stats;
-use crate::ecs::components::class::CharacterClass;
+use crate::ecs::components::class::{CharacterClass, ShowCharacter};
 use crate::ecs::components::combat::{
     AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker, RangedAttacker,
 };
@@ -51,6 +51,7 @@ pub fn create_world() -> World {
     world.register::<DefenseComponent>();
     world.register::<ActiveEffects>();
     world.register::<Opened>();
+    world.register::<ShowCharacter>();
 
     // resources
     world.insert(GameState::InTown);

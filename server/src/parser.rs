@@ -1,15 +1,17 @@
-use crate::commands::PlayerCommand::{Buy, Use};
+use crate::commands::PlayerCommand::{Buy, Show, Use};
 use crate::commands::RpgCommand;
 use common::{MenuItem, PlayerClass};
 use winnow::Parser;
 use winnow::ascii::{Caseless, alpha1, digit1, space1};
 use winnow::combinator::{alt, preceded};
 use winnow::error::EmptyError;
+use crate::commands::RpgCommand::PlayerCommand;
 
 pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
     preceded::<&str, &str, RpgCommand, EmptyError, &str, _>(
         "!",
         alt((
+            Caseless("show").value(PlayerCommand(Show)),
             Caseless("rejoin").value(RpgCommand::Rejoin),
             preceded("join", preceded(space1, parse_class.map(RpgCommand::Join))),
             preceded(
@@ -17,7 +19,7 @@ pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
                 preceded(
                     space1,
                     digit1.map(|number: &str| {
-                        RpgCommand::PlayerCommand(Buy(MenuItem::from(
+                        PlayerCommand(Buy(MenuItem::from(
                             number.parse::<usize>().unwrap_or_default(),
                         )))
                     }),
@@ -28,7 +30,7 @@ pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
                 preceded(
                     space1,
                     digit1.map(|number: &str| {
-                        RpgCommand::PlayerCommand(Use(MenuItem::from(
+                        PlayerCommand(Use(MenuItem::from(
                             number.parse::<usize>().unwrap_or_default(),
                         )))
                     }),
@@ -101,7 +103,16 @@ mod tests {
         let input = "!use 1";
         assert_eq!(
             get_command(&mut &*input),
-            Some(RpgCommand::PlayerCommand(Use(MenuItem::from(1))))
+            Some(PlayerCommand(Use(MenuItem::from(1))))
+        );
+    }
+    
+    #[test]
+    fn test_show_command() {
+        let input = "!show";
+        assert_eq!(
+            get_command(&mut &*input),
+            Some(PlayerCommand(Show))
         );
     }
 }

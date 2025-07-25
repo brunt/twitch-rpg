@@ -1,12 +1,12 @@
-use crate::ecs::components::class::CharacterClass;
+use std::collections::HashMap;
+use std::time::Instant;
+use crate::ecs::components::class::{CharacterClass, ShowCharacter};
 use crate::ecs::components::combat::HealthComponent;
 use crate::ecs::components::movement::TargetPosition;
-use crate::ecs::components::{
-    DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Projectile,
-};
+use crate::ecs::components::{DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Projectile, Stats};
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
-use common::{EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, ShopItem};
-use specs::{Join, LendJoin, ReadExpect, ReadStorage, System};
+use common::{EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, PlayerStats, ShopItem};
+use specs::{Entities, Join, LendJoin, ReadExpect, ReadStorage, System, WriteStorage};
 use tokio::sync::broadcast::Sender;
 
 /// This system generates a struct that will get serialized to JSON and sent to the frontend.
@@ -17,6 +17,7 @@ pub struct Rendering {
 
 impl<'a> System<'a> for Rendering {
     type SystemData = (
+        Entities<'a>,
         ReadStorage<'a, Name>,
         ReadStorage<'a, Position>,
         ReadStorage<'a, HealthComponent>,
@@ -25,10 +26,12 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, Level>,
         ReadStorage<'a, Money>,
         ReadStorage<'a, Player>,
+        ReadStorage<'a, Stats>,
         ReadStorage<'a, Enemy>,
         ReadStorage<'a, DungeonItem>,
         ReadStorage<'a, Opened>,
         ReadStorage<'a, TargetPosition>,
+        WriteStorage<'a, ShowCharacter>,
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
         ReadExpect<'a, ShopInventory>,
@@ -39,6 +42,7 @@ impl<'a> System<'a> for Rendering {
     fn run(
         &mut self,
         (
+            entities,
             names,
             positions,
             health,
@@ -47,10 +51,12 @@ impl<'a> System<'a> for Rendering {
             levels,
             monies,
             players,
+            stats,
             enemies,
             dungeon_items,
             opened,
             target_positions,
+            mut show_characters,
             game_state,
             countdown,
             shop_inventory,
@@ -58,6 +64,9 @@ impl<'a> System<'a> for Rendering {
         ): Self::SystemData,
     ) {
         let state = &*game_state;
+        let mut show_flag_cleanup = Vec::new();
+        
+        
         match state {
             GameState::InTown => {
                 // TODO: builder method for this?
@@ -71,8 +80,8 @@ impl<'a> System<'a> for Rendering {
                     difficulty: None,
                 };
 
-                for (name, health, character_class, level, money) in
-                    (&names, &health, &character_classes, &levels, &monies).join()
+                for (entity, name, health, character_class, level, money, stats, show) in
+                    (&entities, &names, &health, &character_classes, &levels, &monies, &stats, show_characters.maybe()).join()
                 {
                     gs.party.push(PlayerSnapshot {
                         name: name.0.clone(), //TODO: not clone?
@@ -81,7 +90,13 @@ impl<'a> System<'a> for Rendering {
                         level: level.0.clone(),
                         gold: money.0,
                         form: Form::Normal,
+                        stats: PlayerStats::from(stats),
+                        show: show.is_some(),
                     });
+                    
+                    if show.is_some() {
+                        show_flag_cleanup.push(entity);
+                    }
                 }
                 _ = self.sender.send(gs);
             }
@@ -172,8 +187,8 @@ impl<'a> System<'a> for Rendering {
                     difficulty: Some(adventure.clone().map_or(1, |adv| adv.difficulty)),
                 };
 
-                for (name, health, character_class, level, money) in
-                    (&names, &health, &character_classes, &levels, &monies).join()
+                for (entity, name, health, character_class, level, money, stats, show) in
+                    (&entities, &names, &health, &character_classes, &levels, &monies, &stats, show_characters.maybe()).join()
                 {
                     gs.party.push(PlayerSnapshot {
                         name: name.0.clone(),
@@ -182,7 +197,13 @@ impl<'a> System<'a> for Rendering {
                         level: level.0.clone(),
                         gold: money.0,
                         form: Form::Normal, // TODO: not always normal, read buffs
+                        stats: PlayerStats::from(stats),
+                        show: show.is_some(),
                     });
+
+                    if show.is_some() {
+                        show_flag_cleanup.push(entity);
+                    }
                 }
                 // for (pos, health, proj) in (&positions, &health, &projectiles).join() {
                 //     // gs.party.append()
@@ -195,6 +216,9 @@ impl<'a> System<'a> for Rendering {
                 // surviving players automatically roll for looted items
                 // whole party is saved to db
             }
+        }
+        for e in show_flag_cleanup {
+            show_characters.remove(e);
         }
     }
 }

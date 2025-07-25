@@ -49,14 +49,22 @@ pub struct PlayerSnapshot {
     pub gold: u32,
     #[serde(rename = "f")]
     pub form: Form,
+    #[serde(rename = "g")]
+    pub stats: PlayerStats,
+    #[serde(rename = "h")]
+    pub show: bool
     // pub buffs: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Form {
+    #[serde(rename = "a")]
     Normal,
+    #[serde(rename = "b")]
     Polymorphed(String),
+    #[serde(rename = "c")]
     Invisible,
+    #[serde(rename = "d")]
     Scaled(f64), // larger or smaller
 }
 
@@ -254,13 +262,15 @@ pub struct ItemStats {
     /// spell damage, duration, radius
     pub intelligence: Option<u32>,
     /// hit rating, evasion rating
-    pub dexterity: Option<u32>,
+    pub agility: Option<u32>,
 }
 
-// TODO: only show these in the Display command
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerStats {
+    #[serde(rename = "a")]
     pub strength: u32,
+    #[serde(rename = "b")]
     pub intelligence: u32,
-    pub dexterity: u32,
+    #[serde(rename = "c")]
+    pub agility: u32,
 }

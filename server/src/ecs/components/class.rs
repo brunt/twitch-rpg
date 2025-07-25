@@ -1,3 +1,4 @@
+use crate::ecs::components::NullStorage;
 use crate::ecs::components::Component;
 use crate::ecs::components::DenseVecStorage;
 use common::PlayerClass;
@@ -11,3 +12,7 @@ impl Display for CharacterClass {
         write!(f, "{}", self.0)
     }
 }
+
+#[derive(Debug, Component, Clone)]
+#[storage(NullStorage)]
+pub struct ShowCharacter;

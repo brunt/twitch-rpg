@@ -1,7 +1,7 @@
 // In server/src/ecs/systems/command_handler.rs
 use crate::commands::PlayerCommand::Use;
 use crate::commands::{PlayerCommand, RpgCommand};
-use crate::ecs::components::class::CharacterClass;
+use crate::ecs::components::class::{CharacterClass, ShowCharacter};
 use crate::ecs::components::combat::HealthComponent;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::{
@@ -31,6 +31,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
         WriteStorage<'a, Player>,
         WriteStorage<'a, Equipment>,
         WriteStorage<'a, Stats>,
+        WriteStorage<'a, ShowCharacter>,
         ReadExpect<'a, ShopInventory>,
         Entities<'a>,
     );
@@ -48,6 +49,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
             mut players,
             mut equipment,
             mut stats,
+            mut show_characters,
             ref shop_inventory,
             ref entities,
         ): Self::SystemData,
@@ -138,6 +140,14 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 });
                             }
                         }
+                        RpgCommand::PlayerCommand(PlayerCommand::Show) => {
+                            if let Some((e, _name)) = (entities, &names)
+                                .join()
+                                .find(|(_, name)| name.0 == player_name)
+                            {
+                                show_characters.insert(e, ShowCharacter).expect("failed to show character");
+                            }
+                        }
                         _ => {}
                     }
                 }
@@ -146,10 +156,17 @@ impl<'a> System<'a> for CommandHandlerSystem {
                         RpgCommand::PlayerCommand(Use(item)) => {
                             println!("{} is using item {:?}", player_name, item);
                         }
+                        RpgCommand::PlayerCommand(PlayerCommand::Show) => {
+                            if let Some((e, _name)) = (entities, &names)
+                                .join()
+                                .find(|(_, name)| name.0 == player_name)
+                            {
+
+                                show_characters.insert(e, ShowCharacter).expect("failed to show character");
+                            }
+                        }
                         _ => {}
                     }
-                    // Handle in-dungeon commands
-                    // ...
                 }
                 GameState::AfterDungeon => {} // no commands at this phase
             }

@@ -3,7 +3,8 @@ mod dungeon_floor;
 mod item_shop;
 mod sprites;
 
-use common::GameSnapShot;
+use std::collections::HashMap;
+use common::{EquipmentSlot, Form, GameSnapShot, Health, ItemQuality, ItemStats, MenuItem, PlayerClass, PlayerSnapshot, PlayerStats, ShopItem};
 use components::bottom_panel::BottomPanel;
 use components::game_canvas::GameCanvas;
 use components::side_panel::SidePanelCharacterSheet;
@@ -42,6 +43,12 @@ fn App() -> impl IntoView {
     //                 level: 2,
     //                 gold: 100,
     //                 form: Form::Normal,
+    //                 stats: PlayerStats {
+    //                     strength: 3,
+    //                     intelligence: 2,
+    //                     agility: 3,
+    //                 },
+    //                 show: false,
     //             },
     //             PlayerSnapshot {
     //                 name: "Pixelmog".to_string(),
@@ -50,6 +57,13 @@ fn App() -> impl IntoView {
     //                 level: 4,
     //                 gold: 100,
     //                 form: Form::Normal,
+    //                 stats: PlayerStats {
+    //                     strength: 3,
+    //                     intelligence: 2,
+    //                     agility: 3,
+    //                 },
+    //                 show: false,
+    // 
     //             },
     //             PlayerSnapshot {
     //                 name: "ubruntu".to_string(),
@@ -58,6 +72,13 @@ fn App() -> impl IntoView {
     //                 level: 2,
     //                 gold: 100,
     //                 form: Form::Normal,
+    //                 stats: PlayerStats {
+    //                     strength: 3,
+    //                     intelligence: 2,
+    //                     agility: 3,
+    //                 },
+    //                 show: true,
+    // 
     //             },
     //             PlayerSnapshot {
     //                 name: "Pittinjury".to_string(),
@@ -66,6 +87,12 @@ fn App() -> impl IntoView {
     //                 level: 3,
     //                 gold: 100,
     //                 form: Form::Normal,
+    //                 stats: PlayerStats {
+    //                     strength: 3,
+    //                     intelligence: 2,
+    //                     agility: 3,
+    //                 },
+    //                 show: false,
     //             },
     //             PlayerSnapshot {
     //                 name: "FrankBlankPrime".to_string(),
@@ -74,6 +101,12 @@ fn App() -> impl IntoView {
     //                 level: 3,
     //                 gold: 100,
     //                 form: Form::Normal,
+    //                 stats: PlayerStats {
+    //                     strength: 3,
+    //                     intelligence: 2,
+    //                     agility: 3,
+    //                 },
+    //                 show: false,
     //             },
     //             PlayerSnapshot {
     //                 name: "HeroBonZo".to_string(),
@@ -82,6 +115,12 @@ fn App() -> impl IntoView {
     //                 level: 3,
     //                 gold: 100,
     //                 form: Form::Normal,
+    //                 stats: PlayerStats {
+    //                     strength: 3,
+    //                     intelligence: 2,
+    //                     agility: 3,
+    //                 },
+    //                 show: false,
     //             },
     //             PlayerSnapshot {
     //                 name: "bookslap".to_string(),
@@ -90,6 +129,12 @@ fn App() -> impl IntoView {
     //                 level: 2,
     //                 gold: 100,
     //                 form: Form::Normal,
+    //                 stats: PlayerStats {
+    //                     strength: 3,
+    //                     intelligence: 2,
+    //                     agility: 3,
+    //                 },
+    //                 show: false
     //             },
     //         ],
     //         camera_position: None,
@@ -110,7 +155,7 @@ fn App() -> impl IntoView {
             }
         }) as Box<dyn FnMut(MessageEvent)>);
         sse_event.set_onmessage(Some(callback.as_ref().unchecked_ref()));
-
+    
         callback.forget();
     });
 
@@ -126,7 +171,7 @@ fn App() -> impl IntoView {
 //TODO: delete after local testing
 // fn generate_hardcoded_shop_inventory() -> HashMap<MenuItem, ShopItem> {
 //     let mut items = HashMap::new();
-//
+// 
 //     items.insert(
 //         MenuItem(0),
 //             ShopItem {
@@ -136,14 +181,17 @@ fn App() -> impl IntoView {
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 34,
 //                 stats: ItemStats {
+//                     attack_modifiers: None,
+//                     defense_modifiers: None,
+//                     other_modifiers: None,
 //                     strength: None,
 //                     intelligence: None,
-//                     dexterity: None,
+//                     agility: None,
 //                 },
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
 //     );
-//
+// 
 //     items.insert(
 //         MenuItem(1),
 //             ShopItem {
@@ -153,17 +201,20 @@ fn App() -> impl IntoView {
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 18,
 //                 stats: ItemStats {
+//                     attack_modifiers: None,
+//                     defense_modifiers: None,
+//                     other_modifiers: None,
 //                     strength: None,
 //                     intelligence: None,
-//                     dexterity: None,
+//                     agility: None,
 //                 },
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
 //     );
-//
+// 
 //     items.insert(
 //         MenuItem(2),
-//
+// 
 //             ShopItem {
 //                 sprite: "greatsword".parse().unwrap(),
 //                 name: "Greatsword".parse().unwrap(),
@@ -171,17 +222,20 @@ fn App() -> impl IntoView {
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 28,
 //                 stats: ItemStats {
+//                     attack_modifiers: None,
+//                     defense_modifiers: None,
+//                     other_modifiers: None,
 //                     strength: None,
 //                     intelligence: None,
-//                     dexterity: None,
+//                     agility: None,
 //                 },
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
 //     );
-//
+// 
 //     items.insert(
 //         MenuItem(3),
-//
+// 
 //             ShopItem {
 //                 sprite: "purple_tip_silver_staff".parse().unwrap(),
 //                 name: "Nether-orb Staff".parse().unwrap(),
@@ -189,18 +243,21 @@ fn App() -> impl IntoView {
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 40,
 //                 stats: ItemStats {
+//                     attack_modifiers: None,
+//                     defense_modifiers: None,
+//                     other_modifiers: None,
 //                     strength: None,
 //                     intelligence: None,
-//                     dexterity: None,
+//                     agility: None,
 //                 },
 //                 description: "More elemental damage".parse().unwrap(),
 //             },
-//
+// 
 //     );
-//
+// 
 //     items.insert(
 //         MenuItem(4),
-//
+// 
 //             ShopItem {
 //                 sprite: "green_leather_boots".parse().unwrap(),
 //                 name: "Elven Boots".parse().unwrap(),
@@ -208,18 +265,21 @@ fn App() -> impl IntoView {
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 30,
 //                 stats: ItemStats {
+//                     attack_modifiers: None,
+//                     defense_modifiers: None,
+//                     other_modifiers: None,
 //                     strength: None,
 //                     intelligence: None,
-//                     dexterity: None,
+//                     agility: None,
 //                 },
 //                 description: "More movement speed".parse().unwrap(),
 //             },
-//
+// 
 //     );
-//
+// 
 //     items.insert(
 //         MenuItem(5),
-//
+// 
 //             ShopItem {
 //                 sprite: "trident".parse().unwrap(),
 //                 name: "Trident".parse().unwrap(),
@@ -227,18 +287,21 @@ fn App() -> impl IntoView {
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 18,
 //                 stats: ItemStats {
+//                     attack_modifiers: None,
+//                     defense_modifiers: None,
+//                     other_modifiers: None,
 //                     strength: None,
 //                     intelligence: None,
-//                     dexterity: None,
+//                     agility: None,
 //                 },
 //                 description: "Melee attacks have longer reach".parse().unwrap(),
 //             },
-//
+// 
 //     );
-//
+// 
 //     items.insert(
 //         MenuItem(6),
-//
+// 
 //             ShopItem {
 //                 sprite: "white_wizard_hat".parse().unwrap(),
 //                 name: "Academy Teacher's Hat".parse().unwrap(),
@@ -246,18 +309,21 @@ fn App() -> impl IntoView {
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 230,
 //                 stats: ItemStats {
+//                     attack_modifiers: None,
+//                     defense_modifiers: None,
+//                     other_modifiers: None,
 //                     strength: None,
 //                     intelligence: None,
-//                     dexterity: None,
+//                     agility: None,
 //                 },
 //                 description: "Spells have longer durations and affect larger areas".parse().unwrap(),
 //             },
-//
+// 
 //     );
-//
+// 
 //     items.insert(
 //         MenuItem(7),
-//
+// 
 //             ShopItem {
 //                 sprite: "red_cloth_boots".parse().unwrap(),
 //                 name: "Cinder Slippers".parse().unwrap(),
@@ -265,13 +331,16 @@ fn App() -> impl IntoView {
 //                 equip_slot: EquipmentSlot::Feet,
 //                 price: 40,
 //                 stats: ItemStats {
+//                     attack_modifiers: None,
+//                     defense_modifiers: None,
+//                     other_modifiers: None,
 //                     strength: None,
 //                     intelligence: None,
-//                     dexterity: None,
+//                     agility: None,
 //                 },
 //                 description: "More elemental resistance".parse().unwrap(),
 //             },
 //     );
-//
+// 
 //     items
 // }

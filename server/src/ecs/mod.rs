@@ -72,17 +72,6 @@ pub fn run_game_server(
             "countdown",
             &["command_handler"],
         )
-        // .with(
-        //     AssignRoomTargetSystem,
-        //     "assign_room_target",
-        //     &["command_handler"],
-        // )
-        // .with(RandomWander, "idle", &["movement"])
-        // .with(
-        //     MovementValidationSystem,
-        //     "movement_validation",
-        //     &["pathfinding"],
-        // )
         .with(Movement, "movement", &[])
         .with(PlayerAI, "player_ai", &[])
         .with(PathfindingSystem, "pathfinding", &["movement", "player_ai"])

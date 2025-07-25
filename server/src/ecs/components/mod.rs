@@ -3,6 +3,7 @@ pub(crate) use common::{Health, PlayerClass};
 use specs::prelude::*;
 use specs_derive::Component;
 use std::fmt::Display;
+use common::PlayerStats;
 
 pub mod class;
 pub mod combat;
@@ -243,6 +244,16 @@ impl Stats {
                 agility: 9,
                 intelligence: 12,
             },
+        }
+    }
+}
+
+impl From<&Stats> for PlayerStats {
+    fn from(stats: &Stats) -> Self {
+        PlayerStats {
+            strength: stats.strength,
+            agility: stats.agility,
+            intelligence: stats.intelligence,
         }
     }
 }
