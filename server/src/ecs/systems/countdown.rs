@@ -3,7 +3,7 @@ use crate::ecs::components::combat::{
     AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
 };
 use crate::ecs::components::inventory::Equipment;
-use crate::ecs::components::movement::{MovementSpeed, PrevPosition, TargetPosition};
+use crate::ecs::components::movement::{DesiredTargetPosition, MovementSpeed, TargetPosition};
 use crate::ecs::components::{DungeonItem, Enemy, Level, Name, Player, Position, Stats};
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
 use crate::ecs::systems::pathfinding::PathfindingSystem;
@@ -69,7 +69,6 @@ impl<'a> System<'a> for CountdownSystem {
         ): Self::SystemData,
     ) {
         let player_count = players.join().count();
-        // let player_count = 1; //TODO: remove when done testing
 
         if matches!(*game_state, GameState::InTown)
             && player_count >= self.min_players

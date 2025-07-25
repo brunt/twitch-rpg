@@ -6,7 +6,6 @@ pub(crate) mod death_handler;
 pub(crate) mod enemy_ai;
 pub(crate) mod item_pickup;
 pub mod movement;
-pub(crate) mod movement_validation;
 pub(crate) mod pathfinding;
 pub(crate) mod player_ai;
 pub(crate) mod player_spacing;

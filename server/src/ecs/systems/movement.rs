@@ -1,7 +1,7 @@
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 
 use crate::ecs::components::Position;
-use crate::ecs::components::movement::{MovementSpeed, PrevPosition, TargetPosition};
+use crate::ecs::components::movement::{MovementSpeed, TargetPosition};
 
 pub struct Movement;
 

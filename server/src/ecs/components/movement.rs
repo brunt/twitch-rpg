@@ -12,12 +12,6 @@ pub struct Position {
     pub y: u32,
 }
 
-#[derive(Component, Clone, Debug, Default, Copy)]
-pub struct PrevPosition {
-    pub x: u32,
-    pub y: u32,
-}
-
 impl Position {
     pub fn distance_to(&self, other: &Position) -> u32 {
         self.x.abs_diff(other.x).max(self.y.abs_diff(other.y))
@@ -98,6 +92,24 @@ pub struct TargetPosition {
 impl From<&Position> for TargetPosition {
     fn from(p: &Position) -> Self {
         TargetPosition { x: p.x, y: p.y }
+    }
+}
+
+#[derive(Component)]
+pub struct DesiredTargetPosition {
+    pub x: u32,
+    pub y: u32,
+}
+
+impl From<&DesiredTargetPosition> for TargetPosition {
+    fn from(p: &DesiredTargetPosition) -> Self {
+        TargetPosition { x: p.x, y: p.y }
+    }
+}
+
+impl From<&tatami_dungeon::Position> for DesiredTargetPosition {
+    fn from(p: &tatami_dungeon::Position) -> Self {
+        DesiredTargetPosition { x: p.x, y: p.y }
     }
 }
 

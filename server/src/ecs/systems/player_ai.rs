@@ -1,5 +1,5 @@
 use crate::ecs::components::combat::{AttackTarget, HealthComponent};
-use crate::ecs::components::movement::TargetPosition;
+use crate::ecs::components::movement::{DesiredTargetPosition, TargetPosition};
 use crate::ecs::components::{DungeonItem, Enemy, Opened, Player, Position};
 use crate::ecs::resources::{Adventure, RoomCheck};
 use common::Health;
@@ -11,7 +11,7 @@ impl<'a> System<'a> for PlayerAI {
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Position>,
-        WriteStorage<'a, TargetPosition>,
+        WriteStorage<'a, DesiredTargetPosition>,
         WriteStorage<'a, AttackTarget>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Enemy>,
@@ -107,7 +107,7 @@ impl<'a> System<'a> for PlayerAI {
                     targets
                         .insert(
                             player_entity,
-                            TargetPosition {
+                            DesiredTargetPosition {
                                 x: target_adj.x,
                                 y: target_adj.y,
                             },
@@ -117,7 +117,7 @@ impl<'a> System<'a> for PlayerAI {
                     targets
                         .insert(
                             player_entity,
-                            TargetPosition {
+                            DesiredTargetPosition {
                                 x: enemy_pos.x,
                                 y: enemy_pos.y,
                             },
@@ -130,7 +130,7 @@ impl<'a> System<'a> for PlayerAI {
                 targets
                     .insert(
                         player_entity,
-                        TargetPosition {
+                        DesiredTargetPosition {
                             x: item_pos.x,
                             y: item_pos.y,
                         },
@@ -142,7 +142,7 @@ impl<'a> System<'a> for PlayerAI {
                 targets
                     .insert(
                         player_entity,
-                        TargetPosition {
+                        DesiredTargetPosition {
                             x: stair.position.x,
                             y: stair.position.y,
                         },
@@ -166,7 +166,7 @@ impl<'a> System<'a> for PlayerAI {
                         .find(|r| r.id == conn.id)
                     {
                         targets
-                            .insert(player_entity, TargetPosition::from(&next_room.center()))
+                            .insert(player_entity, DesiredTargetPosition::from(&next_room.center()))
                             .expect("Failed to insert target position");
                     }
                 }
