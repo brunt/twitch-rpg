@@ -145,29 +145,30 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 .join()
                                 .find(|(_, name)| name.0 == player_name)
                             {
-                                show_characters.insert(e, ShowCharacter).expect("failed to show character");
+                                show_characters
+                                    .insert(e, ShowCharacter)
+                                    .expect("failed to show character");
                             }
                         }
                         _ => {}
                     }
                 }
-                GameState::OnAdventure => {
-                    match command {
-                        RpgCommand::PlayerCommand(Use(item)) => {
-                            println!("{} is using item {:?}", player_name, item);
-                        }
-                        RpgCommand::PlayerCommand(PlayerCommand::Show) => {
-                            if let Some((e, _name)) = (entities, &names)
-                                .join()
-                                .find(|(_, name)| name.0 == player_name)
-                            {
-
-                                show_characters.insert(e, ShowCharacter).expect("failed to show character");
-                            }
-                        }
-                        _ => {}
+                GameState::OnAdventure => match command {
+                    RpgCommand::PlayerCommand(Use(item)) => {
+                        println!("{} is using item {:?}", player_name, item);
                     }
-                }
+                    RpgCommand::PlayerCommand(PlayerCommand::Show) => {
+                        if let Some((e, _name)) = (entities, &names)
+                            .join()
+                            .find(|(_, name)| name.0 == player_name)
+                        {
+                            show_characters
+                                .insert(e, ShowCharacter)
+                                .expect("failed to show character");
+                        }
+                    }
+                    _ => {}
+                },
                 GameState::AfterDungeon => {} // no commands at this phase
             }
         }

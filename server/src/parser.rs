@@ -1,11 +1,11 @@
 use crate::commands::PlayerCommand::{Buy, Show, Use};
 use crate::commands::RpgCommand;
+use crate::commands::RpgCommand::PlayerCommand;
 use common::{MenuItem, PlayerClass};
 use winnow::Parser;
 use winnow::ascii::{Caseless, alpha1, digit1, space1};
 use winnow::combinator::{alt, preceded};
 use winnow::error::EmptyError;
-use crate::commands::RpgCommand::PlayerCommand;
 
 pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
     preceded::<&str, &str, RpgCommand, EmptyError, &str, _>(
@@ -106,13 +106,10 @@ mod tests {
             Some(PlayerCommand(Use(MenuItem::from(1))))
         );
     }
-    
+
     #[test]
     fn test_show_command() {
         let input = "!show";
-        assert_eq!(
-            get_command(&mut &*input),
-            Some(PlayerCommand(Show))
-        );
+        assert_eq!(get_command(&mut &*input), Some(PlayerCommand(Show)));
     }
 }

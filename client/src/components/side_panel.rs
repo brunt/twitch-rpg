@@ -1,17 +1,19 @@
-use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
-use std::rc::Rc;
-use std::time::Duration;
 use crate::components::{draw_item_sprite, draw_sprite};
 use crate::sprites::items_sprites::ITEMS_SPRITES;
 use crate::sprites::monsters_sprites::player_sprite;
 use crate::sprites::{ITEM_SPRITE_DIMENSION, SPRITE_DIMENSION, SpriteRect};
 use common::{GameSnapShot, PlayerSnapshot};
+use leptos::control_flow::Show;
 use leptos::html::{Canvas, canvas};
-use leptos::prelude::{set_timeout, signal, ClassAttribute, Get, IntoAny, Set, Signal, StyleAttribute, Update};
+use leptos::prelude::{
+    ClassAttribute, Get, IntoAny, Set, Signal, StyleAttribute, Update, set_timeout, signal,
+};
 use leptos::prelude::{Effect, ElementChild, NodeRef, NodeRefAttribute};
 use leptos::{IntoView, component, view};
-use leptos::control_flow::Show;
+use std::cell::RefCell;
+use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
+use std::time::Duration;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
@@ -38,20 +40,22 @@ pub fn SidePanelCharacterSheet(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -
 
                         let set_show_player_stats = set_show_player_stats.clone();
                         let timers = timers.clone();
-                        set_timeout(move || {
-                            timers.borrow_mut().remove(&i);
-                            let mut current = show_player_stats.get();
-                            if current.remove(&i) {
-                                set_show_player_stats.set(current.clone());
-                            }
-                        }, Duration::from_secs(10));
+                        set_timeout(
+                            move || {
+                                timers.borrow_mut().remove(&i);
+                                let mut current = show_player_stats.get();
+                                if current.remove(&i) {
+                                    set_show_player_stats.set(current.clone());
+                                }
+                            },
+                            Duration::from_secs(10),
+                        );
                     }
                 }
             }
         }
     });
-    
-    
+
     view! {
         <aside class="w-[42rem] bg-panel shadow-lg text-sm overflow-y-auto max-h-[720px]">
             <div class="border-gray-100 px-3 py-2 font-semibold text-base">Characters</div>
@@ -94,7 +98,10 @@ pub fn SidePanelCharacterSheet(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -
 }
 
 #[component]
-fn PlayerPanel(#[prop(into)] player: PlayerSnapshot, #[prop(into)] is_expanded: bool) -> impl IntoView {
+fn PlayerPanel(
+    #[prop(into)] player: PlayerSnapshot,
+    #[prop(into)] is_expanded: bool,
+) -> impl IntoView {
     let (height_style, set_height_style) = signal(String::from("0px"));
 
     Effect::new(move |_| {
@@ -139,8 +146,6 @@ fn PlayerPanel(#[prop(into)] player: PlayerSnapshot, #[prop(into)] is_expanded: 
         </div>
     }
 }
-
-
 
 #[component]
 fn ExtraStats(#[prop(into)] player: PlayerSnapshot) -> impl IntoView {

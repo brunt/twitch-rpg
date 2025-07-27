@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use std::time::Instant;
 use crate::ecs::components::class::{CharacterClass, ShowCharacter};
-use crate::ecs::components::combat::HealthComponent;
+use crate::ecs::components::combat::{FiredProjectile, HealthComponent, RangedAttacker};
 use crate::ecs::components::movement::TargetPosition;
-use crate::ecs::components::{DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Projectile, Stats};
+use crate::ecs::components::{
+    DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Stats,
+};
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
-use common::{EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, PlayerStats, ShopItem};
+use common::{DamageType, EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, PlayerStats, Projectile, ShopItem};
 use specs::{Entities, Join, LendJoin, ReadExpect, ReadStorage, System, WriteStorage};
 use tokio::sync::broadcast::Sender;
 
@@ -21,7 +21,6 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, Name>,
         ReadStorage<'a, Position>,
         ReadStorage<'a, HealthComponent>,
-        ReadStorage<'a, Projectile>,
         ReadStorage<'a, CharacterClass>,
         ReadStorage<'a, Level>,
         ReadStorage<'a, Money>,
@@ -31,6 +30,8 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, DungeonItem>,
         ReadStorage<'a, Opened>,
         ReadStorage<'a, TargetPosition>,
+        ReadStorage<'a, RangedAttacker>,
+        ReadStorage<'a, FiredProjectile>,
         WriteStorage<'a, ShowCharacter>,
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
@@ -46,7 +47,6 @@ impl<'a> System<'a> for Rendering {
             names,
             positions,
             health,
-            projectiles,
             character_classes,
             levels,
             monies,
@@ -56,6 +56,8 @@ impl<'a> System<'a> for Rendering {
             dungeon_items,
             opened,
             target_positions,
+            ranged_attackers,
+            fired_projectiles,
             mut show_characters,
             game_state,
             countdown,
@@ -65,8 +67,7 @@ impl<'a> System<'a> for Rendering {
     ) {
         let state = &*game_state;
         let mut show_flag_cleanup = Vec::new();
-        
-        
+
         match state {
             GameState::InTown => {
                 // TODO: builder method for this?
@@ -78,10 +79,20 @@ impl<'a> System<'a> for Rendering {
                     shop_items: Some(shop_inventory.items.clone()),
                     ready_timer: countdown.clone().map(|c| c.to_serialized()),
                     difficulty: None,
+                    projectiles: None,
                 };
 
-                for (entity, name, health, character_class, level, money, stats, show) in
-                    (&entities, &names, &health, &character_classes, &levels, &monies, &stats, show_characters.maybe()).join()
+                for (entity, name, health, character_class, level, money, stats, show) in (
+                    &entities,
+                    &names,
+                    &health,
+                    &character_classes,
+                    &levels,
+                    &monies,
+                    &stats,
+                    show_characters.maybe(),
+                )
+                    .join()
                 {
                     gs.party.push(PlayerSnapshot {
                         name: name.0.clone(), //TODO: not clone?
@@ -93,7 +104,7 @@ impl<'a> System<'a> for Rendering {
                         stats: PlayerStats::from(stats),
                         show: show.is_some(),
                     });
-                    
+
                     if show.is_some() {
                         show_flag_cleanup.push(entity);
                     }
@@ -101,6 +112,7 @@ impl<'a> System<'a> for Rendering {
                 _ = self.sender.send(gs);
             }
             GameState::OnAdventure => {
+                // build positions list
                 let entity_positions: Vec<EntityPosition> = (
                     &positions,
                     &character_classes,
@@ -163,6 +175,20 @@ impl<'a> System<'a> for Rendering {
                     ))
                     .collect();
 
+                // build projectiles
+                let projectile_data: Vec<Projectile> = (
+                    &entities,
+                    &fired_projectiles,
+                )
+                    .join()
+                    .map(|(entity, fired_proj)| Projectile {
+                            position: fired_proj.position,
+                            target_position: fired_proj.target_position,
+                            damage: 1, // Still needs to be populated from combat logic
+                            damage_type: fired_proj.damage_type.clone(), // Use the damage type from the component
+                    })
+                    .collect::<Vec<Projectile>>();
+
                 let mut min_x = u32::MAX;
                 let mut max_x = 0;
                 let mut min_y = u32::MAX;
@@ -185,10 +211,20 @@ impl<'a> System<'a> for Rendering {
                     shop_items: None,
                     ready_timer: None,
                     difficulty: Some(adventure.clone().map_or(1, |adv| adv.difficulty)),
+                    projectiles: Some(projectile_data),
                 };
 
-                for (entity, name, health, character_class, level, money, stats, show) in
-                    (&entities, &names, &health, &character_classes, &levels, &monies, &stats, show_characters.maybe()).join()
+                for (entity, name, health, character_class, level, money, stats, show) in (
+                    &entities,
+                    &names,
+                    &health,
+                    &character_classes,
+                    &levels,
+                    &monies,
+                    &stats,
+                    show_characters.maybe(),
+                )
+                    .join()
                 {
                     gs.party.push(PlayerSnapshot {
                         name: name.0.clone(),
@@ -205,9 +241,6 @@ impl<'a> System<'a> for Rendering {
                         show_flag_cleanup.push(entity);
                     }
                 }
-                // for (pos, health, proj) in (&positions, &health, &projectiles).join() {
-                //     // gs.party.append()
-                // }
                 _ = self.sender.send(gs);
             }
             GameState::AfterDungeon => {

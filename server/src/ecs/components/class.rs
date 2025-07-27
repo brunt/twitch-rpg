@@ -1,6 +1,6 @@
-use crate::ecs::components::NullStorage;
 use crate::ecs::components::Component;
 use crate::ecs::components::DenseVecStorage;
+use crate::ecs::components::NullStorage;
 use common::PlayerClass;
 use std::fmt::{Display, Formatter};
 

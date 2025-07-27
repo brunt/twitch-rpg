@@ -17,7 +17,14 @@ impl<'a> System<'a> for DeathCleanupSystem {
 
     fn run(
         &mut self,
-        (entities, healths, mut attack_targets, mut attack_components, mut target_positions, mut movements): Self::SystemData,
+        (
+            entities,
+            healths,
+            mut attack_targets,
+            mut attack_components,
+            mut target_positions,
+            mut movements,
+        ): Self::SystemData,
     ) {
         for (entity, health) in (&entities, &healths).join() {
             if matches!(health.0, Health::Dead) {

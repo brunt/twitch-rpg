@@ -23,6 +23,7 @@ use common::GameSnapShot;
 use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
+use crate::ecs::systems::projectile_cleanup::ProjectileCleanupSystem;
 
 pub mod resources;
 mod shop;
@@ -54,18 +55,6 @@ pub fn run_game_server(
     let mut dispatcher = DispatcherBuilder::new()
         .with(CommandHandlerSystem, "command_handler", &[])
         .with(
-            Rendering {
-                sender: gamestate_sender,
-            },
-            "rendering",
-            &[],
-        )
-        .with(
-            ShopPopulation,
-            "shop_population",
-            &["rendering", "command_handler"],
-        )
-        .with(
             CountdownSystem {
                 min_players: MIN_PLAYERS,
             },
@@ -76,11 +65,24 @@ pub fn run_game_server(
         .with(PlayerAI, "player_ai", &[])
         .with(PathfindingSystem, "pathfinding", &["movement", "player_ai"])
         .with(CombatSystem, "combat", &[])
+        .with(
+            Rendering {
+                sender: gamestate_sender,
+            },
+            "rendering",
+            &["combat"],
+        )
+        .with(
+            ShopPopulation,
+            "shop_population",
+            &["rendering", "command_handler"],
+        )
         .with(DeathCleanupSystem, "death_cleanup", &[])
         .with(ItemPickup, "item_pickup", &["movement"])
         .with(RoomExplorationSystem, "room_exploration", &["movement"])
         .with(EnemyAISystem, "enemy_ai", &["movement"])
         .with(PartySpacing, "player_spacing", &["movement", "player_ai"])
+        .with(ProjectileCleanupSystem, "projectile_cleanup", &["rendering"])
         .build();
 
     let mut last_frame_time = std::time::Instant::now();

@@ -1,9 +1,7 @@
-use crate::ecs::components::combat::{
-    AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
-};
+use crate::ecs::components::combat::{AttackComponent, AttackTarget, DefenseComponent, FiredProjectile, HealthComponent, MeleeAttacker, RangedAttacker};
 use crate::ecs::components::{Enemy, Player, Position};
 use crate::ecs::resources::DeltaTime;
-use common::Health;
+use common::{DamageType, Health};
 use rand::Rng;
 use specs::prelude::*;
 
@@ -17,9 +15,11 @@ impl<'a> System<'a> for CombatSystem {
         ReadStorage<'a, Player>,
         ReadStorage<'a, Enemy>,
         ReadStorage<'a, MeleeAttacker>,
+        ReadStorage<'a, RangedAttacker>,
         ReadStorage<'a, DefenseComponent>,
         ReadStorage<'a, Position>,
         WriteStorage<'a, HealthComponent>,
+        WriteStorage<'a, FiredProjectile>,
         Read<'a, DeltaTime>,
     );
 
@@ -31,9 +31,11 @@ impl<'a> System<'a> for CombatSystem {
             players,
             enemies,
             melee,
+            range,
             defenses,
             positions,
             mut healths,
+            mut fired_projectiles, 
             delta_time,
         ) = data;
 
@@ -55,10 +57,10 @@ impl<'a> System<'a> for CombatSystem {
                 continue;
             }
 
-            // attacker must have attack range to hit target
             let Some(target_pos) = positions.get(target_entity) else {
                 continue;
             };
+
             if attack.range < target_pos.distance_to(position) {
                 // Out of range
                 continue;
@@ -69,11 +71,13 @@ impl<'a> System<'a> for CombatSystem {
             let evasion = defenses.get(target_entity).map(|d| d.evasion).unwrap_or(0);
 
             // Simple hit/evasion check
-            let hit_roll: u32 = rand::thread_rng().gen_range(0..100);
-            if hit_roll < evasion {
+            // let hit_roll: u32 = rand::thread_rng().gen_range(0..100);
+            // if hit_roll < evasion {
                 // Missed attack
-                continue;
-            }
+                // For ranged attacks, we might still want to show a projectile even on a miss
+                // but for now, we'll only fire it on a hit.
+                // continue;
+            // }
 
             let actual_damage = attack.damage.saturating_sub(defense);
 
@@ -89,6 +93,18 @@ impl<'a> System<'a> for CombatSystem {
                             }
                         }
                         _ => {}
+                    }
+
+                    if range.get(attacker_entity).is_some() {
+                        fired_projectiles.insert(
+                            attacker_entity,
+                            FiredProjectile {
+                                position: tatami_dungeon::Position::from(position),
+                                target_position: tatami_dungeon::Position::from(target_pos),
+                                damage: 1,
+                                damage_type: DamageType::Purple,
+                            },
+                        ).expect("Failed to insert FiredProjectile component");
                     }
                 }
             }

@@ -1,9 +1,9 @@
 pub(crate) use crate::ecs::components::movement::Position;
+use common::PlayerStats;
 pub(crate) use common::{Health, PlayerClass};
 use specs::prelude::*;
 use specs_derive::Component;
 use std::fmt::Display;
-use common::PlayerStats;
 
 pub mod class;
 pub mod combat;
@@ -148,16 +148,6 @@ pub enum AoEEffect {
     Debuff(BuffEffect), // Debuff all affected targets
 }
 
-// Projectile component
-#[derive(Debug, Component)]
-pub struct Projectile {
-    pub damage: u32,
-    pub source_entity: Entity,
-    pub target_position: Position,
-    pub speed: f32,
-    pub effects: Vec<ProjectileEffect>,
-}
-
 // Projectile effects
 #[derive(Debug, Clone)]
 pub enum ProjectileEffect {
@@ -167,31 +157,6 @@ pub enum ProjectileEffect {
     AreaOfEffect { radius: u32, effect_type: String },
 }
 
-// Loot drop component
-#[derive(Debug, Component)]
-pub struct LootTable {
-    pub drops: Vec<LootDrop>,
-}
-
-// Individual loot drops with probabilities
-#[derive(Debug, Clone)]
-pub struct LootDrop {
-    pub item_type: LootType,
-    pub probability: f32,           // 0.0 to 1.0
-    pub quantity_range: (u32, u32), // Min and max quantity
-}
-
-// Types of loot
-#[derive(Debug, Clone)]
-pub enum LootType {
-    Gold,
-    Weapon(WeaponType),
-    Armor(ArmorType),
-    Potion,
-    Scroll,
-    Gem,
-    QuestItem(String),
-}
 
 // Experience reward component
 #[derive(Debug, Component)]

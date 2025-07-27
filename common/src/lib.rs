@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use serde::{Deserialize, Serialize};
+use tatami_dungeon::Position;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GameSnapShot {
@@ -19,6 +20,8 @@ pub struct GameSnapShot {
     pub ready_timer: Option<SerializedCountdownTimer>,
     #[serde(rename = "g")]
     pub difficulty: Option<u32>,
+    #[serde(rename = "h")]
+    pub projectiles: Option<Vec<Projectile>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -273,4 +276,46 @@ pub struct PlayerStats {
     pub intelligence: u32,
     #[serde(rename = "c")]
     pub agility: u32,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Projectile {
+    #[serde(rename = "a")]
+    pub position: Position,
+    #[serde(rename = "b")]
+    pub target_position: Position,
+    #[serde(rename = "c")]
+    pub damage: u32, // for scrolling combat text maybe
+    #[serde(rename = "d")]
+    pub damage_type: DamageType,
+}
+
+/// this is used for rendering so basic color names are fine
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum DamageType {
+    Physical,
+    Red,
+    Blue,
+    Green,
+    Yellow,
+    Orange,
+    Purple,
+    Pink,
+    Black,
+}
+
+impl Display for DamageType{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Physical => write!(f, "Physical"),
+            Self::Red => write!(f, "Red"),
+            Self::Blue => write!(f, "Blue"),
+            Self::Green => write!(f, "Green"),
+            Self::Yellow => write!(f, "Yellow"),
+            Self::Orange => write!(f, "Orange"),
+            Self::Purple => write!(f, "Purple"),
+            Self::Pink => write!(f, "Pink"),
+            Self::Black => write!(f, "Black"),
+        }
+    }
 }

@@ -6,15 +6,14 @@ use crate::ecs::components::MovementAI;
 use crate::ecs::components::Name;
 use crate::ecs::components::Player;
 use crate::ecs::components::Position;
-use crate::ecs::components::Projectile;
 use crate::ecs::components::Resource;
 use crate::ecs::components::Stats;
 use crate::ecs::components::class::{CharacterClass, ShowCharacter};
-use crate::ecs::components::combat::{
-    AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker, RangedAttacker,
-};
+use crate::ecs::components::combat::{AttackComponent, AttackTarget, DefenseComponent, FiredProjectile, HealthComponent, MeleeAttacker, RangedAttacker};
 use crate::ecs::components::inventory::Equipment;
-use crate::ecs::components::movement::{DesiredTargetPosition, MovementSpeed, Path, TargetPosition, Wander};
+use crate::ecs::components::movement::{
+    DesiredTargetPosition, MovementSpeed, Path, TargetPosition, Wander,
+};
 use crate::ecs::components::{ActiveEffects, DungeonItem, Opened};
 use crate::ecs::resources::{
     Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, ShopInventory,
@@ -37,7 +36,6 @@ pub fn create_world() -> World {
     world.register::<Experience>();
     world.register::<MovementAI>();
     world.register::<Player>();
-    world.register::<Projectile>();
     world.register::<Level>();
     world.register::<Money>();
     world.register::<Enemy>();
@@ -52,6 +50,7 @@ pub fn create_world() -> World {
     world.register::<ActiveEffects>();
     world.register::<Opened>();
     world.register::<ShowCharacter>();
+    world.register::<FiredProjectile>();
 
     // resources
     world.insert(GameState::InTown);

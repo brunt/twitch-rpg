@@ -140,7 +140,15 @@ pub fn draw_dungeon_floor(
                         DEFAULT_TERRAIN_SCALE,
                         None,
                     );
-                    draw_sprite(ctx, terrain_image, &stair_tile, x, y, DEFAULT_TERRAIN_SCALE, None);
+                    draw_sprite(
+                        ctx,
+                        terrain_image,
+                        &stair_tile,
+                        x,
+                        y,
+                        DEFAULT_TERRAIN_SCALE,
+                        None,
+                    );
                 }
                 _ => {}
             }
@@ -219,25 +227,3 @@ pub fn draw_dungeon_floor(
         }
     }
 }
-
-// let screen_x =
-//     (row as f64 - col as f64) * (SPRITE_DIMENSION / 2.0) + canvas_width / 2.0;
-// let screen_y = (row as f64 + col as f64) * (SPRITE_DIMENSION / 2.0);
-
-// let is_top_left_corner = row == 0 && col == 0;
-// let is_top_right_corner = row == 0 && col == map_height - 1;
-// let is_bottom_left_corner = row == map_width - 1 && col == 0;
-// let is_top_corner = row == map_width - 1 && col == map_height - 1;
-// let is_ne_sw = row == 0 || row == map_width - 1;
-// let is_nw_se = col == 0 || col == map_height - 1;
-// draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_653, x, y, 1.0, None);
-//
-// if is_ne_sw {
-//     draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_467, x, y, 1.0, None);
-// }
-// if is_nw_se {
-//     draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_432, x, y, 1.0, None);
-// }
-// if is_top_left_corner {
-//     draw_sprite(ctx, terrain_image, &TERRAIN_SPRITE_432, x, y, 1.0, None);
-// }

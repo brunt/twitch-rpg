@@ -1,4 +1,7 @@
-use common::{AttackModifiers, DefenseModifiers, EquipmentSlot, ItemQuality, ItemStats, OtherModifiers, ShopItem};
+use common::{
+    AttackModifiers, DefenseModifiers, EquipmentSlot, ItemQuality, ItemStats, OtherModifiers,
+    ShopItem,
+};
 
 #[derive(Default)]
 pub struct ShopItemPool {
@@ -14,7 +17,10 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             equip_slot: EquipmentSlot::Head,
             stats: ItemStats {
                 attack_modifiers: None,
-                defense_modifiers: Some(DefenseModifiers{ damage_reduction: 1, evasion_rating: 0}),
+                defense_modifiers: Some(DefenseModifiers {
+                    damage_reduction: 1,
+                    evasion_rating: 0,
+                }),
                 other_modifiers: None,
 
                 strength: None,
@@ -30,7 +36,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             quality: ItemQuality::Common,
             equip_slot: EquipmentSlot::MainHand,
             stats: ItemStats {
-                attack_modifiers: Some(AttackModifiers{
+                attack_modifiers: Some(AttackModifiers {
                     damage_bonus: 1,
                     hit_rating_bonus: 3,
                     range_bonus: 0,
@@ -84,7 +90,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             quality: ItemQuality::Uncommon,
             equip_slot: EquipmentSlot::MainHand,
             stats: ItemStats {
-                attack_modifiers: Some(AttackModifiers{
+                attack_modifiers: Some(AttackModifiers {
                     damage_bonus: 3,
                     hit_rating_bonus: 2,
                     range_bonus: 2,
@@ -137,7 +143,12 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             quality: ItemQuality::Uncommon,
             equip_slot: EquipmentSlot::MainHand,
             stats: ItemStats {
-                attack_modifiers: None,
+                attack_modifiers: Some(AttackModifiers {
+                    damage_bonus: 3,
+                    hit_rating_bonus: 2,
+                    range_bonus: 20,
+                    cooldown_reduction_ms: 0,
+                }),
                 defense_modifiers: None,
                 other_modifiers: None,
                 strength: None,
@@ -153,7 +164,12 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             quality: ItemQuality::Rare,
             equip_slot: EquipmentSlot::MainHand,
             stats: ItemStats {
-                attack_modifiers: None,
+                attack_modifiers: Some(AttackModifiers {
+                    damage_bonus: 3,
+                    hit_rating_bonus: 2,
+                    range_bonus: 20,
+                    cooldown_reduction_ms: 0,
+                }),
                 defense_modifiers: None,
                 other_modifiers: None,
                 strength: None,
@@ -171,7 +187,9 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             stats: ItemStats {
                 attack_modifiers: None,
                 defense_modifiers: None,
-                other_modifiers: Some(OtherModifiers{ movement_speed_increase: 1 }),
+                other_modifiers: Some(OtherModifiers {
+                    movement_speed_increase: 1,
+                }),
                 strength: None,
                 intelligence: None,
                 agility: None,
@@ -187,7 +205,9 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             stats: ItemStats {
                 attack_modifiers: None,
                 defense_modifiers: None,
-                other_modifiers: Some(OtherModifiers{ movement_speed_increase: 5 }),
+                other_modifiers: Some(OtherModifiers {
+                    movement_speed_increase: 5,
+                }),
                 strength: None,
                 intelligence: None,
                 agility: None,

@@ -1,4 +1,6 @@
-use crate::sprites::{ITEM_SPRITE_DIMENSION, SPRITE_DIMENSION, SpriteRect};
+use crate::sprites::{
+    ITEM_SPRITE_DIMENSION, PROJECTILE_SPRITE_DIMENSION, SPRITE_DIMENSION, SpriteRect,
+};
 use wasm_bindgen::UnwrapThrowExt;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
@@ -90,6 +92,27 @@ pub fn draw_item_sprite(
         y,
         ITEM_SPRITE_DIMENSION,
         ITEM_SPRITE_DIMENSION,
+    )
+    .expect_throw("Failed to draw sprite");
+}
+
+pub fn draw_proj_sprite(
+    ctx: &CanvasRenderingContext2d,
+    image: &HtmlImageElement,
+    sprite: &SpriteRect,
+    x: f64,
+    y: f64,
+) {
+    ctx.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
+        image,
+        sprite.x,
+        sprite.y,
+        sprite.w,
+        sprite.h,
+        x,
+        y,
+        PROJECTILE_SPRITE_DIMENSION,
+        PROJECTILE_SPRITE_DIMENSION,
     )
     .expect_throw("Failed to draw sprite");
 }

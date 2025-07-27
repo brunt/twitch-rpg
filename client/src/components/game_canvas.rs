@@ -1,6 +1,8 @@
-use crate::components::{AnimationState, load_images};
+use crate::components::{AnimationState, draw_proj_sprite, draw_sprite, load_images};
 use crate::dungeon_floor::draw_dungeon_floor;
 use crate::item_shop::draw_shop_interface;
+use crate::sprites::SPRITE_DIMENSION;
+use crate::sprites::spellfx_missiles_sprites::ActiveProjectile;
 use common::GameSnapShot;
 use leptos::html::Canvas;
 use leptos::prelude::{Effect, Get, NodeRef, NodeRefAttribute, Signal};
@@ -9,7 +11,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
-use web_sys::{CanvasRenderingContext2d, window};
+use web_sys::{CanvasRenderingContext2d, console, window}; // Added console import
 
 #[component]
 pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoView {
@@ -17,45 +19,86 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
     const CANVAS_WIDTH: f64 = 1280.0;
     const CANVAS_HEIGHT: f64 = 720.0;
 
-    // load sprites
+    // Load sprites once when the component is created.
+    // As per your correction, load_images returns [HtmlImageElement; 10] directly.
     let [
         terrain_image,
         monster_image,
         item_image,
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
+        _,             // Placeholder for unused image elements
+        _,             // Placeholder for unused image elements
+        _,             // Placeholder for unused image elements
+        _,             // Placeholder for unused image elements
+        _,             // Placeholder for unused image elements
+        _,             // Placeholder for unused image elements
+        missile_image, // This is an HtmlImageElement
     ] = load_images();
 
+    // Shared mutable state for the game logic. Rc provides multiple ownership,
+    // and RefCell allows mutable borrowing at runtime.
     let latest_snapshot = Rc::new(RefCell::new(None));
     let animation_state = Rc::new(RefCell::new(AnimationState {
         frame_count: 0,
         last_time: 0.0,
     }));
-    let animation_state_for_effect = animation_state.clone();
-    let latest_snapshot_for_effect = latest_snapshot.clone();
-    let f: Rc<RefCell<Option<Closure<dyn FnMut()>>>> = Rc::new(RefCell::new(None));
-    let g = f.clone();
-    let g_for_effect = g.clone();
+    let active_projectiles: Rc<RefCell<Vec<ActiveProjectile>>> = Rc::new(RefCell::new(vec![]));
 
-    {
-        let latest_snapshot = latest_snapshot.clone();
-        Effect::new(move |_| {
-            *latest_snapshot.borrow_mut() = gs.get();
-        });
-    }
+    // Rc<RefCell<Option<Closure>>> is used to store the animation frame closure,
+    // allowing it to be called recursively by requestAnimationFrame.
+    let f: Rc<RefCell<Option<Closure<dyn FnMut()>>>> = Rc::new(RefCell::new(None));
+    let g = f.clone(); // 'g' is a clone of 'f', used to pass the closure reference into itself.
+
+    // --- Effect 1: Handle GameSnapShot updates and add new projectiles ---
+    // Clones of shared state for this specific Effect. These will be moved into the closure.
+    let latest_snapshot_for_gs_effect = latest_snapshot.clone();
+    let active_projectiles_for_gs_effect = active_projectiles.clone();
+    let win_for_gs_effect = window().unwrap(); // Capture window once for this effect.
 
     Effect::new(move |_| {
-        let animation_state = animation_state_for_effect.clone();
-        let latest_snapshot = latest_snapshot_for_effect.clone();
-        let g = g_for_effect.clone();
+        // This effect runs whenever 'gs' (GameSnapShot signal) changes.
+        if let Some(snapshot) = gs.get() {
+            // Update the latest snapshot.
+            *latest_snapshot_for_gs_effect.borrow_mut() = Some(snapshot.clone());
 
+            // Add new projectiles based on the snapshot.
+            let Some(projectiles) = snapshot.projectiles.as_ref() else {
+                return;
+            };
+
+            let now = win_for_gs_effect.performance().unwrap().now();
+
+            for proj in projectiles {
+                active_projectiles_for_gs_effect
+                    .borrow_mut()
+                    // Pass the entire common::Projectile to the ActiveProjectile::new constructor
+                    // The ActiveProjectile::new constructor will then determine the sprite.
+                    .push(ActiveProjectile::new(proj, now));
+            }
+        }
+    });
+
+    // --- Effect 2: Main Animation Loop ---
+    // These are the variables that the *outer* Effect closure will capture by moving them.
+    // They are cloned here once.
+    let animation_state_outer = animation_state.clone();
+    let latest_snapshot_outer = latest_snapshot.clone();
+    let active_projectiles_outer = active_projectiles.clone();
+    let f_outer = f.clone();
+    let g_outer = g.clone();
+
+    // These are now HtmlImageElement directly, not Signals.
+    let terrain_image_outer = terrain_image.clone();
+    let monster_image_outer = monster_image.clone();
+    let item_image_outer = item_image.clone();
+    let missile_image_outer = missile_image.clone();
+
+    let win_outer = window().unwrap(); // Capture window once for this effect.
+
+    Effect::new(move |_| {
+        // This effect runs when its dependencies change (e.g., canvas_ref becomes available).
+        // It sets up and starts the animation loop.
         let Some(canvas) = canvas_ref.get() else {
-            return;
+            return; // Canvas not ready yet.
         };
         let ctx = canvas
             .get_context("2d")
@@ -64,32 +107,57 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
             .dyn_into::<CanvasRenderingContext2d>()
             .unwrap();
 
-        // clone for usage in closure
-        let closure_terrain_image = terrain_image.clone();
-        let closure_monster_image = monster_image.clone();
-        let closure_item_image = item_image.clone();
+        // --- Clones for the *inner* animation frame closure ---
+        // These clones are created *inside* the Effect closure.
+        // This allows the outer Effect closure to implement FnMut, as it's not
+        // moving its own captured variables into the inner closure, but new clones.
+        let animation_state_for_closure = animation_state_outer.clone();
+        let latest_snapshot_for_closure = latest_snapshot_outer.clone();
+        let active_projectiles_for_closure = active_projectiles_outer.clone();
+        let g_for_closure = g_outer.clone();
+
+        // These are now HtmlImageElement directly, not Signals.
+        let terrain_image_for_closure = terrain_image_outer.clone();
+        let monster_image_for_closure = monster_image_outer.clone();
+        let item_image_for_closure = item_image_outer.clone();
+        let missile_image_for_closure = missile_image_outer.clone();
+
+        let win_for_closure = win_outer.clone(); // window() is not Rc, so clone the value.
+
+        // Create the animation frame closure. This closure will be called repeatedly by the browser.
         let closure = Closure::<dyn FnMut()>::new(move || {
-            let mut anim = animation_state.borrow_mut();
+            // Borrow mutable references to the shared state.
+            let mut anim = animation_state_for_closure.borrow_mut();
+            let mut projectiles = active_projectiles_for_closure.borrow_mut();
+
             anim.frame_count += 1;
 
-            let now = window().unwrap().performance().unwrap().now();
-            let dt = now - anim.last_time;
+            let now = win_for_closure.performance().unwrap().now();
+            // Update last_time for the next frame's delta time calculation.
+            anim.last_time = now;
 
-            // backmost layer: black
+            // Clear the canvas with black.
             ctx.set_fill_style_str("black");
             ctx.fill_rect(0.0, 0.0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-            if let Some(snapshot) = latest_snapshot.borrow().as_ref() {
+            // Draw game elements based on the latest snapshot.
+            if let Some(snapshot) = latest_snapshot_for_closure.borrow().as_ref() {
+                // Get camera position from snapshot
+                let camera_x = snapshot.camera_position.as_ref().map_or(0, |pos| pos.x);
+                let camera_y = snapshot.camera_position.as_ref().map_or(0, |pos| pos.y);
+
                 if let (Some(floor), Some(position), Some(difficulty), Some(positions)) = (
                     snapshot.floor.as_ref(),
                     snapshot.camera_position.as_ref(),
                     snapshot.difficulty,
                     snapshot.floor_positions.as_ref(),
                 ) {
+                    // Draw dungeon floor if in dungeon.
+                    // Pass HtmlImageElement directly.
                     draw_dungeon_floor(
                         &ctx,
-                        &closure_terrain_image,
-                        &closure_monster_image,
+                        &terrain_image_for_closure,
+                        &monster_image_for_closure,
                         &floor,
                         CANVAS_WIDTH,
                         CANVAS_HEIGHT,
@@ -98,6 +166,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                         positions,
                     );
                 } else {
+                    // Draw ready timer or shop interface if not in dungeon.
                     if let Some(ready_timer) = &snapshot.ready_timer {
                         ctx.set_font("bold 16px sans-serif");
                         ctx.set_fill_style_str("white");
@@ -111,25 +180,84 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                         .expect("failed to count down");
                     }
                     if let Some(shop_items) = snapshot.shop_items.as_ref() {
-                        draw_shop_interface(&ctx, &closure_item_image, &shop_items, 30.0, 30.0, 4)
+                        draw_shop_interface(
+                            &ctx,
+                            &item_image_for_closure,
+                            &shop_items,
+                            30.0,
+                            30.0,
+                            4,
+                        )
                     };
                 }
+
+                // Animate and draw active projectiles.
+                projectiles.retain(|p| {
+                    let progress = (now - p.start_time) / 500.0; // 500ms duration
+                    if progress >= 1.0 {
+                        return false; // Remove projectile if animation is complete.
+                    }
+
+                    // Interpolate projectile position in world coordinates.
+                    let interp = |a: u32, b: u32| a as f64 + (b as f64 - a as f64) * progress;
+                    let proj_world_row = interp(p.from.0, p.to.0);
+                    let proj_world_col = interp(p.from.1, p.to.1);
+
+                    // Convert world coordinates to camera-relative coordinates
+                    let relative_row = proj_world_row - camera_x as f64;
+                    let relative_col = proj_world_col - camera_y as f64;
+                    let screen_x = (proj_world_col - proj_world_row) * (SPRITE_DIMENSION / 2.0)
+                        + CANVAS_WIDTH / 2.0
+                        - SPRITE_DIMENSION / 2.0;
+
+                    let screen_y = (proj_world_col + proj_world_row) * (SPRITE_DIMENSION / 4.0);
+
+                    let camera_screen_x = (camera_x - camera_y) as f64 * (SPRITE_DIMENSION / 2.0)
+                        + CANVAS_WIDTH / 2.0
+                        - SPRITE_DIMENSION / 2.0;
+
+                    let camera_screen_y = (camera_x + camera_y) as f64 * (SPRITE_DIMENSION / 4.0);
+
+                    let offset_x = CANVAS_WIDTH / 2.0 - camera_screen_x;
+                    let offset_y = CANVAS_HEIGHT / 2.0 - camera_screen_y;
+
+                    // Calculate screen coordinates for isometric projection using relative coordinates.
+                    let x = (relative_col - relative_row) * (SPRITE_DIMENSION / 2.0)
+                        + CANVAS_WIDTH / 2.0
+                        - SPRITE_DIMENSION / 2.0;
+                    let y = (relative_col + relative_row) * (SPRITE_DIMENSION / 4.0);
+
+                    // --- IMPORTANT DEBUGGING OUTPUTS ---
+                    leptos::logging::log!("Projectile sprite X: {}", &p.sprite.x.to_string());
+                    leptos::logging::log!("Projectile sprite Y: {}", &p.sprite.y.to_string());
+                    leptos::logging::log!("Projectile draw X: {}", &x.to_string());
+                    leptos::logging::log!("Projectile draw Y: {}", &y.to_string());
+                    leptos::logging::log!("Projectile from: {:?}, to: {:?}", p.from, p.to);
+                    leptos::logging::log!("Camera position: x={}, y={}", camera_x, camera_y);
+
+                    // Draw the projectile sprite.
+                    draw_sprite(&ctx, &missile_image_for_closure, &p.sprite, x, y, 1.0, None);
+                    true // Keep projectile if animation is ongoing.
+                });
             }
-            let window = window().unwrap();
-            let cb = g.borrow();
+
+            // Request the next animation frame, recursively calling this closure.
+            let cb = g_for_closure.borrow(); // Get a reference to the stored closure.
             let cb_ref = cb.as_ref().unwrap();
-            window
+            win_for_closure
                 .request_animation_frame(cb_ref.as_ref().unchecked_ref())
                 .unwrap();
         });
 
-        *f.borrow_mut() = Some(closure);
+        // Store the created closure in 'f' (which 'g' also points to).
+        *f_outer.borrow_mut() = Some(closure);
 
-        window()
-            .unwrap()
-            .request_animation_frame(f.borrow().as_ref().unwrap().as_ref().unchecked_ref())
+        // Start the animation loop by requesting the first frame.
+        win_outer
+            .request_animation_frame(f_outer.borrow().as_ref().unwrap().as_ref().unchecked_ref())
             .unwrap();
     });
 
+    // The view for the component: a canvas element.
     view! { <canvas node_ref=canvas_ref width=CANVAS_WIDTH height=CANVAS_HEIGHT /> }
 }

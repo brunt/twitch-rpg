@@ -1,7 +1,5 @@
 use crate::ecs::components::class::CharacterClass;
-use crate::ecs::components::combat::{
-    AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
-};
+use crate::ecs::components::combat::{AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker, RangedAttacker};
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::{DesiredTargetPosition, MovementSpeed, TargetPosition};
 use crate::ecs::components::{DungeonItem, Enemy, Level, Name, Player, Position, Stats};
@@ -37,6 +35,7 @@ impl<'a> System<'a> for CountdownSystem {
         WriteStorage<'a, DefenseComponent>,
         WriteStorage<'a, AttackTarget>,
         WriteStorage<'a, MeleeAttacker>,
+        WriteStorage<'a, RangedAttacker>,
         Write<'a, ShopInventory>,
         Read<'a, DeltaTime>,
         Entities<'a>,
@@ -63,6 +62,7 @@ impl<'a> System<'a> for CountdownSystem {
             mut defense_components,
             mut attack_targets,
             mut melee,
+            mut ranged,
             mut shop_inventory,
             delta_time,
             mut entities,
@@ -87,11 +87,8 @@ impl<'a> System<'a> for CountdownSystem {
                 // insert everything from dungeon into ECS
 
                 for (entity, _player) in (&entities, &players).join() {
-                    let equipped_items = equipment
-                        .get(entity)
-                        .expect("failed to read equipment");
-                    
-                    
+                    let equipped_items = equipment.get(entity).expect("failed to read equipment");
+
                     // add positions to ECS
                     positions
                         .insert(entity, Position::from(&adv.dungeon.player_position))
@@ -101,9 +98,7 @@ impl<'a> System<'a> for CountdownSystem {
                         .expect("Failed to insert movement speed");
 
                     let st = stats.get(entity).expect("failed to read stats");
-                    let equipped_items = equipment
-                        .get(entity)
-                        .expect("failed to read equipment");
+                    let equipped_items = equipment.get(entity).expect("failed to read equipment");
                     attack_components
                         .insert(
                             entity,
@@ -119,9 +114,11 @@ impl<'a> System<'a> for CountdownSystem {
                             },
                         )
                         .expect("failed to add defense_component");
-                    melee
-                        .insert(entity, MeleeAttacker)
-                        .expect("failed to add melee");
+                    //TODO: conditionally set melee/range based on equipped item
+                    // melee
+                    //     .insert(entity, MeleeAttacker)
+                    //     .expect("failed to add melee");
+                    ranged.insert(entity, RangedAttacker).expect("failed to add ranged");
                 }
 
                 let player_entities: Vec<_> =

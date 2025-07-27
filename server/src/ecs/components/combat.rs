@@ -1,9 +1,9 @@
 use crate::ecs::components::DenseVecStorage;
 use crate::ecs::components::NullStorage;
-use crate::ecs::components::{Component, Stats};
-use common::{AttackModifiers, DefenseModifiers, Health, ItemStats, PlayerClass};
-use specs::Entity;
 use crate::ecs::components::inventory::Equipment;
+use crate::ecs::components::{Component, Stats};
+use common::{AttackModifiers, DamageType, DefenseModifiers, Health, ItemStats, PlayerClass};
+use specs::Entity;
 
 /// the entity that this entity is attacking
 #[derive(Component)]
@@ -20,27 +20,28 @@ pub struct DefenseComponent {
 }
 
 impl DefenseComponent {
-    
     // TODO: from buffs as well
     /// Defense component derived from ALL equipped items
     pub fn from_stats_and_items(stats: &Stats, equipment: &Equipment) -> Self {
         // Aggregate item modifiers
-        let defense_mods = equipment.slots.iter().map(|(_slot, item)| item).fold(DefenseModifiers {
-            damage_reduction: 0,
-            evasion_rating: 0,
-        }, |mut m, item| {
-            if let Some(modifiers) = &item.stats.defense_modifiers {
-                //TODO: multiplicative?
-                m.damage_reduction += modifiers.damage_reduction;
-                m.evasion_rating += modifiers.evasion_rating;
-            }
-            m
-        });
+        let defense_mods = equipment.slots.iter().map(|(_slot, item)| item).fold(
+            DefenseModifiers {
+                damage_reduction: 0,
+                evasion_rating: 0,
+            },
+            |mut m, item| {
+                if let Some(modifiers) = &item.stats.defense_modifiers {
+                    //TODO: multiplicative?
+                    m.damage_reduction += modifiers.damage_reduction;
+                    m.evasion_rating += modifiers.evasion_rating;
+                }
+                m
+            },
+        );
 
         Self {
             defense: defense_mods.damage_reduction.max(0) as u32,
             evasion: (stats.agility / 4) + defense_mods.evasion_rating.max(0) as u32,
-            
         }
     }
 }
@@ -61,21 +62,24 @@ impl AttackComponent {
     /// Attack component derived from ALL equipped items
     pub fn from_stats_and_items(stats: &Stats, equipment: &Equipment) -> Self {
         // Aggregate item modifiers
-        let attack_mods = equipment.slots.iter().map(|(_slot, item)| item).fold(AttackModifiers {
-            damage_bonus: 0,
-            hit_rating_bonus: 0,
-            range_bonus: 0,
-            cooldown_reduction_ms: 0,
-        }, |mut m, item| {
-            if let Some(modifiers) = &item.stats.attack_modifiers {
-                //TODO: multiplicative?
-                m.damage_bonus += modifiers.damage_bonus;
-                m.hit_rating_bonus += modifiers.hit_rating_bonus;
-                m.range_bonus += modifiers.range_bonus;
-                m.cooldown_reduction_ms += modifiers.cooldown_reduction_ms;
-            }
-            m
-        });
+        let attack_mods = equipment.slots.iter().map(|(_slot, item)| item).fold(
+            AttackModifiers {
+                damage_bonus: 0,
+                hit_rating_bonus: 0,
+                range_bonus: 0,
+                cooldown_reduction_ms: 0,
+            },
+            |mut m, item| {
+                if let Some(modifiers) = &item.stats.attack_modifiers {
+                    //TODO: multiplicative?
+                    m.damage_bonus += modifiers.damage_bonus;
+                    m.hit_rating_bonus += modifiers.hit_rating_bonus;
+                    m.range_bonus += modifiers.range_bonus;
+                    m.cooldown_reduction_ms += modifiers.cooldown_reduction_ms;
+                }
+                m
+            },
+        );
 
         let base_cooldown = 2000;
         Self {
@@ -89,6 +93,14 @@ impl AttackComponent {
                 .min(base_cooldown) as u32,
         }
     }
+}
+
+#[derive(Component)]
+pub struct FiredProjectile{
+    pub position: tatami_dungeon::Position,
+    pub target_position: tatami_dungeon::Position,
+    pub damage: u32,
+    pub damage_type: DamageType,
 }
 
 #[derive(Component)]
