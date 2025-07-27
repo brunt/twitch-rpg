@@ -5,7 +5,7 @@ use crate::ecs::components::{
     DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Stats,
 };
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
-use common::{DamageType, EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, PlayerStats, Projectile, ShopItem};
+use common::{DamageType, EntityPosition, Form, GameSnapShot, Health, ItemQuality, PlayerSnapshot, PlayerStats, Projectile, ShopItem};
 use specs::{Entities, Join, LendJoin, ReadExpect, ReadStorage, System, WriteStorage};
 use tokio::sync::broadcast::Sender;
 use crate::ecs::components::inventory::Equipment;
@@ -199,11 +199,13 @@ impl<'a> System<'a> for Rendering {
                 let mut min_y = u32::MAX;
                 let mut max_y = 0;
 
-                for (pos, _) in (&positions, &players).join() {
-                    min_x = min_x.min(pos.x);
-                    max_x = max_x.max(pos.x);
-                    min_y = min_y.min(pos.y);
-                    max_y = max_y.max(pos.y);
+                for (pos, _, health) in (&positions, &players, &health).join() {
+                    if health.0 != Health::Dead {
+                        min_x = min_x.min(pos.x);
+                        max_x = max_x.max(pos.x);
+                        min_y = min_y.min(pos.y);
+                        max_y = max_y.max(pos.y);
+                    }
                 }
 
                 let mut gs = GameSnapShot {

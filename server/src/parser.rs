@@ -25,17 +25,19 @@ pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
                     }),
                 ),
             ),
-            preceded(
-                "use",
-                preceded(
-                    space1,
-                    digit1.map(|number: &str| {
-                        PlayerCommand(Use(MenuItem::from(
-                            number.parse::<usize>().unwrap_or_default(),
-                        )))
-                    }),
-                ),
-            ),
+            Caseless("use").value(PlayerCommand(Use(MenuItem::from(0)))),
+            //TODO: use this when there are multiple utility slots
+            // preceded(
+            //     "use",
+            //     preceded(
+            //         space1,
+            //         digit1.map(|number: &str| {
+            //             PlayerCommand(Use(MenuItem::from(
+            //                 number.parse::<usize>().unwrap_or_default(),
+            //             )))
+            //         }),
+            //     ),
+            // ),
         )),
     )
     .parse_next(input)

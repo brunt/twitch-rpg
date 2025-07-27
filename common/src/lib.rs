@@ -169,6 +169,7 @@ impl ShopItem {
             stats: self.stats.clone(),
             description: self.description.clone(),
             slot: self.equip_slot.clone(),
+            consumable: self.consumable,
             effects: self.effects.clone(),
         }
     }
@@ -234,6 +235,7 @@ pub struct EquippedItem {
     pub slot: EquipmentSlot,
     pub description: String,
     pub stats: Option<ItemStats>,
+    pub consumable: bool,
     pub effects: Option<Vec<Effect>>,
     //TODO: how to grant abilities?
 }

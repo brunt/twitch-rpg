@@ -13,6 +13,7 @@ use specs::{
 };
 use std::collections::VecDeque;
 use tatami_dungeon::Dungeon;
+use common::{Effect, EquipmentSlot, Health};
 
 // A queue to store commands to be processed
 pub type CommandQueue = VecDeque<(String, RpgCommand, bool)>;
@@ -123,13 +124,6 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 .find(|(_, name)| name.0 == player_name)
                             {
                                 // if an item is purchased, it is equipped in an item slot, old item is overwritten
-                                equipment.get_mut(e).map(|equip_slots| {
-                                    let item = shop_inventory.items.get(&item).unwrap();
-                                    equip_slots
-                                        .slots
-                                        .insert(item.equip_slot.clone(), item.to_equipped_item())
-                                });
-
                                 money.get_mut(e).map(|gold| {
                                     let price =
                                         shop_inventory.items.get(&item).map_or(5, |f| f.price);
@@ -137,6 +131,12 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                         return;
                                     }
                                     gold.0 -= price;
+                                });
+                                equipment.get_mut(e).map(|equip_slots| {
+                                    let item = shop_inventory.items.get(&item).unwrap();
+                                    equip_slots
+                                        .slots
+                                        .insert(item.equip_slot.clone(), item.to_equipped_item())
                                 });
                             }
                         }
@@ -154,8 +154,31 @@ impl<'a> System<'a> for CommandHandlerSystem {
                     }
                 }
                 GameState::OnAdventure => match command {
-                    RpgCommand::PlayerCommand(Use(item)) => {
-                        println!("{} is using item {:?}", player_name, item);
+                    RpgCommand::PlayerCommand(Use(_item)) => {
+                        if let Some((e, _)) = (entities, &names).join().find(|(_, name)| name.0 == player_name) {
+                            let Some(equipment) = equipment.get_mut(e) else { return };
+                            let Some(item) = equipment.slots.get(&EquipmentSlot::UtilitySlot) else { return };
+                            let Some(effects) = &item.effects else { return };
+                            for effect in effects {
+                                match effect {
+                                    Effect::Heal(amount) => {
+                                                                                
+                                        let Some(current_health) = healths.get_mut(e) else { return };
+                                        if let Health::Alive { hp: current_hp, max_hp: max_hp } = current_health.0 {
+                                            let new_hp = (current_hp + amount).min(max_hp);
+                                            current_health.0 = Health::Alive { hp: new_hp, max_hp };
+                                        };
+                                    }
+                                    _ => {}
+                                }
+                            }
+                            // do what the effect does
+                            
+
+                            if item.consumable {
+                                equipment.slots.remove(&EquipmentSlot::UtilitySlot);
+                            }
+                        }
                     }
                     RpgCommand::PlayerCommand(PlayerCommand::Show) => {
                         if let Some((e, _name)) = (entities, &names)
@@ -174,7 +197,3 @@ impl<'a> System<'a> for CommandHandlerSystem {
         }
     }
 }
-
-// fn find_player_by_name(name: &str, players: &ReadExpect<Entities>, names: &ReadStorage<Player>) -> Option<Entity> {
-//     players
-// }

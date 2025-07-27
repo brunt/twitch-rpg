@@ -14,3 +14,4 @@ pub(crate) mod rendering;
 pub(crate) mod room_exploration;
 pub(crate) mod shop_population;
 pub(crate) mod projectile_cleanup;
+pub(crate) mod group_coordination;
