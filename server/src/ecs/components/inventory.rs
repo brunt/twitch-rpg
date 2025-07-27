@@ -1,3 +1,4 @@
+use crate::ecs::components::NullStorage;
 use crate::ecs::components::Component;
 use crate::ecs::components::DenseVecStorage;
 use common::{AttackModifiers, EquipmentSlot, EquippedItem};
@@ -7,3 +8,7 @@ use std::collections::HashMap;
 pub struct Equipment {
     pub slots: HashMap<EquipmentSlot, EquippedItem>,
 }
+
+#[derive(Component)]
+#[storage(NullStorage)]
+pub struct Consumable;

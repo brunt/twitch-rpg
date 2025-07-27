@@ -30,10 +30,12 @@ impl DefenseComponent {
                 evasion_rating: 0,
             },
             |mut m, item| {
-                if let Some(modifiers) = &item.stats.defense_modifiers {
-                    //TODO: multiplicative?
-                    m.damage_reduction += modifiers.damage_reduction;
-                    m.evasion_rating += modifiers.evasion_rating;
+                if let Some(stats) = &item.stats {
+                    if let Some(modifiers) = &stats.defense_modifiers {
+                        //TODO: multiplicative?
+                        m.damage_reduction += modifiers.damage_reduction;
+                        m.evasion_rating += modifiers.evasion_rating;
+                    }
                 }
                 m
             },
@@ -70,12 +72,14 @@ impl AttackComponent {
                 cooldown_reduction_ms: 0,
             },
             |mut m, item| {
-                if let Some(modifiers) = &item.stats.attack_modifiers {
+                if let Some(stats) = &item.stats {
+                     if let Some(modifiers) = &stats.attack_modifiers {
                     //TODO: multiplicative?
-                    m.damage_bonus += modifiers.damage_bonus;
-                    m.hit_rating_bonus += modifiers.hit_rating_bonus;
-                    m.range_bonus += modifiers.range_bonus;
-                    m.cooldown_reduction_ms += modifiers.cooldown_reduction_ms;
+                        m.damage_bonus += modifiers.damage_bonus;
+                        m.hit_rating_bonus += modifiers.hit_rating_bonus;
+                        m.range_bonus += modifiers.range_bonus;
+                        m.cooldown_reduction_ms += modifiers.cooldown_reduction_ms;
+                     }
                 }
                 m
             },

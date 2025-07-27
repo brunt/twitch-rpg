@@ -1,7 +1,7 @@
 use crate::ecs::components::combat::{AttackTarget, HealthComponent};
 use crate::ecs::components::movement::{DesiredTargetPosition, TargetPosition};
 use crate::ecs::components::{DungeonItem, Enemy, Opened, Player, Position};
-use crate::ecs::resources::{Adventure, RoomCheck};
+use crate::ecs::resources::{Adventure, GroupDestination, RoomCheck};
 use common::Health;
 use specs::prelude::*;
 
@@ -19,6 +19,7 @@ impl<'a> System<'a> for PlayerAI {
         ReadStorage<'a, DungeonItem>,
         ReadStorage<'a, Opened>,
         ReadExpect<'a, Option<Adventure>>,
+        WriteExpect<'a, GroupDestination>,
     );
 
     /// Player Pathfinding:
@@ -39,6 +40,7 @@ impl<'a> System<'a> for PlayerAI {
             dungeon_items,
             opened,
             adv,
+            mut group_destination,
         ): Self::SystemData,
     ) {
         let Some(adv) = adv.as_ref() else {
@@ -150,7 +152,22 @@ impl<'a> System<'a> for PlayerAI {
                     .expect("Failed to insert target position");
             }
             // Priority 4: Connection doors
-            else {
+            else if let Some(group_dest) = group_destination.target_room_id {
+                // if there's a group destination, go there.
+                if let Some(next_room) = adv
+                    .get_current_floor()
+                    .rooms
+                    .iter()
+                    .find(|r| r.id == group_dest)
+                {
+                    targets
+                        .insert(
+                            player_entity,
+                            DesiredTargetPosition::from(&next_room.center()),
+                        )
+                        .expect("Failed to insert target position");
+                }
+            } else {
                 let mut candidate_conns: Vec<&tatami_dungeon::Connection> =
                     current_room.connections.iter().collect();
 
@@ -164,12 +181,13 @@ impl<'a> System<'a> for PlayerAI {
                         .iter()
                         .find(|r| r.id == conn.id)
                     {
-                        targets
-                            .insert(
-                                player_entity,
-                                DesiredTargetPosition::from(&next_room.center()),
-                            )
-                            .expect("Failed to insert target position");
+                        group_destination.target_room_id = Some(next_room.id);
+                        // targets
+                        //     .insert(
+                        //         player_entity,
+                        //         DesiredTargetPosition::from(&next_room.center()),
+                        //     )
+                        //     .expect("Failed to insert target position");
                         break;
                     }
                 }

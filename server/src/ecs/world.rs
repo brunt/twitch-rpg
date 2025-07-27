@@ -15,9 +15,7 @@ use crate::ecs::components::movement::{
     DesiredTargetPosition, MovementSpeed, Path, TargetPosition, Wander,
 };
 use crate::ecs::components::{ActiveEffects, DungeonItem, Opened};
-use crate::ecs::resources::{
-    Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, ShopInventory,
-};
+use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, GroupDestination, ShopInventory};
 use crate::ecs::shop::{ShopItemPool, initialize_shop_items};
 use specs::{World, WorldExt};
 
@@ -59,6 +57,7 @@ pub fn create_world() -> World {
     world.insert(ShopItemPool {
         all_items: initialize_shop_items(),
     });
+    world.insert(GroupDestination{ target_room_id: None });
     world.insert(ShopInventory::default());
     world.insert(Option::<Adventure>::None);
     world.insert(DungeonLoot::default());

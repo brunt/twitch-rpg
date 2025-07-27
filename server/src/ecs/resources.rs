@@ -49,6 +49,11 @@ impl Adventure {
     pub fn get_current_floor(&self) -> &tatami_dungeon::Floor {
         &self.dungeon.floors[self.current_floor_index]
     }
+    
+    // get a room by id
+    pub fn get_room_by_id(&self, room_id: u32) -> Option<&Room> {
+        self.get_current_floor().rooms.iter().find(|room| room.id == room_id)
+    }
 
     pub fn get_floor_data(&self) -> Vec<Vec<u8>> {
         let floor = &self.get_current_floor();
@@ -251,6 +256,11 @@ pub struct ShopInventory {
 #[derive(Default)]
 pub struct DungeonLoot {
     pub items: u32,
+}
+
+/// ensure all players move to the same next room
+pub struct GroupDestination {
+    pub target_room_id: Option<u32>,
 }
 
 #[derive(Clone)]

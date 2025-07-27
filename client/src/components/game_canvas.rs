@@ -1,4 +1,4 @@
-use crate::components::{AnimationState, draw_proj_sprite, draw_sprite, load_images};
+use crate::components::{AnimationState, draw_sprite, load_images};
 use crate::dungeon_floor::draw_dungeon_floor;
 use crate::item_shop::draw_shop_interface;
 use crate::sprites::SPRITE_DIMENSION;
@@ -11,7 +11,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
-use web_sys::{CanvasRenderingContext2d, console, window}; // Added console import
+use web_sys::{CanvasRenderingContext2d, window};
 
 #[component]
 pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoView {

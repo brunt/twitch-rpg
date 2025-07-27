@@ -90,7 +90,7 @@ pub enum PlayerClass {
 impl PlayerClass {}
 
 impl Display for PlayerClass {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match &self {
             Self::Fighter => write!(f, "Fighter"),
             Self::Druid => write!(f, "Druid"),
@@ -154,7 +154,9 @@ pub struct ShopItem {
     pub quality: ItemQuality,
     pub equip_slot: EquipmentSlot,
     pub price: u32,
-    pub stats: ItemStats,
+    pub stats: Option<ItemStats>,
+    pub consumable: bool,
+    pub effects: Option<Vec<Effect>>, 
     pub description: String,
 }
 
@@ -167,6 +169,7 @@ impl ShopItem {
             stats: self.stats.clone(),
             description: self.description.clone(),
             slot: self.equip_slot.clone(),
+            effects: self.effects.clone(),
         }
     }
 }
@@ -230,7 +233,8 @@ pub struct EquippedItem {
     pub quality: ItemQuality,
     pub slot: EquipmentSlot,
     pub description: String,
-    pub stats: ItemStats,
+    pub stats: Option<ItemStats>,
+    pub effects: Option<Vec<Effect>>,
     //TODO: how to grant abilities?
 }
 
@@ -323,4 +327,12 @@ impl Display for DamageType{
             Self::Black => write!(f, "Black"),
         }
     }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Effect {
+    Heal(u32),
+    // GrantBuff(String), //TODO af
+    // GainAbility
+    
 }

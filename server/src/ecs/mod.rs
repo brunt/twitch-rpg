@@ -23,6 +23,7 @@ use common::GameSnapShot;
 use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
+use crate::ecs::systems::group_coordination::GroupCoordination;
 use crate::ecs::systems::projectile_cleanup::ProjectileCleanupSystem;
 
 pub mod resources;
@@ -45,7 +46,7 @@ pub fn run_game_server(
     gamestate_sender: broadcast::Sender<GameSnapShot>,
     commands_receiver: Receiver<(String, RpgCommand, bool)>,
 ) {
-    const MIN_PLAYERS: usize = 4;
+    const MIN_PLAYERS: usize = 2;
 
     let mut gw = GameWorld::new(commands_receiver);
 
@@ -62,7 +63,13 @@ pub fn run_game_server(
             &["command_handler"],
         )
         .with(Movement, "movement", &[])
-        .with(PlayerAI, "player_ai", &[])
+        .with(GroupCoordination, "group_coordination", &[])
+        .with(
+            RandomWander,
+            "random_wander",
+            &["movement", "group_coordination"],
+        )
+        .with(PlayerAI, "player_ai", &["group_coordination"])
         .with(PathfindingSystem, "pathfinding", &["movement", "player_ai"])
         .with(CombatSystem, "combat", &[])
         .with(

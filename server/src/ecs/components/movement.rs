@@ -53,8 +53,10 @@ impl MovementSpeed {
                 movement_speed_increase: 0,
             },
             |mut m, item| {
-                if let Some(modifiers) = &item.stats.other_modifiers {
-                    m.movement_speed_increase += modifiers.movement_speed_increase;
+                if let Some(stats) = &item.stats {
+                    if let Some(modifiers) = &stats.other_modifiers {
+                        m.movement_speed_increase += modifiers.movement_speed_increase;
+                    }
                 }
                 m
             },
