@@ -107,7 +107,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
                             .insert(
                                 enemy,
                                 AttackComponent {
-                                    damage: 1,
+                                    damage: 0,
                                     hit_rating: 1,
                                     range: 1,
                                     cooldown: 3000,

@@ -9,7 +9,7 @@ console_error_panic_hook = "0.1.7"
 web-sys = {version = "0.3.77", features = ["Window", "CanvasRenderingContext2d", "CanvasGradient", "EventSource", "Performance", "TextMetrics"] }
 wasm-bindgen = "0.2.100"
 serde_json = "1.0.140"
-phf = { version = "0.12.1", features = ["macros"] }
+paste = "1.0.15"
 common = { package = "twitch-rpg-common", path = "../common"}
 # nested dependency
 getrandom = { version = "0.2", features = ["js"] }
@@ -18,3 +18,7 @@ getrandom = { version = "0.2", features = ["js"] }
 [[bin]]
 name = "gen_sprites"
 path = "src/bin/gen_sprites.rs"
+
+[[bin]]
+name = "gen_items"
+path = "src/bin/item_map_gen.rs"

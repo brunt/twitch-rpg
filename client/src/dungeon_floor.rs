@@ -25,10 +25,10 @@ pub fn draw_dungeon_floor(
     let (camera_row, camera_col) = camera_position;
 
     // compute where the camera tile would be drawn (its screen x/y)
-    let camera_screen_x = (camera_col as f64 - camera_row as f64) * (SPRITE_DIMENSION / 2.0)
+    let camera_screen_x = (camera_col as f64 - camera_row as f64) * (SPRITE_DIMENSION as f64 / 2.0)
         + canvas_width / 2.0
-        - SPRITE_DIMENSION / 2.0;
-    let camera_screen_y = (camera_col as f64 + camera_row as f64) * (SPRITE_DIMENSION / 4.0);
+        - SPRITE_DIMENSION as f64 / 2.0;
+    let camera_screen_y = (camera_col as f64 + camera_row as f64) * (SPRITE_DIMENSION as f64 / 4.0);
 
     // center of the canvas
     let center_x = canvas_width / 2.0;
@@ -60,10 +60,11 @@ pub fn draw_dungeon_floor(
         for col in 0..map_width {
             let val = floor[row][col];
 
-            let x = (col as f64 - row as f64) * (SPRITE_DIMENSION / 2.0) + canvas_width / 2.0
-                - SPRITE_DIMENSION / 2.0
+            let x = (col as f64 - row as f64) * (SPRITE_DIMENSION as f64 / 2.0)
+                + canvas_width / 2.0
+                - SPRITE_DIMENSION as f64 / 2.0
                 + offset_x;
-            let y = (col as f64 + row as f64) * (SPRITE_DIMENSION / 4.0) + offset_y;
+            let y = (col as f64 + row as f64) * (SPRITE_DIMENSION as f64 / 4.0) + offset_y;
 
             match val {
                 1 => draw_sprite(
@@ -171,10 +172,10 @@ pub fn draw_dungeon_floor(
             continue;
         }
 
-        let x = (col as f64 - row as f64) * (SPRITE_DIMENSION / 2.0) + canvas_width / 2.0
-            - SPRITE_DIMENSION / 2.0
+        let x = (col as f64 - row as f64) * (SPRITE_DIMENSION as f64 / 2.0) + canvas_width / 2.0
+            - SPRITE_DIMENSION as f64 / 2.0
             + offset_x;
-        let y = (col as f64 + row as f64) * (SPRITE_DIMENSION / 4.0) + offset_y;
+        let y = (col as f64 + row as f64) * (SPRITE_DIMENSION as f64 / 4.0) + offset_y;
 
         // Draw the sprite at (x, y)
         if let Some(Health::Dead) = health {

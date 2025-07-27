@@ -37,12 +37,12 @@ pub(crate) fn draw_shop_interface(
         ctx.set_fill_style_str("#222");
         ctx.fill_rect(x, y, ITEM_SLOT_WIDTH, ITEM_SLOT_SIZE);
         // Draw item sprite centered in slot
-        let sprite_x = x + (ITEM_SLOT_SIZE - ITEM_SPRITE_DIMENSION) * 0.20;
+        let sprite_x = x + (ITEM_SLOT_SIZE - ITEM_SPRITE_DIMENSION as f64) * 0.20;
         let sprite_y = y + 20.0;
         draw_item_sprite(
             ctx,
             item_image,
-            ITEMS_SPRITES.get(&item.sprite),
+            ITEMS_SPRITES.get(&item.id),
             sprite_x,
             sprite_y,
         );
@@ -60,8 +60,8 @@ pub(crate) fn draw_shop_interface(
         ctx.set_line_width(1.0);
         let frame_x = sprite_x - 1.0;
         let frame_y = sprite_y - 1.0;
-        let frame_w = ITEM_SPRITE_DIMENSION + 30.0;
-        let frame_h = ITEM_SPRITE_DIMENSION + 30.0;
+        let frame_w = ITEM_SPRITE_DIMENSION as f64 + 30.0;
+        let frame_h = ITEM_SPRITE_DIMENSION as f64 + 30.0;
         ctx.stroke_rect(frame_x - 8.0, frame_y - 8.0, frame_w - 10.0, frame_h - 10.0);
 
         // Draw item name
@@ -81,7 +81,7 @@ pub(crate) fn draw_shop_interface(
         ctx.set_font("14px sans-serif");
         ctx.fill_text(
             &format!("{}", item.price), //TODO: redundant price info?
-            x + (ITEM_SLOT_SIZE - ITEM_SPRITE_DIMENSION) * 0.85,
+            x + (ITEM_SLOT_SIZE - ITEM_SPRITE_DIMENSION as f64) * 0.85,
             y + ITEM_SLOT_SIZE - 103.0,
         )
         .unwrap();
@@ -90,7 +90,7 @@ pub(crate) fn draw_shop_interface(
         draw_item_sprite(
             ctx,
             item_image,
-            Some(ITEMS_SPRITES.get("small_gold_pile").unwrap()),
+            Some(ITEMS_SPRITES.get(&138).unwrap()),
             x + 70.0,
             y + 25.0,
         );

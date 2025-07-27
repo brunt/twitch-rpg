@@ -70,8 +70,6 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
             for proj in projectiles {
                 active_projectiles_for_gs_effect
                     .borrow_mut()
-                    // Pass the entire common::Projectile to the ActiveProjectile::new constructor
-                    // The ActiveProjectile::new constructor will then determine the sprite.
                     .push(ActiveProjectile::new(proj, now));
             }
         }
@@ -206,26 +204,30 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                     // Convert world coordinates to camera-relative coordinates
                     let relative_row = proj_world_row - camera_x as f64;
                     let relative_col = proj_world_col - camera_y as f64;
-                    let screen_x = (proj_world_col - proj_world_row) * (SPRITE_DIMENSION / 2.0)
+                    let screen_x = (proj_world_col - proj_world_row)
+                        * (SPRITE_DIMENSION as f64 / 2.0)
                         + CANVAS_WIDTH / 2.0
-                        - SPRITE_DIMENSION / 2.0;
+                        - SPRITE_DIMENSION as f64 as f64 / 2.0;
 
-                    let screen_y = (proj_world_col + proj_world_row) * (SPRITE_DIMENSION / 4.0);
+                    let screen_y =
+                        (proj_world_col + proj_world_row) * (SPRITE_DIMENSION as f64 / 4.0);
 
-                    let camera_screen_x = (camera_x - camera_y) as f64 * (SPRITE_DIMENSION / 2.0)
+                    let camera_screen_x = (camera_x - camera_y) as f64
+                        * (SPRITE_DIMENSION as f64 / 2.0)
                         + CANVAS_WIDTH / 2.0
-                        - SPRITE_DIMENSION / 2.0;
+                        - SPRITE_DIMENSION as f64 as f64 / 2.0;
 
-                    let camera_screen_y = (camera_x + camera_y) as f64 * (SPRITE_DIMENSION / 4.0);
+                    let camera_screen_y =
+                        (camera_x + camera_y) as f64 * (SPRITE_DIMENSION as f64 / 4.0);
 
                     let offset_x = CANVAS_WIDTH / 2.0 - camera_screen_x;
                     let offset_y = CANVAS_HEIGHT / 2.0 - camera_screen_y;
 
                     // Calculate screen coordinates for isometric projection using relative coordinates.
-                    let x = (relative_col - relative_row) * (SPRITE_DIMENSION / 2.0)
+                    let x = (relative_col - relative_row) * (SPRITE_DIMENSION as f64 / 2.0)
                         + CANVAS_WIDTH / 2.0
-                        - SPRITE_DIMENSION / 2.0;
-                    let y = (relative_col + relative_row) * (SPRITE_DIMENSION / 4.0);
+                        - SPRITE_DIMENSION as f64 as f64 / 2.0;
+                    let y = (relative_col + relative_row) * (SPRITE_DIMENSION as f64 / 4.0);
 
                     // --- IMPORTANT DEBUGGING OUTPUTS ---
                     leptos::logging::log!("Projectile sprite X: {}", &p.sprite.x.to_string());

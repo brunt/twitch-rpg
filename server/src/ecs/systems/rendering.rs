@@ -8,6 +8,7 @@ use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory}
 use common::{DamageType, EntityPosition, Form, GameSnapShot, ItemQuality, PlayerSnapshot, PlayerStats, Projectile, ShopItem};
 use specs::{Entities, Join, LendJoin, ReadExpect, ReadStorage, System, WriteStorage};
 use tokio::sync::broadcast::Sender;
+use crate::ecs::components::inventory::Equipment;
 
 /// This system generates a struct that will get serialized to JSON and sent to the frontend.
 /// Information from it will be used to draw to the canvas
@@ -32,6 +33,7 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, TargetPosition>,
         ReadStorage<'a, RangedAttacker>,
         ReadStorage<'a, FiredProjectile>,
+        ReadStorage<'a, Equipment>,
         WriteStorage<'a, ShowCharacter>,
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
@@ -58,6 +60,7 @@ impl<'a> System<'a> for Rendering {
             target_positions,
             ranged_attackers,
             fired_projectiles,
+            equipment,
             mut show_characters,
             game_state,
             countdown,
@@ -82,7 +85,7 @@ impl<'a> System<'a> for Rendering {
                     projectiles: None,
                 };
 
-                for (entity, name, health, character_class, level, money, stats, show) in (
+                for (entity, name, health, character_class, level, money, stats, equipment, show) in (
                     &entities,
                     &names,
                     &health,
@@ -90,6 +93,7 @@ impl<'a> System<'a> for Rendering {
                     &levels,
                     &monies,
                     &stats,
+                    &equipment,
                     show_characters.maybe(),
                 )
                     .join()
@@ -103,6 +107,7 @@ impl<'a> System<'a> for Rendering {
                         form: Form::Normal,
                         stats: PlayerStats::from(stats),
                         show: show.is_some(),
+                        equipped_items: equipment.slots.clone()
                     });
 
                     if show.is_some() {
@@ -214,7 +219,7 @@ impl<'a> System<'a> for Rendering {
                     projectiles: Some(projectile_data),
                 };
 
-                for (entity, name, health, character_class, level, money, stats, show) in (
+                for (entity, name, health, character_class, level, money, stats, equipment, show) in (
                     &entities,
                     &names,
                     &health,
@@ -222,6 +227,7 @@ impl<'a> System<'a> for Rendering {
                     &levels,
                     &monies,
                     &stats,
+                    &equipment,
                     show_characters.maybe(),
                 )
                     .join()
@@ -235,6 +241,7 @@ impl<'a> System<'a> for Rendering {
                         form: Form::Normal, // TODO: not always normal, read buffs
                         stats: PlayerStats::from(stats),
                         show: show.is_some(),
+                        equipped_items: equipment.slots.clone()
                     });
 
                     if show.is_some() {

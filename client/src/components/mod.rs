@@ -65,8 +65,8 @@ pub fn draw_sprite(
         sprite.h,
         x,
         y,
-        SPRITE_DIMENSION * scale,
-        SPRITE_DIMENSION * scale,
+        SPRITE_DIMENSION as f64 * scale,
+        SPRITE_DIMENSION as f64 * scale,
     )
     .expect_throw("Failed to draw sprite");
     if opacity.is_some() {
@@ -90,8 +90,8 @@ pub fn draw_item_sprite(
         sprite.h,
         x,
         y,
-        ITEM_SPRITE_DIMENSION,
-        ITEM_SPRITE_DIMENSION,
+        ITEM_SPRITE_DIMENSION as f64,
+        ITEM_SPRITE_DIMENSION as f64,
     )
     .expect_throw("Failed to draw sprite");
 }
@@ -111,8 +111,8 @@ pub fn draw_proj_sprite(
         sprite.h,
         x,
         y,
-        PROJECTILE_SPRITE_DIMENSION,
-        PROJECTILE_SPRITE_DIMENSION,
+        PROJECTILE_SPRITE_DIMENSION as f64,
+        PROJECTILE_SPRITE_DIMENSION as f64,
     )
     .expect_throw("Failed to draw sprite");
 }

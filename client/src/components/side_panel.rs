@@ -2,7 +2,7 @@ use crate::components::{draw_item_sprite, draw_sprite};
 use crate::sprites::items_sprites::ITEMS_SPRITES;
 use crate::sprites::monsters_sprites::player_sprite;
 use crate::sprites::{ITEM_SPRITE_DIMENSION, SPRITE_DIMENSION, SpriteRect};
-use common::{GameSnapShot, PlayerSnapshot};
+use common::{EquipmentSlot, EquippedItem, GameSnapShot, ItemQuality, PlayerSnapshot};
 use leptos::control_flow::Show;
 use leptos::html::{Canvas, canvas};
 use leptos::prelude::{
@@ -14,8 +14,8 @@ use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use std::time::Duration;
-use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
 //TODO: display active buffs
@@ -150,15 +150,41 @@ fn PlayerPanel(
 #[component]
 fn ExtraStats(#[prop(into)] player: PlayerSnapshot) -> impl IntoView {
     view! {
-        <div class="px-2 pb-2">
-            <p class="font-semibold text-sm text-amber-200">EXP: 12</p>
-            <p class="font-semibold text-sm text-red-500">Strength: {player.stats.strength}</p>
-            <p class="font-semibold text-sm text-green-500">Agility: {player.stats.agility}</p>
-            <p class="font-semibold text-sm text-blue-500">
-                Intelligence: {player.stats.intelligence}
-            </p>
+        <div class="px-2 flex-col pb-2">
+            {move || {
+                player
+                    .equipped_items
+                    .iter()
+                    .filter(|(slot, _)| !matches!(slot, EquipmentSlot::UtilitySlot))
+                    .map(|(slot, item)| {
+                        view! {
+                            <div class="flex items-center gap-2">
+                                <ItemSpriteCanvas
+                                    item=item.clone()
+                                    sprite=ITEMS_SPRITES.get(&item.item_id).unwrap()
+                                />
+                                <p>{item.name.clone()}</p>
+                            </div>
+                        }
+                    })
+                    .collect::<Vec<_>>()
+            }} <div>
+                <p class="font-semibold text-sm text-red-500">Strength: {player.stats.strength}</p>
+                <p class="font-semibold text-sm text-green-500">Agility: {player.stats.agility}</p>
+                <p class="font-semibold text-sm text-blue-500">
+                    Intelligence: {player.stats.intelligence}
+                </p>
+            </div>
+
         </div>
     }
+
+    // <div class="flex flex-col gap-1">
+    //     {move || player.equipped_items.iter().filter(|(slot, _)| !matches!(slot, EquipmentSlot::UtilitySlot)).map(|(slot, item)| {
+    //         view! {
+    //                 <ItemSpriteCanvas item=item.clone() sprite=ITEMS_SPRITES.get(&item.item_id).unwrap() />
+    //             }
+    //     }).collect::<Vec<_>>()}
 }
 
 #[component]
@@ -197,8 +223,8 @@ fn PlayerSpriteCanvas(#[prop(into)] sprite: &'static SpriteRect) -> impl IntoVie
     view! {
         <canvas
             node_ref=canvas_ref
-            width=SPRITE_DIMENSION * SCALE
-            height=SPRITE_DIMENSION * SCALE
+            width=SPRITE_DIMENSION as f64 * SCALE
+            height=SPRITE_DIMENSION as f64 * SCALE
         />
     }
 }
@@ -220,13 +246,7 @@ fn GoldCoinCanvas() -> impl IntoView {
         let coin_image = HtmlImageElement::new().unwrap();
         let closure_coin_image = coin_image.clone();
         let onload = Closure::<dyn FnMut()>::new(move || {
-            draw_item_sprite(
-                &ctx,
-                &closure_coin_image,
-                ITEMS_SPRITES.get("small_gold_pile"),
-                0.0,
-                0.0,
-            )
+            draw_item_sprite(&ctx, &closure_coin_image, ITEMS_SPRITES.get(&138), 0.0, 0.0)
         });
         coin_image.set_onload(Some(onload.as_ref().unchecked_ref()));
         coin_image.set_src("public/sprites/items.png");
@@ -238,6 +258,81 @@ fn GoldCoinCanvas() -> impl IntoView {
             node_ref=canvas_ref
             width=ITEM_SPRITE_DIMENSION
             height=ITEM_SPRITE_DIMENSION
+            class="inline-block align-middle"
+        />
+    }
+}
+
+#[component]
+fn ItemSpriteCanvas(
+    #[prop(into)] item: EquippedItem,
+    #[prop(into)] sprite: &'static SpriteRect,
+) -> impl IntoView {    
+    let canvas_ref: NodeRef<Canvas> = NodeRef::new();
+
+    let item_rc_outer = Rc::new(item);
+    let sprite_rc_outer = Rc::new(sprite);
+    Effect::new(move |_| {
+        let Some(canvas) = canvas_ref.get() else {
+            return;
+        };
+        let item_rc = Rc::clone(&item_rc_outer);
+        let sprite_rc = Rc::clone(&sprite_rc_outer);
+
+        
+        let ctx = canvas
+            .get_context("2d")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<CanvasRenderingContext2d>()
+            .unwrap();
+        
+        let ctx_rc = Rc::new(RefCell::new(ctx));
+        let item_image_rc = Rc::new(RefCell::new(HtmlImageElement::new().unwrap()));
+        
+        let closure_item_image_rc = Rc::clone(&item_image_rc);
+        let closure_ctx_rc = Rc::clone(&ctx_rc);
+        let closure_item_rc = item_rc.clone();
+        let closure_sprite_rc = sprite_rc.clone();
+        
+        let onload = Closure::<dyn FnMut()>::new(move || {
+            let item = &*closure_item_rc;
+            let sprite = &*closure_sprite_rc;
+            let item_image = closure_item_image_rc.borrow();
+            let ctx = closure_ctx_rc.borrow();
+            ctx.set_stroke_style_str(match item.quality.clone() {
+                ItemQuality::Common => "#ddd",
+                ItemQuality::Uncommon => "#af0",
+                ItemQuality::Rare => "#0af",
+                ItemQuality::Epic => "#c3f",
+                ItemQuality::Legendary => "#f90",
+            });
+            ctx.set_line_width(1.0);
+            let frame_x =  0.0;
+            let frame_y =  0.0;
+            let frame_w = ITEM_SPRITE_DIMENSION as f64;
+            let frame_h = ITEM_SPRITE_DIMENSION as f64;
+            ctx.stroke_rect(frame_x, frame_y, frame_w, frame_h);
+            draw_item_sprite(
+                &ctx,
+                &item_image,
+                ITEMS_SPRITES.get(&item.item_id),
+                2.0,
+                2.0,
+            )
+        });
+        
+        let item_image_mut = item_image_rc.borrow_mut();
+        item_image_mut.set_onload(Some(onload.as_ref().unchecked_ref()));
+        item_image_mut.set_src("public/sprites/items.png");
+        onload.forget();
+    });
+
+    view! {
+        <canvas
+            node_ref=canvas_ref
+            width=ITEM_SPRITE_DIMENSION as f64 + 2.0
+            height=ITEM_SPRITE_DIMENSION as f64 + 2.0
             class="inline-block align-middle"
         />
     }

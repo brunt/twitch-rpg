@@ -1,9 +1,9 @@
 use leptos::either::EitherOf16::P;
 
-pub const SPRITE_DIMENSION: f64 = 56.0;
-pub const ITEM_SPRITE_DIMENSION: f64 = 34.0;
+pub const SPRITE_DIMENSION: u32 = 56;
+pub const ITEM_SPRITE_DIMENSION: u32 = 34;
 
-pub const PROJECTILE_SPRITE_DIMENSION: f64 = 31.0;
+pub const PROJECTILE_SPRITE_DIMENSION: u32 = 31;
 
 #[derive(Copy, Clone, Debug)]
 pub struct SpriteRect {
@@ -14,30 +14,30 @@ pub struct SpriteRect {
 }
 
 impl SpriteRect {
-    pub const fn at(ix: f64, iy: f64) -> SpriteRect {
+    pub const fn at(ix: u32, iy: u32) -> SpriteRect {
         Self {
-            x: ix * SPRITE_DIMENSION,
-            y: iy * SPRITE_DIMENSION,
-            w: SPRITE_DIMENSION,
-            h: SPRITE_DIMENSION,
+            x: (ix * SPRITE_DIMENSION) as f64,
+            y: (iy * SPRITE_DIMENSION) as f64,
+            w: SPRITE_DIMENSION as f64,
+            h: SPRITE_DIMENSION as f64,
         }
     }
 
-    pub const fn item_at(ix: f64, iy: f64) -> SpriteRect {
+    pub const fn item_at(ix: u32, iy: u32) -> SpriteRect {
         Self {
-            x: ix * ITEM_SPRITE_DIMENSION,
-            y: iy * ITEM_SPRITE_DIMENSION,
-            w: ITEM_SPRITE_DIMENSION,
-            h: ITEM_SPRITE_DIMENSION,
+            x: (ix * ITEM_SPRITE_DIMENSION) as f64,
+            y: (iy * ITEM_SPRITE_DIMENSION) as f64,
+            w: ITEM_SPRITE_DIMENSION as f64,
+            h: ITEM_SPRITE_DIMENSION as f64,
         }
     }
 
-    pub const fn projectile_at(ix: f64, iy: f64) -> SpriteRect {
+    pub const fn projectile_at(ix: u32, iy: u32) -> SpriteRect {
         Self {
-            x: ix * PROJECTILE_SPRITE_DIMENSION,
-            y: iy * PROJECTILE_SPRITE_DIMENSION,
-            w: PROJECTILE_SPRITE_DIMENSION,
-            h: PROJECTILE_SPRITE_DIMENSION,
+            x: (ix * PROJECTILE_SPRITE_DIMENSION) as f64,
+            y: (iy * PROJECTILE_SPRITE_DIMENSION) as f64,
+            w: PROJECTILE_SPRITE_DIMENSION as f64,
+            h: PROJECTILE_SPRITE_DIMENSION as f64,
         }
     }
 }

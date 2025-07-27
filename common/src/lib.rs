@@ -55,7 +55,9 @@ pub struct PlayerSnapshot {
     #[serde(rename = "g")]
     pub stats: PlayerStats,
     #[serde(rename = "h")]
-    pub show: bool
+    pub show: bool,
+    #[serde(rename = "i")]
+    pub equipped_items: HashMap<EquipmentSlot, EquippedItem>,
     // pub buffs: Vec<String>,
 }
 
@@ -147,7 +149,7 @@ impl Display for Health {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ShopItem {
-    pub sprite: String,
+    pub id: usize,
     pub name: String,
     pub quality: ItemQuality,
     pub equip_slot: EquipmentSlot,
@@ -159,6 +161,7 @@ pub struct ShopItem {
 impl ShopItem {
     pub fn to_equipped_item(&self) -> EquippedItem {
         EquippedItem {
+            item_id: self.id,
             name: self.name.clone(),
             quality: self.quality.clone(),
             stats: self.stats.clone(),
@@ -221,6 +224,8 @@ impl Display for EquipmentSlot {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EquippedItem {
+    /// item_id retrieves a sprite from the sprite hashmap, also facilitates database operations
+    pub item_id: usize,
     pub name: String,
     pub quality: ItemQuality,
     pub slot: EquipmentSlot,

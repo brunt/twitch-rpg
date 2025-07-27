@@ -11,7 +11,7 @@ pub struct ShopItemPool {
 pub fn initialize_shop_items() -> Vec<ShopItem> {
     vec![
         ShopItem {
-            sprite: "white_wizard_hat".to_string(),
+            id: 288,
             name: "Academy Teacher's Hat".to_string(),
             quality: ItemQuality::Legendary,
             equip_slot: EquipmentSlot::Head,
@@ -31,7 +31,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             description: "Spells have longer durations and affect larger areas".to_string(),
         },
         ShopItem {
-            sprite: "mace".to_string(),
+            id: 2,
             name: "Mace".to_string(),
             quality: ItemQuality::Common,
             equip_slot: EquipmentSlot::MainHand,
@@ -51,8 +51,8 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 15,
             description: "Staggers opponents on hit".to_string(),
         },
-        ShopItem {
-            sprite: "trident".to_string(),
+        ShopItem {            
+            id: 4,
             name: "Trident".to_string(),
             quality: ItemQuality::Uncommon,
             equip_slot: EquipmentSlot::MainHand,
@@ -69,7 +69,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             description: "Melee attacks have longer reach".to_string(),
         },
         ShopItem {
-            sprite: "trident".to_string(),
+            id: 4,
             name: "Trident".to_string(),
             quality: ItemQuality::Common,
             equip_slot: EquipmentSlot::MainHand,
@@ -85,7 +85,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             description: "Melee attacks have longer reach".to_string(),
         },
         ShopItem {
-            sprite: "greatsword".to_string(),
+            id: 5,
             name: "Greatsword".to_string(),
             quality: ItemQuality::Uncommon,
             equip_slot: EquipmentSlot::MainHand,
@@ -106,7 +106,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             description: "Melee attacks have longer reach".to_string(),
         },
         ShopItem {
-            sprite: "longsword".to_string(),
+            id: 6,
             name: "Longsword".to_string(),
             quality: ItemQuality::Rare,
             equip_slot: EquipmentSlot::Head,
@@ -122,7 +122,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             description: "Melee attacks have longer reach".to_string(),
         },
         ShopItem {
-            sprite: "scimitar".to_string(),
+            id: 7,
             name: "Scimitar".to_string(),
             quality: ItemQuality::Uncommon,
             equip_slot: EquipmentSlot::MainHand,
@@ -138,7 +138,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             description: "Melee attacks cut deeper".to_string(),
         },
         ShopItem {
-            sprite: "purple_tip_wood_staff".to_string(),
+            id: 8,
             name: "Netherwood Staff".to_string(),
             quality: ItemQuality::Uncommon,
             equip_slot: EquipmentSlot::MainHand,
@@ -159,7 +159,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             description: "Curses last longer".to_string(),
         },
         ShopItem {
-            sprite: "purple_tip_silver_staff".to_string(),
+            id: 9,
             name: "Nether-orb Staff".to_string(),
             quality: ItemQuality::Rare,
             equip_slot: EquipmentSlot::MainHand,
@@ -180,7 +180,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             description: "More elemental damage".to_string(),
         },
         ShopItem {
-            sprite: "red_cloth_boots".to_string(),
+            id: 576,
             name: "Cinder Slippers".to_string(),
             quality: ItemQuality::Rare,
             equip_slot: EquipmentSlot::Feet,
@@ -198,7 +198,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             description: "More elemental resistance".to_string(),
         },
         ShopItem {
-            sprite: "green_leather_boots".to_string(),
+            id: 1,
             name: "Elven Boots".to_string(),
             quality: ItemQuality::Uncommon,
             equip_slot: EquipmentSlot::Head,
@@ -206,7 +206,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
                 attack_modifiers: None,
                 defense_modifiers: None,
                 other_modifiers: Some(OtherModifiers {
-                    movement_speed_increase: 5,
+                    movement_speed_increase: 1,
                 }),
                 strength: None,
                 intelligence: None,
