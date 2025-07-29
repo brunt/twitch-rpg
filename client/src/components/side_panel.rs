@@ -106,7 +106,7 @@ fn PlayerPanel(
 
     Effect::new(move |_| {
         if is_expanded {
-            set_height_style.set("106px".to_string());
+            set_height_style.set("147px".to_string());
         } else {
             set_height_style.set("0px".to_string());
         }
