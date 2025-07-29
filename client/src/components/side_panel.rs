@@ -1,21 +1,21 @@
 use crate::components::{draw_item_sprite, draw_sprite};
 use crate::sprites::items_sprites::ITEMS_SPRITES;
 use crate::sprites::monsters_sprites::player_sprite;
-use crate::sprites::{ITEM_SPRITE_DIMENSION, SPRITE_DIMENSION, SpriteRect};
+use crate::sprites::{SpriteRect, ITEM_SPRITE_DIMENSION, SPRITE_DIMENSION};
 use common::{EquipmentSlot, EquippedItem, GameSnapShot, ItemQuality, PlayerSnapshot};
 use leptos::control_flow::Show;
-use leptos::html::{Canvas, canvas};
+use leptos::html::Canvas;
 use leptos::prelude::{
-    ClassAttribute, Get, IntoAny, Set, Signal, StyleAttribute, Update, set_timeout, signal,
+    set_timeout, signal, ClassAttribute, Get, IntoAny, Set, Signal, StyleAttribute,
 };
 use leptos::prelude::{Effect, ElementChild, NodeRef, NodeRefAttribute};
-use leptos::{IntoView, component, view};
+use leptos::{component, view, IntoView};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use std::time::Duration;
 use wasm_bindgen::closure::Closure;
-use wasm_bindgen::{JsCast, UnwrapThrowExt};
+use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
 //TODO: display active buffs
@@ -112,14 +112,38 @@ fn PlayerPanel(
         }
     });
 
+    let utility_item = player.equipped_items
+        .iter()
+        .find(|(slot, _)| matches!(slot, EquipmentSlot::UtilitySlot))
+        .map(|(_, item)| item);
+    
     view! {
         <div class="relative p-2 bg-stone-900 border border-amber-300 transition-opacity">
             <div class="flex items-center gap-2">
-                <PlayerSpriteCanvas sprite=player_sprite((
-                    &player.form,
-                    &player.class,
-                    player.level,
-                )) />
+                <div class="flex flex-col items-center">
+                    <PlayerSpriteCanvas sprite=player_sprite((
+                        &player.form,
+                        &player.class,
+                        player.level,
+                    )) />
+                    <div class="h-[38px] mt-1 flex items-center justify-center">
+                        {utility_item
+                            .map(|item| view! { <ItemSpriteCanvas item=item.clone() /> }.into_any())
+                            .unwrap_or_else(|| {
+                                view! {
+                                    <div
+                                        class="inline-block align-middle"
+                                        style=format!(
+                                            "width:{}px; height:{}px;",
+                                            ITEM_SPRITE_DIMENSION + 2,
+                                            ITEM_SPRITE_DIMENSION + 2,
+                                        )
+                                    ></div>
+                                }
+                                    .into_any()
+                            })}
+                    </div>
+                </div>
                 <div class="flex flex-col grow">
                     <div class="font-semibold text-lg text-amber-500">{player.name.clone()}</div>
 
@@ -150,41 +174,41 @@ fn PlayerPanel(
 #[component]
 fn ExtraStats(#[prop(into)] player: PlayerSnapshot) -> impl IntoView {
     view! {
-        <div class="px-2 flex-col pb-2">
-            {move || {
-                player
-                    .equipped_items
-                    .iter()
-                    .filter(|(slot, _)| !matches!(slot, EquipmentSlot::UtilitySlot))
-                    .map(|(slot, item)| {
-                        view! {
-                            <div class="flex items-center gap-2">
-                                <ItemSpriteCanvas
-                                    item=item.clone()
-                                    sprite=ITEMS_SPRITES.get(&item.item_id).unwrap()
-                                />
-                                <p>{item.name.clone()}</p>
-                            </div>
-                        }
-                    })
-                    .collect::<Vec<_>>()
-            }} <div>
-                <p class="font-semibold text-sm text-red-500">Strength: {player.stats.strength}</p>
-                <p class="font-semibold text-sm text-green-500">Agility: {player.stats.agility}</p>
-                <p class="font-semibold text-sm text-blue-500">
-                    Intelligence: {player.stats.intelligence}
-                </p>
+        <div class="px-2 pb-2">
+            <div class="flex flex-row gap-4">
+                <div class="flex flex-col gap-1">
+                    {move || {
+                        player
+                            .equipped_items
+                            .iter()
+                            .filter(|(slot, _)| !matches!(slot, EquipmentSlot::UtilitySlot))
+                            .map(|(slot, item)| {
+                                view! {
+                                    <div class="flex items-center gap-2">
+                                        <ItemSpriteCanvas item=item.clone() />
+                                        <p>{item.name.clone()}</p>
+                                    </div>
+                                }
+                            })
+                            .collect::<Vec<_>>()
+                    }}
+                </div>
+                <div>
+                    <div class="flex flex-col items-end gap-1 grow">
+                        <p class="font-semibold text-sm text-red-500">
+                            Strength: {player.stats.strength}
+                        </p>
+                        <p class="font-semibold text-sm text-green-500">
+                            Agility: {player.stats.agility}
+                        </p>
+                        <p class="font-semibold text-sm text-blue-500">
+                            Intelligence: {player.stats.intelligence}
+                        </p>
+                    </div>
+                </div>
             </div>
-
         </div>
     }
-
-    // <div class="flex flex-col gap-1">
-    //     {move || player.equipped_items.iter().filter(|(slot, _)| !matches!(slot, EquipmentSlot::UtilitySlot)).map(|(slot, item)| {
-    //         view! {
-    //                 <ItemSpriteCanvas item=item.clone() sprite=ITEMS_SPRITES.get(&item.item_id).unwrap() />
-    //             }
-    //     }).collect::<Vec<_>>()}
 }
 
 #[component]
@@ -266,18 +290,15 @@ fn GoldCoinCanvas() -> impl IntoView {
 #[component]
 fn ItemSpriteCanvas(
     #[prop(into)] item: EquippedItem,
-    #[prop(into)] sprite: &'static SpriteRect,
 ) -> impl IntoView {    
     let canvas_ref: NodeRef<Canvas> = NodeRef::new();
 
     let item_rc_outer = Rc::new(item);
-    let sprite_rc_outer = Rc::new(sprite);
     Effect::new(move |_| {
         let Some(canvas) = canvas_ref.get() else {
             return;
         };
         let item_rc = Rc::clone(&item_rc_outer);
-        let sprite_rc = Rc::clone(&sprite_rc_outer);
 
         
         let ctx = canvas
@@ -293,33 +314,31 @@ fn ItemSpriteCanvas(
         let closure_item_image_rc = Rc::clone(&item_image_rc);
         let closure_ctx_rc = Rc::clone(&ctx_rc);
         let closure_item_rc = item_rc.clone();
-        let closure_sprite_rc = sprite_rc.clone();
         
         let onload = Closure::<dyn FnMut()>::new(move || {
             let item = &*closure_item_rc;
-            let sprite = &*closure_sprite_rc;
             let item_image = closure_item_image_rc.borrow();
             let ctx = closure_ctx_rc.borrow();
-            ctx.set_stroke_style_str(match item.quality.clone() {
-                ItemQuality::Common => "#ddd",
-                ItemQuality::Uncommon => "#af0",
-                ItemQuality::Rare => "#0af",
-                ItemQuality::Epic => "#c3f",
-                ItemQuality::Legendary => "#f90",
-            });
-            ctx.set_line_width(1.0);
-            let frame_x =  0.0;
-            let frame_y =  0.0;
-            let frame_w = ITEM_SPRITE_DIMENSION as f64;
-            let frame_h = ITEM_SPRITE_DIMENSION as f64;
-            ctx.stroke_rect(frame_x, frame_y, frame_w, frame_h);
-            draw_item_sprite(
-                &ctx,
-                &item_image,
-                ITEMS_SPRITES.get(&item.item_id),
-                2.0,
-                2.0,
-            )
+                ctx.set_stroke_style_str(match item.quality.clone() {
+                    ItemQuality::Common => "#ddd",
+                    ItemQuality::Uncommon => "#af0",
+                    ItemQuality::Rare => "#0af",
+                    ItemQuality::Epic => "#c3f",
+                    ItemQuality::Legendary => "#f90",
+                });
+                ctx.set_line_width(1.0);
+                let frame_x =  1.0;
+                let frame_y =  1.0;
+                let frame_w = ITEM_SPRITE_DIMENSION as f64;
+                let frame_h = ITEM_SPRITE_DIMENSION as f64;
+                ctx.stroke_rect(frame_x, frame_y, frame_w, frame_h);
+                draw_item_sprite(
+                    &ctx,
+                    &item_image,
+                    ITEMS_SPRITES.get(&item.item_id),
+                    0.0,
+                    0.0,
+                )
         });
         
         let item_image_mut = item_image_rc.borrow_mut();
