@@ -8,10 +8,7 @@ use components::bottom_panel::BottomPanel;
 use components::game_canvas::GameCanvas;
 use components::side_panel::SidePanelCharacterSheet;
 use leptos::mount::mount_to_body;
-use leptos::prelude::{
-    ClassAttribute, Effect, ElementChild, Get, GetUntracked, IntoInner, NodeRefAttribute, Set,
-    signal,
-};
+use leptos::prelude::{ClassAttribute, Effect, ElementChild, Get, GetUntracked, IntoInner, NodeRefAttribute, Set, signal, StyleAttribute};
 use leptos::{IntoView, component, view};
 use std::collections::HashMap;
 use wasm_bindgen::closure::Closure;
@@ -261,14 +258,18 @@ fn App() -> impl IntoView {
     // 
     //     callback.forget();
     // });
-
+    
     view! {
-        <div class="flex flex-row">
-            <GameCanvas gs=gamestate />
-            <SidePanelCharacterSheet gs=gamestate />
+    <div class="flex flex-row">
+        <div>
+            <div class="w-[1280px] h-[720px]">
+                <GameCanvas gs=gamestate />
+            </div>
+            <BottomPanel />
         </div>
-        <BottomPanel />
-    }
+        <SidePanelCharacterSheet gs=gamestate />
+    </div>
+}
 }
 
 //TODO: delete after local testing

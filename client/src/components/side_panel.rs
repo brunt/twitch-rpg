@@ -57,7 +57,7 @@ pub fn SidePanelCharacterSheet(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -
     });
 
     view! {
-        <aside class="w-[42rem] bg-panel shadow-lg text-sm overflow-y-auto max-h-[720px]">
+        <aside class="w-[42rem] bg-panel shadow-lg text-sm overflow-y-auto">
             <div class="border-gray-100 px-3 py-2 font-semibold text-base">Characters</div>
             <div class="flex gap-1 px-1">
                 <div class="flex flex-col gap-1 w-1/2">
@@ -175,7 +175,7 @@ fn PlayerPanel(
 fn ExtraStats(#[prop(into)] player: PlayerSnapshot) -> impl IntoView {
     view! {
         <div class="px-2 pb-2">
-            <div class="flex flex-row gap-4">
+            <div class="flex flex-row justify-between gap-4">
                 <div class="flex flex-col gap-1">
                     {move || {
                         player
@@ -194,8 +194,8 @@ fn ExtraStats(#[prop(into)] player: PlayerSnapshot) -> impl IntoView {
                     }}
                 </div>
                 <div>
-                    <div class="flex flex-col items-end gap-1 grow">
-                        <p class="font-semibold text-sm text-red-500">
+                    <div class="flex flex-col items-end gap-1">
+                        <p class="font-semibold text-sm text-rose-400">
                             Strength: {player.stats.strength}
                         </p>
                         <p class="font-semibold text-sm text-green-500">

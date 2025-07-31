@@ -78,7 +78,7 @@ pub(crate) fn draw_shop_interface(
 
         // Draw price
         ctx.set_fill_style_str("#ffd700");
-        ctx.set_font("14px sans-serif");
+        ctx.set_font("bold 14px sans-serif");
         ctx.fill_text(
             &format!("{}", item.price), //TODO: redundant price info?
             x + (ITEM_SLOT_SIZE - ITEM_SPRITE_DIMENSION as f64) * 0.85,
@@ -108,14 +108,8 @@ pub(crate) fn draw_shop_interface(
         );
 
         // Draw equipment slot value
-        draw_wrapped_text(
-            ctx,
-            &item.equip_slot.to_string(),
-            x + 80.0,
-            y + 25.0,
-            ITEM_SLOT_WIDTH - 16.0,
-            14.0,
-        );
+        ctx.set_font("bold 12px sans-serif");
+        ctx.fill_text(&item.equip_slot.to_string(), x + 80.0, y + 25.0).unwrap();
 
         // Draw Menu Item #
         ctx.set_fill_style_str("#fff");
