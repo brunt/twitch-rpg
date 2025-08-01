@@ -332,6 +332,7 @@ impl Display for DamageType{
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Effect {
     Heal(u32),
+    Revive,
     // GrantBuff(String), //TODO af
     // GainAbility
     

@@ -49,7 +49,7 @@ pub struct MovementSpeed(pub u32);
 impl MovementSpeed {
     //TODO: from buffs as well
     pub fn from_items(equipment: &Equipment) -> Self {
-        let other_mods = equipment.slots.iter().map(|(_slot, item)| item).fold(
+        let other_mods = equipment.slots.values().fold(
             OtherModifiers {
                 movement_speed_increase: 0,
             },

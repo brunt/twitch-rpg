@@ -35,7 +35,7 @@ impl DefenseComponent {
     /// Defense component derived from ALL equipped items
     pub fn from_stats_and_items(stats: &Stats, equipment: &Equipment) -> Self {
         // Aggregate item modifiers
-        let defense_mods = equipment.slots.iter().map(|(_slot, item)| item).fold(
+        let defense_mods = equipment.slots.values().fold(
             DefenseModifiers {
                 damage_reduction: 0,
                 evasion_rating: 0,
@@ -74,7 +74,7 @@ pub struct AttackComponent {
 impl AttackComponent {
     pub fn from_enemy_difficulty(difficulty: u32) -> Self {
         Self {
-            damage: 1 * difficulty,
+            damage: 2 * difficulty,
             hit_rating: 15 * difficulty,
             range: 1,
             cooldown: 3000 / difficulty,
@@ -84,7 +84,7 @@ impl AttackComponent {
     /// Attack component derived from ALL equipped items
     pub fn from_stats_and_items(stats: &Stats, equipment: &Equipment) -> Self {
         // Aggregate item modifiers
-        let attack_mods = equipment.slots.iter().map(|(_slot, item)| item).fold(
+        let attack_mods = equipment.slots.values().fold(
             AttackModifiers {
                 damage_bonus: 0,
                 hit_rating_bonus: 0,
@@ -146,10 +146,7 @@ impl Default for HealthComponent {
 
 impl HealthComponent {
     pub fn is_alive(&self) -> bool {
-        match self.0 {
-            Health::Alive { .. } => true,
-            _ => false,
-        }
+        matches!(self.0, Health::Alive { .. })
     }
 
     pub fn new_from_class(class: &PlayerClass) -> Self {

@@ -19,9 +19,7 @@ fn direction_index(from: (u32, u32), to: (u32, u32)) -> u32 {
 
     let angle = dy.atan2(dx); // standard atan2: angle from +X, counter-clockwise
     let adjusted = (-angle + PI / 2.0) % (2.0 * PI); // rotate so 0 is up, clockwise rotation
-    let index = (adjusted / (PI / 4.0)).round() as u32 % 8;
-
-    index
+    (adjusted / (PI / 4.0)).round() as u32 % 8
 }
 impl ActiveProjectile {
     pub fn new(p: &Projectile, start: f64) -> Self {

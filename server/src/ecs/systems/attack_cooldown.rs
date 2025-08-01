@@ -19,7 +19,7 @@ impl<'a> System<'a> for AttackCooldownSystem {
             if timer.remaining <= delta.0 {
                 to_reset.push(entity);
             } else {
-                dbg!(timer.remaining -= delta.0);
+                timer.remaining -= delta.0;
             }
         }
 

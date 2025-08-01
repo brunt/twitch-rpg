@@ -106,7 +106,7 @@ impl<'a> System<'a> for Rendering {
                         name: name.0.clone(), //TODO: not clone?
                         class: character_class.0.clone(),
                         health: health.0.clone(),
-                        level: level.0.clone(),
+                        level: level.0,
                         gold: money.0,
                         form: Form::Normal,
                         stats: PlayerStats::from(stats),
@@ -137,11 +137,7 @@ impl<'a> System<'a> for Rendering {
                             entity_type: class.to_string(),
                             position: tatami_dungeon::Position { x: pos.x, y: pos.y },
                             level: lvl.0,
-                            target_position: if let Some(target_pos) = target_pos_maybe {
-                                Some(tatami_dungeon::Position::from(target_pos))
-                            } else {
-                                None
-                            },
+                            target_position: target_pos_maybe.map(tatami_dungeon::Position::from),
                             health: Some(health.0.clone()),
                         }
                     })
@@ -160,11 +156,7 @@ impl<'a> System<'a> for Rendering {
                                     entity_type: name.0.clone(),
                                     position: tatami_dungeon::Position::from(pos),
                                     level: level.0,
-                                    target_position: if let Some(target_pos) = target_pos_maybe {
-                                        Some(tatami_dungeon::Position::from(target_pos))
-                                    } else {
-                                        None
-                                    },
+                                    target_position: target_pos_maybe.map(tatami_dungeon::Position::from),
                                     health: Some(health.0.clone()),
                                 },
                             ),
@@ -215,7 +207,7 @@ impl<'a> System<'a> for Rendering {
                     floor_positions: Some(entity_positions),
                     floor: adventure
                         .clone()
-                        .map_or(None, |dungeon| Some(dungeon.filter_visible_rooms())), //TODO: transition between dungeon floors
+                        .map(|dungeon| dungeon.filter_visible_rooms()), //TODO: transition between dungeon floors
                     shop_items: None,
                     ready_timer: None,
                     difficulty: Some(adventure.clone().map_or(1, |adv| adv.difficulty)),
@@ -240,7 +232,7 @@ impl<'a> System<'a> for Rendering {
                         name: name.0.clone(),
                         class: character_class.0.clone(),
                         health: health.0.clone(),
-                        level: level.0.clone(),
+                        level: level.0,
                         gold: money.0,
                         form: Form::Normal, // TODO: not always normal, read buffs
                         stats: PlayerStats::from(stats),

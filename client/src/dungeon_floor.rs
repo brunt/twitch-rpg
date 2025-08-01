@@ -10,12 +10,12 @@ pub fn draw_dungeon_floor(
     ctx: &CanvasRenderingContext2d,
     terrain_image: &HtmlImageElement,
     monster_image: &HtmlImageElement,
-    floor: &Vec<Vec<u8>>,
+    floor: &[Vec<u8>],
     canvas_width: f64,
     canvas_height: f64,
     camera_position: (u32, u32),
     difficulty: u32,
-    floor_pos: &Vec<EntityPosition>,
+    floor_pos: &[EntityPosition],
 ) {
     const DEFAULT_TERRAIN_SCALE: f64 = 1.05;
     let map_height = floor.len();

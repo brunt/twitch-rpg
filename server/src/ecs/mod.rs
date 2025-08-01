@@ -2,7 +2,7 @@ pub mod components;
 pub mod systems;
 
 use crate::commands::RpgCommand;
-use crate::ecs::resources::{CountdownTimer, DeltaTime};
+use crate::ecs::resources::DeltaTime;
 use crate::ecs::systems::assign_room_target::AssignRoomTargetSystem;
 use crate::ecs::systems::attack_cooldown::AttackCooldownSystem;
 use crate::ecs::systems::combat::CombatSystem;
@@ -17,7 +17,6 @@ use crate::ecs::systems::level_up::LevelUpSystem;
 use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::pathfinding::PathfindingSystem;
 use crate::ecs::systems::player_ai::PlayerAI;
-use crate::ecs::systems::player_spacing::PartySpacing;
 use crate::ecs::systems::projectile_cleanup::ProjectileCleanupSystem;
 use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
@@ -122,7 +121,7 @@ pub fn run_game_server(
         gw.ecs.write_resource::<DeltaTime>().0 = delta;
 
         // run systems
-        dispatcher.dispatch(&mut gw.ecs);
+        dispatcher.dispatch(&gw.ecs);
 
         // cleanup etc
         gw.ecs.maintain();

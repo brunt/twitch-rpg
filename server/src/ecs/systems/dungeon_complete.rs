@@ -106,14 +106,14 @@ impl<'a> System<'a> for DungeonComplete {
                     // dole out rewards
 
                     // TODO: does this play with the level up system?
-                    experiences.get_mut(entity).map(|mut exp| {
-                        exp.current = exp.current + 100 * adv.difficulty;
-                    });
+                    if let Some(mut exp) = experiences.get_mut(entity) {
+                        exp.current += 100 * adv.difficulty;
+                    }
 
                     // TODO: other multipliers
-                    monies.get_mut(entity).map(|mut money| {
-                        money.0 = money.0 + 100 * adv.difficulty;
-                    });
+                    if let Some(mut money) = monies.get_mut(entity) { 
+                        money.0 += 100 * adv.difficulty;
+                    }
 
                     // TODO: save character data
 

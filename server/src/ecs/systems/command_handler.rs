@@ -105,7 +105,6 @@ impl<'a> System<'a> for CommandHandlerSystem {
                         }
                         RpgCommand::Rejoin => {
                             // Load player character
-                            println!("Loading character for {}", player_name);
                             // do not let player duplicates join
                             if (&names).join().any(|name| name.0 == player_name) {
                                 continue;

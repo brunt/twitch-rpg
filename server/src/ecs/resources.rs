@@ -80,7 +80,7 @@ impl Adventure {
         let visible_room_ids = &self.explored_rooms;
 
         let height = floor.tiles.len();
-        let width = floor.tiles.get(0).map(|row| row.len()).unwrap_or(0);
+        let width = floor.tiles.first().map(|row| row.len()).unwrap_or(0);
 
         let mut visible = vec![vec![false; width]; height];
 
@@ -153,13 +153,12 @@ impl Adventure {
     }
 
     pub fn get_item_data(&self) -> Vec<Position> {
-        let data = self
+        self
             .get_current_floor()
             .rooms
             .iter()
             .flat_map(|room| room.items.iter().map(|item| item.position))
-            .collect();
-        data
+            .collect()
     }
 
     pub fn get_visible_item_data(&self) -> Vec<Position> {
@@ -193,14 +192,8 @@ impl Adventure {
         if floor.tile_at(*start) == Tile::Floor {
             return Some(*start);
         }
-
-        // Try all adjacent-8 positions
-        for adj in start.adjacent_8((width, height)) {
-            if floor.tile_at(adj) == Tile::Floor {
-                return Some(adj);
-            }
-        }
-        None
+        
+        start.adjacent_8((width, height)).iter().find(|adj| floor.tile_at(**adj) == Tile::Floor).copied()
     }
 }
 

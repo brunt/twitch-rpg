@@ -95,7 +95,7 @@ impl<'a> System<'a> for PlayerAI {
                             .tiles
                             .get(y)
                             .and_then(|row| row.get(x))
-                            .map_or(false, |tile| matches!(tile, tatami_dungeon::Tile::Floor))
+                            .is_some_and(|tile| matches!(tile, tatami_dungeon::Tile::Floor))
                     })
                     .collect();
 

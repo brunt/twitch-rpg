@@ -137,7 +137,7 @@ fn draw_wrapped_text(
         let test_line = if line.is_empty() {
             word.to_string()
         } else {
-            format!("{} {}", line, word)
+            format!("{line} {word}")
         };
 
         if ctx.measure_text(&test_line).unwrap().width() > max_width && !line.is_empty() {

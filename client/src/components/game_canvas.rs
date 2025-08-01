@@ -156,7 +156,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                         &ctx,
                         &terrain_image_for_closure,
                         &monster_image_for_closure,
-                        &floor,
+                        floor,
                         CANVAS_WIDTH,
                         CANVAS_HEIGHT,
                         (position.x, position.y),
@@ -181,7 +181,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                         draw_shop_interface(
                             &ctx,
                             &item_image_for_closure,
-                            &shop_items,
+                            shop_items,
                             30.0,
                             30.0,
                             4,
