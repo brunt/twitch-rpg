@@ -1,14 +1,17 @@
 use crate::ecs::components::class::{CharacterClass, ShowCharacter};
 use crate::ecs::components::combat::{FiredProjectile, HealthComponent, RangedAttacker};
+use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::TargetPosition;
 use crate::ecs::components::{
     DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Stats,
 };
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
-use common::{DamageType, EntityPosition, Form, GameSnapShot, Health, ItemQuality, PlayerSnapshot, PlayerStats, Projectile, ShopItem};
+use common::{
+    DamageType, EntityPosition, Form, GameSnapShot, Health, ItemQuality, PlayerSnapshot,
+    PlayerStats, Projectile, ShopItem,
+};
 use specs::{Entities, Join, LendJoin, ReadExpect, ReadStorage, System, WriteStorage};
 use tokio::sync::broadcast::Sender;
-use crate::ecs::components::inventory::Equipment;
 
 /// This system generates a struct that will get serialized to JSON and sent to the frontend.
 /// Information from it will be used to draw to the canvas
@@ -85,18 +88,19 @@ impl<'a> System<'a> for Rendering {
                     projectiles: None,
                 };
 
-                for (entity, name, health, character_class, level, money, stats, equipment, show) in (
-                    &entities,
-                    &names,
-                    &health,
-                    &character_classes,
-                    &levels,
-                    &monies,
-                    &stats,
-                    &equipment,
-                    show_characters.maybe(),
-                )
-                    .join()
+                for (entity, name, health, character_class, level, money, stats, equipment, show) in
+                    (
+                        &entities,
+                        &names,
+                        &health,
+                        &character_classes,
+                        &levels,
+                        &monies,
+                        &stats,
+                        &equipment,
+                        show_characters.maybe(),
+                    )
+                        .join()
                 {
                     gs.party.push(PlayerSnapshot {
                         name: name.0.clone(), //TODO: not clone?
@@ -107,7 +111,7 @@ impl<'a> System<'a> for Rendering {
                         form: Form::Normal,
                         stats: PlayerStats::from(stats),
                         show: show.is_some(),
-                        equipped_items: equipment.slots.clone()
+                        equipped_items: equipment.slots.clone(),
                     });
 
                     if show.is_some() {
@@ -181,16 +185,13 @@ impl<'a> System<'a> for Rendering {
                     .collect();
 
                 // build projectiles
-                let projectile_data: Vec<Projectile> = (
-                    &entities,
-                    &fired_projectiles,
-                )
+                let projectile_data: Vec<Projectile> = (&entities, &fired_projectiles)
                     .join()
                     .map(|(entity, fired_proj)| Projectile {
-                            position: fired_proj.position,
-                            target_position: fired_proj.target_position,
-                            damage: 1, // Still needs to be populated from combat logic
-                            damage_type: fired_proj.damage_type.clone(), // Use the damage type from the component
+                        position: fired_proj.position,
+                        target_position: fired_proj.target_position,
+                        damage: 1, // Still needs to be populated from combat logic
+                        damage_type: fired_proj.damage_type.clone(), // Use the damage type from the component
                     })
                     .collect::<Vec<Projectile>>();
 
@@ -221,18 +222,19 @@ impl<'a> System<'a> for Rendering {
                     projectiles: Some(projectile_data),
                 };
 
-                for (entity, name, health, character_class, level, money, stats, equipment, show) in (
-                    &entities,
-                    &names,
-                    &health,
-                    &character_classes,
-                    &levels,
-                    &monies,
-                    &stats,
-                    &equipment,
-                    show_characters.maybe(),
-                )
-                    .join()
+                for (entity, name, health, character_class, level, money, stats, equipment, show) in
+                    (
+                        &entities,
+                        &names,
+                        &health,
+                        &character_classes,
+                        &levels,
+                        &monies,
+                        &stats,
+                        &equipment,
+                        show_characters.maybe(),
+                    )
+                        .join()
                 {
                     gs.party.push(PlayerSnapshot {
                         name: name.0.clone(),
@@ -243,7 +245,7 @@ impl<'a> System<'a> for Rendering {
                         form: Form::Normal, // TODO: not always normal, read buffs
                         stats: PlayerStats::from(stats),
                         show: show.is_some(),
-                        equipped_items: equipment.slots.clone()
+                        equipped_items: equipment.slots.clone(),
                     });
 
                     if show.is_some() {

@@ -1,4 +1,8 @@
-use crate::ecs::components::combat::{AttackComponent, AttackTarget, DefenseComponent, FiredProjectile, HealthComponent, MeleeAttacker, RangedAttacker};
+use crate::ecs::components::combat::{
+    AttackComponent, AttackTarget, AttackTimer, DefenseComponent, FiredProjectile, HealthComponent,
+    MeleeAttacker, RangedAttacker,
+};
+use crate::ecs::components::movement::{CanMove, MovementSpeed};
 use crate::ecs::components::{Enemy, Player, Position};
 use crate::ecs::resources::DeltaTime;
 use common::{DamageType, Health};
@@ -20,7 +24,8 @@ impl<'a> System<'a> for CombatSystem {
         ReadStorage<'a, Position>,
         WriteStorage<'a, HealthComponent>,
         WriteStorage<'a, FiredProjectile>,
-        Read<'a, DeltaTime>,
+        WriteStorage<'a, AttackTimer>,
+        WriteStorage<'a, CanMove>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -35,23 +40,29 @@ impl<'a> System<'a> for CombatSystem {
             defenses,
             positions,
             mut healths,
-            mut fired_projectiles, 
-            delta_time,
+            mut fired_projectiles,
+            mut attack_timers,
+            mut can_move,
         ) = data;
 
         for (attacker_entity, attack, attack_target, position) in
             (&entities, &attacks, &targets, &positions).join()
         {
+            // Check if attacker is on cooldown
+            if let Some(timer) = attack_timers.get(attacker_entity) {
+                if timer.remaining > 0.0 {
+                    continue; // Skip this tick, still cooling down
+                }
+            }
+
             // Attacker must be Player or Enemy
             let attacker_is_player = players.get(attacker_entity).is_some();
             let attacker_is_enemy = enemies.get(attacker_entity).is_some();
 
             let target_entity = attack_target.entity;
-            // Target must be Player or Enemy (opposite kind)
             let target_is_player = players.get(target_entity).is_some();
             let target_is_enemy = enemies.get(target_entity).is_some();
 
-            // Enforce opposing teams
             if (attacker_is_player && !target_is_enemy) || (attacker_is_enemy && !target_is_player)
             {
                 continue;
@@ -62,24 +73,15 @@ impl<'a> System<'a> for CombatSystem {
             };
 
             if attack.range < target_pos.distance_to(position) {
-                // Out of range
-                continue;
+                continue; // Out of range
             }
 
-            // Retrieve target's defense and health
             let defense = defenses.get(target_entity).map(|d| d.defense).unwrap_or(0);
             let evasion = defenses.get(target_entity).map(|d| d.evasion).unwrap_or(0);
 
-            // Simple hit/evasion check
-            // let hit_roll: u32 = rand::thread_rng().gen_range(0..100);
-            // if hit_roll < evasion {
-                // Missed attack
-                // For ranged attacks, we might still want to show a projectile even on a miss
-                // but for now, we'll only fire it on a hit.
-                // continue;
-            // }
-
             let actual_damage = attack.damage.saturating_sub(defense);
+
+            can_move.remove(attacker_entity);
 
             // Apply damage if target is alive
             if let Some(health) = healths.get_mut(target_entity) {
@@ -96,18 +98,29 @@ impl<'a> System<'a> for CombatSystem {
                     }
 
                     if range.get(attacker_entity).is_some() {
-                        fired_projectiles.insert(
-                            attacker_entity,
-                            FiredProjectile {
-                                position: tatami_dungeon::Position::from(position),
-                                target_position: tatami_dungeon::Position::from(target_pos),
-                                damage: 1,
-                                damage_type: DamageType::Purple,
-                            },
-                        ).expect("Failed to insert FiredProjectile component");
+                        fired_projectiles
+                            .insert(
+                                attacker_entity,
+                                FiredProjectile {
+                                    position: tatami_dungeon::Position::from(position),
+                                    target_position: tatami_dungeon::Position::from(target_pos),
+                                    damage: actual_damage,
+                                    damage_type: DamageType::Purple,
+                                },
+                            )
+                            .expect("Failed to insert FiredProjectile component");
                     }
                 }
             }
+
+            // Only insert a cooldown timer if one does not exist yet
+            attack_timers
+                .entry(attacker_entity)
+                .expect("failed to get entry for attacker")
+                .or_insert_with(|| AttackTimer {
+                    //TODO: u32 or f64 for counting time?
+                    remaining: attack.cooldown as f64 / 1000.0,
+                });
         }
     }
 }

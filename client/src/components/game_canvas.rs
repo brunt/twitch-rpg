@@ -175,7 +175,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                             CANVAS_WIDTH * 0.45,
                             20.0,
                         )
-                        .expect("failed to count down");
+                            .expect("failed to count down");
                     }
                     if let Some(shop_items) = snapshot.shop_items.as_ref() {
                         draw_shop_interface(
@@ -191,7 +191,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
 
                 // Animate and draw active projectiles.
                 projectiles.retain(|p| {
-                    let progress = (now - p.start_time) / 500.0; // 500ms duration
+                    let progress = (now - p.start_time) / 250.0; // 250ms duration
                     if progress >= 1.0 {
                         return false; // Remove projectile if animation is complete.
                     }
@@ -201,39 +201,30 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                     let proj_world_row = interp(p.from.0, p.to.0);
                     let proj_world_col = interp(p.from.1, p.to.1);
 
-                    // Convert world coordinates to camera-relative coordinates
-                    let relative_row = proj_world_row - camera_x as f64;
-                    let relative_col = proj_world_col - camera_y as f64;
-                    let screen_x = (proj_world_col - proj_world_row)
-                        * (SPRITE_DIMENSION as f64 / 2.0)
+                    // --- Calculate projectile screen coordinates relative to world origin ---
+                    let proj_screen_x_relative_to_origin = (proj_world_col - proj_world_row) * (SPRITE_DIMENSION as f64 / 2.0);
+                    let proj_screen_y_relative_to_origin = (proj_world_col + proj_world_row) * (SPRITE_DIMENSION as f64 / 4.0);
+
+                    // --- Calculate camera screen coordinates relative to world origin ---
+                    // The camera's world position (camera_x, camera_y) should be used in the same isometric projection formula
+                    // to find its screen offset from the world origin.
+                    let camera_screen_x_relative_to_origin = (camera_y as f64 - camera_x as f64) * (SPRITE_DIMENSION as f64 / 2.0);
+                    let camera_screen_y_relative_to_origin = (camera_y as f64 + camera_x as f64) * (SPRITE_DIMENSION as f64 / 4.0);
+
+                    // --- Calculate final screen coordinates for the projectile ---
+                    // Projectile's screen position - Camera's screen position + Canvas Center adjustments
+                    let x = proj_screen_x_relative_to_origin
+                        - camera_screen_x_relative_to_origin
                         + CANVAS_WIDTH / 2.0
-                        - SPRITE_DIMENSION as f64 as f64 / 2.0;
-
-                    let screen_y =
-                        (proj_world_col + proj_world_row) * (SPRITE_DIMENSION as f64 / 4.0);
-
-                    let camera_screen_x = (camera_x - camera_y) as f64
-                        * (SPRITE_DIMENSION as f64 / 2.0)
-                        + CANVAS_WIDTH / 2.0
-                        - SPRITE_DIMENSION as f64 as f64 / 2.0;
-
-                    let camera_screen_y =
-                        (camera_x + camera_y) as f64 * (SPRITE_DIMENSION as f64 / 4.0);
-
-                    let offset_x = CANVAS_WIDTH / 2.0 - camera_screen_x;
-                    let offset_y = CANVAS_HEIGHT / 2.0 - camera_screen_y;
-
-                    // Calculate screen coordinates for isometric projection using relative coordinates.
-                    let x = (relative_col - relative_row) * (SPRITE_DIMENSION as f64 / 2.0)
-                        + CANVAS_WIDTH / 2.0
-                        - SPRITE_DIMENSION as f64 as f64 / 2.0;
-                    let y = (relative_col + relative_row) * (SPRITE_DIMENSION as f64 / 4.0);
+                        - SPRITE_DIMENSION as f64 / 2.0; // Adjust for sprite origin (usually top-left or center)
+                    let y = proj_screen_y_relative_to_origin
+                        - camera_screen_y_relative_to_origin
+                        + CANVAS_HEIGHT / 2.0
+                        - SPRITE_DIMENSION as f64 / 2.0; // Adjust for sprite origin (usually top-left or center)
 
                     // --- IMPORTANT DEBUGGING OUTPUTS ---
-                    leptos::logging::log!("Projectile sprite X: {}", &p.sprite.x.to_string());
-                    leptos::logging::log!("Projectile sprite Y: {}", &p.sprite.y.to_string());
-                    leptos::logging::log!("Projectile draw X: {}", &x.to_string());
-                    leptos::logging::log!("Projectile draw Y: {}", &y.to_string());
+                    leptos::logging::log!("Projectile draw X: {}", &x);
+                    leptos::logging::log!("Projectile draw Y: {}", &y);
                     leptos::logging::log!("Projectile from: {:?}, to: {:?}", p.from, p.to);
                     leptos::logging::log!("Camera position: x={}, y={}", camera_x, camera_y);
 
@@ -260,6 +251,5 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
             .unwrap();
     });
 
-    // The view for the component: a canvas element.
     view! { <canvas node_ref=canvas_ref width=CANVAS_WIDTH height=CANVAS_HEIGHT /> }
 }

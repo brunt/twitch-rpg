@@ -49,10 +49,13 @@ impl Adventure {
     pub fn get_current_floor(&self) -> &tatami_dungeon::Floor {
         &self.dungeon.floors[self.current_floor_index]
     }
-    
+
     // get a room by id
     pub fn get_room_by_id(&self, room_id: u32) -> Option<&Room> {
-        self.get_current_floor().rooms.iter().find(|room| room.id == room_id)
+        self.get_current_floor()
+            .rooms
+            .iter()
+            .find(|room| room.id == room_id)
     }
 
     pub fn get_floor_data(&self) -> Vec<Vec<u8>> {
@@ -170,17 +173,6 @@ impl Adventure {
             .collect()
     }
 
-    // pub fn get_room_enemy_data(&self) -> Vec<Position> {
-    //     let floor = &self.get_current_floor();
-    //     let explored = &self.explored_rooms;
-    //     floor
-    //         .rooms
-    //         .iter()
-    //         .filter(|room| self.current_room_index == room.id)
-    //         .flat_map(|room| room.enemies.iter().map(|enemy| enemy.position))
-    //         .collect()
-    // }
-
     pub fn get_room_enemy_data(&self, room_id: u32) -> Vec<Position> {
         let floor = &self.get_current_floor();
         floor
@@ -282,7 +274,7 @@ impl CountdownTimer {
 
 impl Default for CountdownTimer {
     fn default() -> Self {
-        Self::new(Duration::from_secs(60))
+        Self::new(Duration::from_secs(5))
     }
 }
 

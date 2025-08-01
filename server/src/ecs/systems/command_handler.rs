@@ -8,14 +8,13 @@ use crate::ecs::components::{
     Experience, Level, Money, MovementAI, MovementAIKind, Name, Player, Position, Resource, Stats,
 };
 use crate::ecs::resources::{GameState, ShopInventory};
+use common::{Effect, EquipmentSlot, Health};
 use specs::{
     Entities, Entity, Join, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
 };
 use std::collections::VecDeque;
 use tatami_dungeon::Dungeon;
-use common::{Effect, EquipmentSlot, Health};
 
-// A queue to store commands to be processed
 pub type CommandQueue = VecDeque<(String, RpgCommand, bool)>;
 
 pub struct CommandHandlerSystem;
@@ -114,9 +113,6 @@ impl<'a> System<'a> for CommandHandlerSystem {
                             //TODO: load data from database
                         }
                         RpgCommand::PlayerCommand(PlayerCommand::Buy(item)) => {
-                            // Handle buy command
-                            println!("{} is buying item {:?}", player_name, item);
-
                             // get the entity of the player, get that entity's money, subtract gold from their money,
                             // get the entity's inventory, add item at MenuItem(#) to their inventory
                             if let Some((e, _name)) = (entities, &names)
@@ -155,16 +151,29 @@ impl<'a> System<'a> for CommandHandlerSystem {
                 }
                 GameState::OnAdventure => match command {
                     RpgCommand::PlayerCommand(Use(_item)) => {
-                        if let Some((e, _)) = (entities, &names).join().find(|(_, name)| name.0 == player_name) {
-                            let Some(equipment) = equipment.get_mut(e) else { return };
-                            let Some(item) = equipment.slots.get(&EquipmentSlot::UtilitySlot) else { return };
+                        if let Some((e, _)) = (entities, &names)
+                            .join()
+                            .find(|(_, name)| name.0 == player_name)
+                        {
+                            let Some(equipment) = equipment.get_mut(e) else {
+                                return;
+                            };
+                            let Some(item) = equipment.slots.get(&EquipmentSlot::UtilitySlot)
+                            else {
+                                return;
+                            };
                             let Some(effects) = &item.effects else { return };
                             for effect in effects {
                                 match effect {
                                     Effect::Heal(amount) => {
-                                                                                
-                                        let Some(current_health) = healths.get_mut(e) else { return };
-                                        if let Health::Alive { hp: current_hp, max_hp: max_hp } = current_health.0 {
+                                        let Some(current_health) = healths.get_mut(e) else {
+                                            return;
+                                        };
+                                        if let Health::Alive {
+                                            hp: current_hp,
+                                            max_hp,
+                                        } = current_health.0
+                                        {
                                             let new_hp = (current_hp + amount).min(max_hp);
                                             current_health.0 = Health::Alive { hp: new_hp, max_hp };
                                         };
@@ -173,7 +182,6 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 }
                             }
                             // do what the effect does
-                            
 
                             if item.consumable {
                                 equipment.slots.remove(&EquipmentSlot::UtilitySlot);

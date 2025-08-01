@@ -4,16 +4,21 @@ pub mod systems;
 use crate::commands::RpgCommand;
 use crate::ecs::resources::{CountdownTimer, DeltaTime};
 use crate::ecs::systems::assign_room_target::AssignRoomTargetSystem;
+use crate::ecs::systems::attack_cooldown::AttackCooldownSystem;
 use crate::ecs::systems::combat::CombatSystem;
 use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::countdown::CountdownSystem;
 use crate::ecs::systems::death_handler::DeathCleanupSystem;
+use crate::ecs::systems::dungeon_complete::DungeonComplete;
 use crate::ecs::systems::enemy_ai::EnemyAISystem;
+use crate::ecs::systems::group_coordination::GroupCoordination;
 use crate::ecs::systems::item_pickup::ItemPickup;
+use crate::ecs::systems::level_up::LevelUpSystem;
 use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::pathfinding::PathfindingSystem;
 use crate::ecs::systems::player_ai::PlayerAI;
 use crate::ecs::systems::player_spacing::PartySpacing;
+use crate::ecs::systems::projectile_cleanup::ProjectileCleanupSystem;
 use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
 use crate::ecs::systems::room_exploration::RoomExplorationSystem;
@@ -23,8 +28,6 @@ use common::GameSnapShot;
 use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
-use crate::ecs::systems::group_coordination::GroupCoordination;
-use crate::ecs::systems::projectile_cleanup::ProjectileCleanupSystem;
 
 pub mod resources;
 mod shop;
@@ -46,7 +49,7 @@ pub fn run_game_server(
     gamestate_sender: broadcast::Sender<GameSnapShot>,
     commands_receiver: Receiver<(String, RpgCommand, bool)>,
 ) {
-    const MIN_PLAYERS: usize = 2;
+    const MIN_PLAYERS: usize = 1;
 
     let mut gw = GameWorld::new(commands_receiver);
 
@@ -62,7 +65,14 @@ pub fn run_game_server(
             "countdown",
             &["command_handler"],
         )
-        .with(Movement, "movement", &[])
+        .with(CombatSystem, "combat", &[])
+        .with(AttackCooldownSystem, "attack_cooldown", &["combat"])
+        .with(Movement, "movement", &["combat"])
+        .with(
+            AssignRoomTargetSystem,
+            "assign_room_target",
+            &["combat", "movement"],
+        )
         .with(GroupCoordination, "group_coordination", &[])
         .with(
             RandomWander,
@@ -71,7 +81,6 @@ pub fn run_game_server(
         )
         .with(PlayerAI, "player_ai", &["group_coordination"])
         .with(PathfindingSystem, "pathfinding", &["movement", "player_ai"])
-        .with(CombatSystem, "combat", &[])
         .with(
             Rendering {
                 sender: gamestate_sender,
@@ -88,8 +97,14 @@ pub fn run_game_server(
         .with(ItemPickup, "item_pickup", &["movement"])
         .with(RoomExplorationSystem, "room_exploration", &["movement"])
         .with(EnemyAISystem, "enemy_ai", &["movement"])
-        .with(PartySpacing, "player_spacing", &["movement", "player_ai"])
-        .with(ProjectileCleanupSystem, "projectile_cleanup", &["rendering"])
+        // .with(PartySpacing, "player_spacing", &["movement", "player_ai"])
+        .with(
+            ProjectileCleanupSystem,
+            "projectile_cleanup",
+            &["rendering"],
+        )
+        .with(DungeonComplete, "dungeon_complete", &[])
+        .with(LevelUpSystem, "level_up", &["dungeon_complete"])
         .build();
 
     let mut last_frame_time = std::time::Instant::now();

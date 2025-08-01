@@ -1,6 +1,7 @@
 use crate::ecs::components;
 use crate::ecs::components::Component;
 use crate::ecs::components::DenseVecStorage;
+use crate::ecs::components::NullStorage;
 use crate::ecs::components::inventory::Equipment;
 use common::{DefenseModifiers, OtherModifiers};
 use std::cmp::Ordering;
@@ -88,6 +89,10 @@ impl PartialOrd<MovementSpeed> for u32 {
     }
 }
 
+#[derive(Component, Debug, Clone)]
+#[storage(NullStorage)]
+pub struct CanMove;
+
 #[derive(Debug, Default, Component, Clone)]
 pub struct TargetPosition {
     pub x: u32,
@@ -100,6 +105,7 @@ impl From<&Position> for TargetPosition {
     }
 }
 
+/// used for pathfinding system, not movement system
 #[derive(Component)]
 pub struct DesiredTargetPosition {
     pub x: u32,

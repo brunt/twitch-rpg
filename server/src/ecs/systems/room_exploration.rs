@@ -1,7 +1,7 @@
 use crate::ecs::components::combat::{
-    AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
+    AttackComponent, AttackTarget, AttackTimer, DefenseComponent, HealthComponent, MeleeAttacker,
 };
-use crate::ecs::components::movement::{MovementSpeed, TargetPosition};
+use crate::ecs::components::movement::{CanMove, MovementSpeed, TargetPosition};
 use crate::ecs::components::{Enemy, Level, Name, Player, Position};
 use crate::ecs::resources::{Adventure, DirectionOffset, RoomCheck};
 use common::Health;
@@ -20,6 +20,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
         WriteStorage<'a, Name>,
         WriteStorage<'a, HealthComponent>,
         WriteStorage<'a, MovementSpeed>,
+        WriteStorage<'a, CanMove>,
         WriteStorage<'a, TargetPosition>,
         WriteStorage<'a, AttackComponent>,
         WriteStorage<'a, DefenseComponent>,
@@ -39,6 +40,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
             mut names,
             mut healths,
             mut movement_speeds,
+            mut can_move,
             mut target_positions,
             mut attack_components,
             mut defense_components,
@@ -92,7 +94,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
                             .insert(enemy, Level(1))
                             .expect("Failed to insert level");
                         healths
-                            .insert(enemy, HealthComponent(Health::Alive { hp: 2, max_hp: 2 }))
+                            .insert(enemy, HealthComponent::new_from_difficulty(adv.difficulty))
                             .expect("Failed to add health");
                         positions
                             .insert(enemy, Position::from(&enemy_pos))
@@ -100,27 +102,22 @@ impl<'a> System<'a> for RoomExplorationSystem {
                         movement_speeds
                             .insert(enemy, MovementSpeed(1))
                             .expect("Failed to insert movement speed");
+                        can_move
+                            .insert(enemy, CanMove)
+                            .expect("Failed to be able to move");
                         target_positions
                             .insert(enemy, TargetPosition::from(&player_pos))
                             .expect("Failed to insert enemy target position");
                         attack_components
                             .insert(
                                 enemy,
-                                AttackComponent {
-                                    damage: 1,
-                                    hit_rating: 1,
-                                    range: 1,
-                                    cooldown: 3000,
-                                },
+                                AttackComponent::from_enemy_difficulty(adv.difficulty),
                             )
                             .expect("Failed to insert attack_component");
                         defense_components
                             .insert(
                                 enemy,
-                                DefenseComponent {
-                                    defense: 0,
-                                    evasion: 0,
-                                },
+                                DefenseComponent::from_enemy_difficulty(adv.difficulty),
                             )
                             .expect("Failed to insert defense_component");
                         melee

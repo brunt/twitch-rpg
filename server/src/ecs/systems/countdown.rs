@@ -1,7 +1,12 @@
 use crate::ecs::components::class::CharacterClass;
-use crate::ecs::components::combat::{AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker, RangedAttacker};
+use crate::ecs::components::combat::{
+    AttackComponent, AttackTarget, AttackTimer, DefenseComponent, HealthComponent, MeleeAttacker,
+    RangedAttacker,
+};
 use crate::ecs::components::inventory::Equipment;
-use crate::ecs::components::movement::{DesiredTargetPosition, MovementSpeed, TargetPosition};
+use crate::ecs::components::movement::{
+    CanMove, DesiredTargetPosition, MovementSpeed, TargetPosition,
+};
 use crate::ecs::components::{DungeonItem, Enemy, Level, Name, Player, Position, Stats};
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
 use crate::ecs::systems::pathfinding::PathfindingSystem;
@@ -29,6 +34,7 @@ impl<'a> System<'a> for CountdownSystem {
         WriteStorage<'a, Level>,
         WriteStorage<'a, Name>,
         WriteStorage<'a, MovementSpeed>,
+        WriteStorage<'a, CanMove>,
         WriteStorage<'a, TargetPosition>,
         WriteStorage<'a, DungeonItem>,
         WriteStorage<'a, AttackComponent>,
@@ -56,6 +62,7 @@ impl<'a> System<'a> for CountdownSystem {
             mut levels,
             mut names,
             mut movementspeeds,
+            mut can_move,
             mut targets,
             mut dungeon_items,
             mut attack_components,
@@ -96,6 +103,9 @@ impl<'a> System<'a> for CountdownSystem {
                     movementspeeds
                         .insert(entity, MovementSpeed::from_items(equipped_items))
                         .expect("Failed to insert movement speed");
+                    can_move
+                        .insert(entity, CanMove)
+                        .expect("Failed to insert can_move");
 
                     let st = stats.get(entity).expect("failed to read stats");
                     let equipped_items = equipment.get(entity).expect("failed to read equipment");
@@ -118,7 +128,9 @@ impl<'a> System<'a> for CountdownSystem {
                     // melee
                     //     .insert(entity, MeleeAttacker)
                     //     .expect("failed to add melee");
-                    ranged.insert(entity, RangedAttacker).expect("failed to add ranged");
+                    ranged
+                        .insert(entity, RangedAttacker)
+                        .expect("failed to add ranged");
                 }
 
                 let player_entities: Vec<_> =
@@ -136,7 +148,7 @@ impl<'a> System<'a> for CountdownSystem {
                             .insert(enemy, Level(1))
                             .expect("Failed to insert level");
                         healths
-                            .insert(enemy, HealthComponent(Health::Alive { hp: 2, max_hp: 2 }))
+                            .insert(enemy, HealthComponent::new_from_difficulty(adv.difficulty))
                             .expect("Failed to add health");
                         positions
                             .insert(enemy, Position::from(pos))
@@ -144,18 +156,16 @@ impl<'a> System<'a> for CountdownSystem {
                         movementspeeds
                             .insert(enemy, MovementSpeed(1))
                             .expect("Failed to insert movement speed");
+                        can_move
+                            .insert(enemy, CanMove)
+                            .expect("Failed to insert can_move");
                         targets
                             .insert(enemy, TargetPosition::from(&adv.dungeon.player_position))
                             .expect("Failed to insert enemy target position");
                         attack_components
                             .insert(
                                 enemy,
-                                AttackComponent {
-                                    damage: 1,
-                                    hit_rating: 1,
-                                    range: 1,
-                                    cooldown: 2000,
-                                },
+                                AttackComponent::from_enemy_difficulty(adv.difficulty),
                             )
                             .expect("failed to add attack_component");
                         defense_components

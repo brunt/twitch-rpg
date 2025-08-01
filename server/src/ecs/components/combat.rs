@@ -11,6 +11,11 @@ pub struct AttackTarget {
     pub(crate) entity: Entity,
 }
 
+#[derive(Component, Default)]
+pub struct AttackTimer {
+    pub remaining: f64,
+}
+
 #[derive(Component)]
 pub struct DefenseComponent {
     /// the entity's rating of flat damage reduction
@@ -20,6 +25,12 @@ pub struct DefenseComponent {
 }
 
 impl DefenseComponent {
+    pub fn from_enemy_difficulty(difficulty: u32) -> Self {
+        Self {
+            defense: 1 * difficulty,
+            evasion: 5 * difficulty,
+        }
+    }
     // TODO: from buffs as well
     /// Defense component derived from ALL equipped items
     pub fn from_stats_and_items(stats: &Stats, equipment: &Equipment) -> Self {
@@ -56,11 +67,20 @@ pub struct AttackComponent {
     pub hit_rating: u32,
     /// the range in tiles that is how far this entity can attack another entity
     pub range: u32,
-    /// the time after which this entity may attack again
-    pub cooldown: u32, // milliseconds
+    /// the time after which this entity may attack again in milliseconds
+    pub cooldown: u32,
 }
 
 impl AttackComponent {
+    pub fn from_enemy_difficulty(difficulty: u32) -> Self {
+        Self {
+            damage: 1 * difficulty,
+            hit_rating: 15 * difficulty,
+            range: 1,
+            cooldown: 3000 / difficulty,
+        }
+    }
+
     /// Attack component derived from ALL equipped items
     pub fn from_stats_and_items(stats: &Stats, equipment: &Equipment) -> Self {
         // Aggregate item modifiers
@@ -73,13 +93,13 @@ impl AttackComponent {
             },
             |mut m, item| {
                 if let Some(stats) = &item.stats {
-                     if let Some(modifiers) = &stats.attack_modifiers {
-                    //TODO: multiplicative?
+                    if let Some(modifiers) = &stats.attack_modifiers {
+                        //TODO: multiplicative?
                         m.damage_bonus += modifiers.damage_bonus;
                         m.hit_rating_bonus += modifiers.hit_rating_bonus;
                         m.range_bonus += modifiers.range_bonus;
                         m.cooldown_reduction_ms += modifiers.cooldown_reduction_ms;
-                     }
+                    }
                 }
                 m
             },
@@ -100,7 +120,7 @@ impl AttackComponent {
 }
 
 #[derive(Component)]
-pub struct FiredProjectile{
+pub struct FiredProjectile {
     pub position: tatami_dungeon::Position,
     pub target_position: tatami_dungeon::Position,
     pub damage: u32,
@@ -142,6 +162,13 @@ impl HealthComponent {
             | PlayerClass::Druid
             | PlayerClass::Warlock => Health::Alive { hp: 8, max_hp: 8 },
             PlayerClass::Wizard | PlayerClass::Sorcerer => Health::Alive { hp: 6, max_hp: 6 },
+        })
+    }
+
+    pub fn new_from_difficulty(difficulty: u32) -> Self {
+        Self(Health::Alive {
+            hp: 10 * difficulty,
+            max_hp: 10 * difficulty,
         })
     }
 }

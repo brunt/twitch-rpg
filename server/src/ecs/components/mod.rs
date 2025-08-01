@@ -65,6 +65,15 @@ pub struct Experience {
     pub next_level: u32,
 }
 
+impl Default for Experience {
+    fn default() -> Self {
+        Self {
+            current: 0,
+            next_level: 50,
+        }
+    }
+}
+
 // Level component
 #[derive(Debug, Component, Clone)]
 pub struct Level(pub u32);
@@ -156,7 +165,6 @@ pub enum ProjectileEffect {
     Stun(std::time::Duration),
     AreaOfEffect { radius: u32, effect_type: String },
 }
-
 
 // Experience reward component
 #[derive(Debug, Component)]

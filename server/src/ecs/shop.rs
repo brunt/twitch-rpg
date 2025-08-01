@@ -1,5 +1,8 @@
-use common::{AttackModifiers, DefenseModifiers, Effect, EquipmentSlot, ItemQuality, ItemStats, OtherModifiers, ShopItem};
 use common::ItemQuality::Common;
+use common::{
+    AttackModifiers, DefenseModifiers, Effect, EquipmentSlot, ItemQuality, ItemStats,
+    OtherModifiers, ShopItem,
+};
 
 #[derive(Default)]
 pub struct ShopItemPool {
@@ -53,7 +56,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             consumable: false,
             effects: None,
         },
-        ShopItem {            
+        ShopItem {
             id: 4,
             name: "Trident".to_string(),
             quality: ItemQuality::Uncommon,
@@ -244,7 +247,7 @@ pub fn initialize_shop_items() -> Vec<ShopItem> {
             price: 3,
             description: "Restores 4hp".to_string(),
             consumable: true,
-            effects: Some(vec![Effect::Heal(4)])
-        }
+            effects: Some(vec![Effect::Heal(4)]),
+        },
     ]
 }
