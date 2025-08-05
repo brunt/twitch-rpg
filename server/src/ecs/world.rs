@@ -23,6 +23,7 @@ use crate::ecs::resources::{
 };
 use crate::ecs::shop::{ShopItemPool, initialize_shop_items};
 use specs::{World, WorldExt};
+use crate::ecs::components::form::FormComponent;
 
 pub fn create_world() -> World {
     let mut world = World::new();
@@ -56,6 +57,7 @@ pub fn create_world() -> World {
     world.register::<FiredProjectile>();
     world.register::<CanMove>();
     world.register::<AttackTimer>();
+    world.register::<FormComponent>();
 
     // resources
     world.insert(GameState::InTown);

@@ -153,8 +153,7 @@ impl Adventure {
     }
 
     pub fn get_item_data(&self) -> Vec<Position> {
-        self
-            .get_current_floor()
+        self.get_current_floor()
             .rooms
             .iter()
             .flat_map(|room| room.items.iter().map(|item| item.position))
@@ -192,8 +191,12 @@ impl Adventure {
         if floor.tile_at(*start) == Tile::Floor {
             return Some(*start);
         }
-        
-        start.adjacent_8((width, height)).iter().find(|adj| floor.tile_at(**adj) == Tile::Floor).copied()
+
+        start
+            .adjacent_8((width, height))
+            .iter()
+            .find(|adj| floor.tile_at(**adj) == Tile::Floor)
+            .copied()
     }
 }
 
@@ -229,7 +232,12 @@ impl DirectionOffset for tatami_dungeon::Direction {
 
 impl Default for Adventure {
     fn default() -> Self {
-        Self::generate_with_params(GenerateDungeonParams::default())
+        Self::generate_with_params(GenerateDungeonParams {
+            max_stairs_per_floor: 1,
+            min_stairs_per_floor: 1,
+
+            ..GenerateDungeonParams::default()
+        })
     }
 }
 
@@ -267,7 +275,7 @@ impl CountdownTimer {
 
 impl Default for CountdownTimer {
     fn default() -> Self {
-        Self::new(Duration::from_secs(5))
+        Self::new(Duration::from_secs(30))
     }
 }
 

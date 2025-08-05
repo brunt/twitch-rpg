@@ -109,7 +109,8 @@ pub(crate) fn draw_shop_interface(
 
         // Draw equipment slot value
         ctx.set_font("bold 12px sans-serif");
-        ctx.fill_text(&item.equip_slot.to_string(), x + 80.0, y + 25.0).unwrap();
+        ctx.fill_text(&item.equip_slot.to_string(), x + 80.0, y + 25.0)
+            .unwrap();
 
         // Draw Menu Item #
         ctx.set_fill_style_str("#fff");

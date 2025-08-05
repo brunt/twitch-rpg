@@ -12,6 +12,7 @@ use common::{
 };
 use specs::{Entities, Join, LendJoin, ReadExpect, ReadStorage, System, WriteStorage};
 use tokio::sync::broadcast::Sender;
+use crate::ecs::components::form::FormComponent;
 
 /// This system generates a struct that will get serialized to JSON and sent to the frontend.
 /// Information from it will be used to draw to the canvas
@@ -38,6 +39,7 @@ impl<'a> System<'a> for Rendering {
         ReadStorage<'a, FiredProjectile>,
         ReadStorage<'a, Equipment>,
         WriteStorage<'a, ShowCharacter>,
+        ReadStorage<'a, FormComponent>,
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
         ReadExpect<'a, ShopInventory>,
@@ -65,6 +67,7 @@ impl<'a> System<'a> for Rendering {
             fired_projectiles,
             equipment,
             mut show_characters,
+            forms,
             game_state,
             countdown,
             shop_inventory,
@@ -127,10 +130,11 @@ impl<'a> System<'a> for Rendering {
                     &character_classes,
                     &levels,
                     &health,
+                    &forms,
                     target_positions.maybe(),
                 )
                     .join()
-                    .map(|(pos, class, lvl, health, target_pos_maybe)| {
+                    .map(|(pos, class, lvl, health, form, target_pos_maybe)| {
                         let pos = pos.clone();
                         let class = class.clone();
                         EntityPosition {
@@ -139,6 +143,7 @@ impl<'a> System<'a> for Rendering {
                             level: lvl.0,
                             target_position: target_pos_maybe.map(tatami_dungeon::Position::from),
                             health: Some(health.0.clone()),
+                            form: form.0.clone(),
                         }
                     })
                     .chain(
@@ -148,16 +153,19 @@ impl<'a> System<'a> for Rendering {
                             &levels,
                             &enemies,
                             &health,
+                            &forms,
                             target_positions.maybe(),
                         )
                             .join()
                             .map(
-                                |(pos, name, level, _, health, target_pos_maybe)| EntityPosition {
+                                |(pos, name, level, _, health, form, target_pos_maybe)| EntityPosition {
                                     entity_type: name.0.clone(),
                                     position: tatami_dungeon::Position::from(pos),
                                     level: level.0,
-                                    target_position: target_pos_maybe.map(tatami_dungeon::Position::from),
+                                    target_position: target_pos_maybe
+                                        .map(tatami_dungeon::Position::from),
                                     health: Some(health.0.clone()),
+                                    form: form.0.clone(),
                                 },
                             ),
                     )
@@ -172,6 +180,7 @@ impl<'a> System<'a> for Rendering {
                             level: 0,
                             target_position: None,
                             health: None,
+                            form: Form::Normal,
                         },
                     ))
                     .collect();
@@ -214,7 +223,7 @@ impl<'a> System<'a> for Rendering {
                     projectiles: Some(projectile_data),
                 };
 
-                for (entity, name, health, character_class, level, money, stats, equipment, show) in
+                for (entity, name, health, character_class, level, money, stats, equipment, form, show) in
                     (
                         &entities,
                         &names,
@@ -224,6 +233,7 @@ impl<'a> System<'a> for Rendering {
                         &monies,
                         &stats,
                         &equipment,
+                        &forms,
                         show_characters.maybe(),
                     )
                         .join()
@@ -234,7 +244,7 @@ impl<'a> System<'a> for Rendering {
                         health: health.0.clone(),
                         level: level.0,
                         gold: money.0,
-                        form: Form::Normal, // TODO: not always normal, read buffs
+                        form: form.0.clone(),
                         stats: PlayerStats::from(stats),
                         show: show.is_some(),
                         equipped_items: equipment.slots.clone(),

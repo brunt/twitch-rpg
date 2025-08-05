@@ -3,19 +3,26 @@ mod dungeon_floor;
 mod item_shop;
 mod sprites;
 
-use common::{AttackModifiers, DefenseModifiers, EquipmentSlot, EquippedItem, Form, GameSnapShot, Health, ItemQuality, ItemStats, MenuItem, OtherModifiers, PlayerClass, PlayerSnapshot, PlayerStats, ShopItem};
+use common::Effect as GameEffect;
+use common::ItemQuality::{Common, Epic, Uncommon};
+use common::{
+    AttackModifiers, DefenseModifiers, EquipmentSlot, Form, GameSnapShot, Health, Item,
+    ItemQuality, ItemStats, MenuItem, OtherModifiers, PlayerClass, PlayerSnapshot, PlayerStats,
+    ShopItem,
+};
 use components::bottom_panel::BottomPanel;
 use components::game_canvas::GameCanvas;
 use components::side_panel::SidePanelCharacterSheet;
 use leptos::mount::mount_to_body;
-use leptos::prelude::{ClassAttribute, Effect, ElementChild, Get, GetUntracked, IntoInner, NodeRefAttribute, Set, signal, StyleAttribute};
+use leptos::prelude::{
+    ClassAttribute, Effect, ElementChild, Get, GetUntracked, IntoInner, NodeRefAttribute, Set,
+    StyleAttribute, signal,
+};
 use leptos::{IntoView, component, view};
 use std::collections::HashMap;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{EventSource, MessageEvent};
-use common::ItemQuality::{Common, Epic, Uncommon};
-use common::Effect as GameEffect;
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -25,7 +32,7 @@ fn main() {
 #[component]
 fn App() -> impl IntoView {
     let (gamestate, set_gamestate) = signal::<Option<GameSnapShot>>(None);
-        // MOCK DATA FOR LOCAL DEV
+    // MOCK DATA FOR LOCAL DEV
     // Effect::new(move |_| {
     //     let mock_snapshot = GameSnapShot {
     //         // Fill with test data
@@ -255,21 +262,21 @@ fn App() -> impl IntoView {
             }
         }) as Box<dyn FnMut(MessageEvent)>);
         sse_event.set_onmessage(Some(callback.as_ref().unchecked_ref()));
-    
+
         callback.forget();
     });
-    
+
     view! {
-    <div class="flex flex-row">
-        <div>
-            <div class="w-[1280px] h-[720px]">
-                <GameCanvas gs=gamestate />
+        <div class="flex flex-row">
+            <div>
+                <div class="w-[1280px] h-[720px]">
+                    <GameCanvas gs=gamestate />
+                </div>
+                <BottomPanel />
             </div>
-            <BottomPanel />
+            <SidePanelCharacterSheet gs=gamestate />
         </div>
-        <SidePanelCharacterSheet gs=gamestate />
-    </div>
-}
+    }
 }
 
 //TODO: delete after local testing
@@ -287,7 +294,7 @@ fn App() -> impl IntoView {
 //                     evasion_rating: 0,
 //                 }),
 //                 other_modifiers: None,
-// 
+//
 //                 strength: None,
 //                 intelligence: Some(9),
 //                 agility: None,
@@ -325,7 +332,7 @@ fn App() -> impl IntoView {
 //             name: "Trident".to_string(),
 //             quality: ItemQuality::Uncommon,
 //             equip_slot: EquipmentSlot::MainHand,
-// 
+//
 //             price: 18,
 //             stats: Some(ItemStats {
 //                 attack_modifiers: None,

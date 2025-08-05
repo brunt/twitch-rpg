@@ -10,7 +10,7 @@ pub enum VisualState {
 
 pub fn player_sprite((form, class, level): (&Form, &PlayerClass, u32)) -> &'static SpriteRect {
     match form {
-        Form::Normal | Form::Invisible => match (class, level) {
+        Form::Normal | Form::Scaled(_) | Form::Invisible => match (class, level) {
             (PlayerClass::Rogue, level) => {
                 if level <= 5 {
                     &MONSTERS_SPRITE_878

@@ -162,6 +162,7 @@ pub fn draw_dungeon_floor(
         position,
         level,
         health,
+        form,
         ..
     } in floor_pos.iter()
     {
@@ -213,13 +214,18 @@ pub fn draw_dungeon_floor(
                 "Opened" => draw_sprite(ctx, terrain_image, &opened_tile, x, y, 1.0, None),
                 cl => {
                     if let Ok(player_class) = PlayerClass::from_str(cl) {
+                        let scale = if let Form::Scaled(x) = form { *x } else { 1.0 };
+                        
+                        let adjusted_x = x - (SPRITE_DIMENSION as f64 * (scale - 1.0) / 2.0);
+                        let adjusted_y = y - (SPRITE_DIMENSION as f64 * (scale - 1.0));
+                        
                         draw_sprite(
                             ctx,
                             monster_image,
-                            player_sprite((&Form::Normal, &player_class, *level)),
-                            x,
-                            y,
-                            1.0,
+                            player_sprite((&form, &player_class, *level)),
+                            adjusted_x,
+                            adjusted_y,
+                            scale,
                             None,
                         )
                     }

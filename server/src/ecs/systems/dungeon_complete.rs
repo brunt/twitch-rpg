@@ -35,7 +35,7 @@ impl<'a> System<'a> for DungeonComplete {
     );
     // TODO: readstorage from stats to display? or is that in rendering system?
     // TODO: for now, check if a player is on a stair tile and call it a day
-    
+
     // TODO: add a 20ish second timer before going back to InTown
     // eventually, dungeons will have multiple floors and we check here for only the last.
     fn run(
@@ -111,7 +111,7 @@ impl<'a> System<'a> for DungeonComplete {
                     }
 
                     // TODO: other multipliers
-                    if let Some(mut money) = monies.get_mut(entity) { 
+                    if let Some(mut money) = monies.get_mut(entity) {
                         money.0 += 100 * adv.difficulty;
                     }
 

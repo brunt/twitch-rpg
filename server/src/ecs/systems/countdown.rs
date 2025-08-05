@@ -10,10 +10,11 @@ use crate::ecs::components::movement::{
 use crate::ecs::components::{DungeonItem, Enemy, Level, Name, Player, Position, Stats};
 use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
 use crate::ecs::systems::pathfinding::PathfindingSystem;
-use common::{Health, PlayerClass};
+use common::{Form, Health, PlayerClass};
 use rand::seq::IndexedRandom;
 use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
 use std::time;
+use crate::ecs::components::form::FormComponent;
 
 pub struct CountdownSystem {
     /// The minimum number of players in a lobby before the countdown timer starts.
@@ -42,6 +43,7 @@ impl<'a> System<'a> for CountdownSystem {
         WriteStorage<'a, AttackTarget>,
         WriteStorage<'a, MeleeAttacker>,
         WriteStorage<'a, RangedAttacker>,
+        WriteStorage<'a, FormComponent>,
         Write<'a, ShopInventory>,
         Read<'a, DeltaTime>,
         Entities<'a>,
@@ -70,6 +72,7 @@ impl<'a> System<'a> for CountdownSystem {
             mut attack_targets,
             mut melee,
             mut ranged,
+            mut forms,
             mut shop_inventory,
             delta_time,
             mut entities,
@@ -124,6 +127,7 @@ impl<'a> System<'a> for CountdownSystem {
                             },
                         )
                         .expect("failed to add defense_component");
+                    forms.insert(entity, FormComponent(Form::Normal)).expect("failed to add form");
                     //TODO: conditionally set melee/range based on equipped item
                     // melee
                     //     .insert(entity, MeleeAttacker)
@@ -168,6 +172,7 @@ impl<'a> System<'a> for CountdownSystem {
                                 AttackComponent::from_enemy_difficulty(adv.difficulty),
                             )
                             .expect("failed to add attack_component");
+                        forms.insert(enemy, FormComponent(Form::Normal)).expect("failed to add form");
                         defense_components
                             .insert(
                                 enemy,

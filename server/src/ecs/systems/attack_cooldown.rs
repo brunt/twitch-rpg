@@ -1,4 +1,4 @@
-use crate::ecs::components::combat::{AttackTimer};
+use crate::ecs::components::combat::AttackTimer;
 use crate::ecs::components::movement::CanMove;
 use crate::ecs::resources::DeltaTime;
 use specs::{Entities, Join, Read, System, WriteStorage};

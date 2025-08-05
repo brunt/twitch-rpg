@@ -1,0 +1,19 @@
+Item(
+    item_id: 1,
+    name: "Elven Boots",
+    quality: Uncommon,
+    equip_slot: Feet,
+    stats: Some(ItemStats(
+        attack_modifiers: None,
+        defense_modifiers: None,
+        other_modifiers: Some(OtherModifiers(
+            movement_speed_increase: 1,
+        )),
+        strength: None,
+        intelligence: None,
+        agility: None,
+    )),
+    description: "More movement speed",
+    consumable: false,
+    effects: None,
+)

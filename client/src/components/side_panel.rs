@@ -1,21 +1,21 @@
 use crate::components::{draw_item_sprite, draw_sprite};
 use crate::sprites::items_sprites::ITEMS_SPRITES;
 use crate::sprites::monsters_sprites::player_sprite;
-use crate::sprites::{SpriteRect, ITEM_SPRITE_DIMENSION, SPRITE_DIMENSION};
-use common::{EquipmentSlot, EquippedItem, GameSnapShot, ItemQuality, PlayerSnapshot};
+use crate::sprites::{ITEM_SPRITE_DIMENSION, SPRITE_DIMENSION, SpriteRect};
+use common::{EquipmentSlot, GameSnapShot, Item, ItemQuality, PlayerSnapshot};
 use leptos::control_flow::Show;
 use leptos::html::Canvas;
 use leptos::prelude::{
-    set_timeout, signal, ClassAttribute, Get, IntoAny, Set, Signal, StyleAttribute,
+    ClassAttribute, Get, IntoAny, Set, Signal, StyleAttribute, set_timeout, signal,
 };
 use leptos::prelude::{Effect, ElementChild, NodeRef, NodeRefAttribute};
-use leptos::{component, view, IntoView};
+use leptos::{IntoView, component, view};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use std::time::Duration;
-use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::closure::Closure;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
 //TODO: display active buffs
@@ -112,11 +112,12 @@ fn PlayerPanel(
         }
     });
 
-    let utility_item = player.equipped_items
+    let utility_item = player
+        .equipped_items
         .iter()
         .find(|(slot, _)| matches!(slot, EquipmentSlot::UtilitySlot))
         .map(|(_, item)| item);
-    
+
     view! {
         <div class="relative p-2 bg-stone-900 border border-amber-300 transition-opacity">
             <div class="flex items-center gap-2">
@@ -288,9 +289,7 @@ fn GoldCoinCanvas() -> impl IntoView {
 }
 
 #[component]
-fn ItemSpriteCanvas(
-    #[prop(into)] item: EquippedItem,
-) -> impl IntoView {    
+fn ItemSpriteCanvas(#[prop(into)] item: Item) -> impl IntoView {
     let canvas_ref: NodeRef<Canvas> = NodeRef::new();
 
     let item_rc_outer = Rc::new(item);
@@ -300,47 +299,46 @@ fn ItemSpriteCanvas(
         };
         let item_rc = Rc::clone(&item_rc_outer);
 
-        
         let ctx = canvas
             .get_context("2d")
             .unwrap()
             .unwrap()
             .dyn_into::<CanvasRenderingContext2d>()
             .unwrap();
-        
+
         let ctx_rc = Rc::new(RefCell::new(ctx));
         let item_image_rc = Rc::new(RefCell::new(HtmlImageElement::new().unwrap()));
-        
+
         let closure_item_image_rc = Rc::clone(&item_image_rc);
         let closure_ctx_rc = Rc::clone(&ctx_rc);
         let closure_item_rc = item_rc.clone();
-        
+
         let onload = Closure::<dyn FnMut()>::new(move || {
             let item = &*closure_item_rc;
             let item_image = closure_item_image_rc.borrow();
             let ctx = closure_ctx_rc.borrow();
-                ctx.set_stroke_style_str(match item.quality.clone() {
-                    ItemQuality::Common => "#ddd",
-                    ItemQuality::Uncommon => "#af0",
-                    ItemQuality::Rare => "#0af",
-                    ItemQuality::Epic => "#c3f",
-                    ItemQuality::Legendary => "#f90",
-                });
-                ctx.set_line_width(1.0);
-                let frame_x =  1.0;
-                let frame_y =  1.0;
-                let frame_w = ITEM_SPRITE_DIMENSION as f64;
-                let frame_h = ITEM_SPRITE_DIMENSION as f64;
-                ctx.stroke_rect(frame_x, frame_y, frame_w, frame_h);
-                draw_item_sprite(
-                    &ctx,
-                    &item_image,
-                    ITEMS_SPRITES.get(&item.item_id),
-                    0.0,
-                    0.0,
-                )
+            ctx.set_stroke_style_str(match item.quality.clone() {
+                ItemQuality::Common => "#ddd",
+                ItemQuality::Uncommon => "#af0",
+                ItemQuality::Rare => "#0af",
+                ItemQuality::Epic => "#c3f",
+                ItemQuality::Legendary => "#f90",
+            });
+            ctx.set_line_width(1.0);
+            let frame_x = 1.0;
+            let frame_y = 1.0;
+            let frame_w = ITEM_SPRITE_DIMENSION as f64;
+            let frame_h = ITEM_SPRITE_DIMENSION as f64;
+            ctx.stroke_rect(frame_x, frame_y, frame_w, frame_h);
+            draw_item_sprite(
+                &ctx,
+                &item_image,
+                ITEMS_SPRITES.get(&item.item_id),
+                0.0,
+                0.0,
+            )
         });
-        
+
         let item_image_mut = item_image_rc.borrow_mut();
         item_image_mut.set_onload(Some(onload.as_ref().unchecked_ref()));
         item_image_mut.set_src("public/sprites/items.png");

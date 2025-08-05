@@ -1,7 +1,10 @@
+use assets_manager::asset::Asset;
+use assets_manager::{BoxedError, FileAsset};
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use serde::{Deserialize, Serialize};
+use std::time::Duration;
 use tatami_dungeon::Position;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -35,7 +38,9 @@ pub struct EntityPosition {
     #[serde(rename = "d")]
     pub target_position: Option<tatami_dungeon::Position>,
     #[serde(rename = "e")]
-    pub health: Option<Health>
+    pub health: Option<Health>,
+    #[serde(rename = "f")]
+    pub form: Form,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -57,19 +62,19 @@ pub struct PlayerSnapshot {
     #[serde(rename = "h")]
     pub show: bool,
     #[serde(rename = "i")]
-    pub equipped_items: HashMap<EquipmentSlot, EquippedItem>,
+    pub equipped_items: HashMap<EquipmentSlot, Item>,
     // pub buffs: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Form {
-    #[serde(rename = "a")]
+    // #[serde(rename = "a")]
     Normal,
-    #[serde(rename = "b")]
+    // #[serde(rename = "b")]
     Polymorphed(String),
-    #[serde(rename = "c")]
+    // #[serde(rename = "c")]
     Invisible,
-    #[serde(rename = "d")]
+    // #[serde(rename = "d")]
     Scaled(f64), // larger or smaller
 }
 
@@ -120,7 +125,10 @@ impl FromStr for PlayerClass {
             "Warlock" => Ok(Self::Warlock),
             // "monk" => Ok(Self::Monk),
             "Sorcerer" => Ok(Self::Sorcerer),
-            _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "invalid player class"))
+            _ => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "invalid player class",
+            )),
         }
     }
 }
@@ -136,10 +144,12 @@ impl Display for Health {
         match self {
             Self::Alive { hp, max_hp } => {
                 let total_hearts = 6;
-                let filled_hearts = (((hp * total_hearts) + (max_hp - 1)) / max_hp).min(total_hearts);
+                let filled_hearts =
+                    (((hp * total_hearts) + (max_hp - 1)) / max_hp).min(total_hearts);
                 let empty_hearts = total_hearts - filled_hearts;
 
-                let hearts: String = "❤️".repeat(filled_hearts as usize) + &"🖤".repeat(empty_hearts as usize);
+                let hearts: String =
+                    "❤️".repeat(filled_hearts as usize) + &"🖤".repeat(empty_hearts as usize);
                 write!(f, "{}", hearts)
             }
             Self::Dead => write!(f, "☠️ Dead"),
@@ -156,25 +166,32 @@ pub struct ShopItem {
     pub price: u32,
     pub stats: Option<ItemStats>,
     pub consumable: bool,
-    pub effects: Option<Vec<Effect>>, 
+    pub effects: Option<Vec<Effect>>,
     pub description: String,
 }
 
 impl ShopItem {
-    pub fn to_equipped_item(&self) -> EquippedItem {
-        EquippedItem {
+    pub fn to_item(&self) -> Item {
+        Item {
             item_id: self.id,
             name: self.name.clone(),
             quality: self.quality.clone(),
             stats: self.stats.clone(),
-            slot: self.equip_slot.clone(),
+            equip_slot: self.equip_slot.clone(),
             consumable: self.consumable,
             effects: self.effects.clone(),
+            description: self.description.clone(),
         }
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+impl From<&Item> for ShopItem {
+    fn from(item: &Item) -> Self {
+        item.to_shop_item()
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum ItemQuality {
     Common,
     Uncommon,
@@ -207,7 +224,7 @@ pub enum EquipmentSlot {
     Feet,
     Finger,
     Neck,
-    UtilitySlot
+    UtilitySlot,
 }
 
 impl Display for EquipmentSlot {
@@ -220,25 +237,72 @@ impl Display for EquipmentSlot {
             Self::Feet => write!(f, "Feet"),
             Self::Finger => write!(f, "Finger"),
             Self::Neck => write!(f, "Neck"),
-            Self::UtilitySlot => write!(f, "Utility Slot"), 
+            Self::UtilitySlot => write!(f, "Utility Slot"),
         }
     }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct EquippedItem {
+pub struct Item {
     /// item_id retrieves a sprite from the sprite hashmap, also facilitates database operations
     pub item_id: usize,
     pub name: String,
     pub quality: ItemQuality,
-    pub slot: EquipmentSlot,
+    pub equip_slot: EquipmentSlot,
     pub stats: Option<ItemStats>,
     pub consumable: bool,
     pub effects: Option<Vec<Effect>>,
+    pub description: String,
     //TODO: how to grant abilities?
 }
 
-#[derive(Clone,Debug, Serialize, Deserialize)]
+impl FileAsset for Item {
+    const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, BoxedError> {
+        assets_manager::asset::load_ron(&bytes)
+    }
+}
+
+impl Item {
+    pub fn to_shop_item(&self) -> ShopItem {
+        let base_stats_price = self.stats.as_ref().map_or(0, |s| {
+            2 * (s.strength.unwrap_or(0)
+                + s.agility.unwrap_or(0)
+                + s.intelligence.unwrap_or(0)
+                + if s.attack_modifiers.is_some() { 5 } else { 0 }
+                + if s.defense_modifiers.is_some() { 5 } else { 0 }
+                + if s.other_modifiers.is_some() { 5 } else { 0 })
+        });
+
+        let effects_price: u32 = self.effects.as_ref().map_or(0, |effects| {
+            effects.iter().fold(0, |acc, effect| {
+                acc + match effect {
+                    Effect::Heal(amount) => *amount * 3, // example: healing effect is worth 3x its amount
+                    // Effect::Damage(amount) => *amount as i32 * 4, // damage effect worth 4x
+                    // Effect::Buff(_) => 10, // flat price for buffs, example
+                    _ => 5,
+                }
+            })
+        });
+
+        let price = base_stats_price + effects_price;
+
+        ShopItem {
+            id: self.item_id,
+            name: self.name.clone(),
+            quality: self.quality.clone(),
+            equip_slot: self.equip_slot.clone(),
+            price,
+            stats: self.stats.clone(),
+            consumable: self.consumable,
+            effects: self.effects.clone(),
+            description: self.description.clone(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AttackModifiers {
     pub damage_bonus: i32,
     pub hit_rating_bonus: i32,
@@ -254,8 +318,7 @@ pub struct DefenseModifiers {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OtherModifiers {
-    pub movement_speed_increase: u32
-    // others as necessary
+    pub movement_speed_increase: u32, // others as necessary
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -265,10 +328,10 @@ pub struct ItemStats {
     pub attack_modifiers: Option<AttackModifiers>,
     /// direct modifiers to defense components
     pub defense_modifiers: Option<DefenseModifiers>,
-    
+
     /// other modifiers
     pub other_modifiers: Option<OtherModifiers>,
-    
+
     /// physical damage, health
     pub strength: Option<u32>,
     /// spell damage, duration, radius
@@ -313,7 +376,7 @@ pub enum DamageType {
     Black,
 }
 
-impl Display for DamageType{
+impl Display for DamageType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Physical => write!(f, "Physical"),
@@ -333,7 +396,7 @@ impl Display for DamageType{
 pub enum Effect {
     Heal(u32),
     Revive,
+    Transform(Form)
     // GrantBuff(String), //TODO af
     // GainAbility
-    
 }

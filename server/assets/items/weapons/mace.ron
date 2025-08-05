@@ -1,0 +1,22 @@
+Item(
+    item_id: 2,
+    name: "Mace",
+    quality: Common,
+    equip_slot: MainHand,
+    stats: Some(ItemStats(
+        attack_modifiers: Some(AttackModifiers(
+            damage_bonus: 1,
+            hit_rating_bonus: 3,
+            range_bonus: 0,
+            cooldown_reduction_ms: 0,
+        )),
+        defense_modifiers: None,
+        other_modifiers: None,
+        strength: None,
+        intelligence: None,
+        agility: None,
+    )),
+    description: "Staggers opponents on hit",
+    consumable: false,
+    effects: None,
+)
