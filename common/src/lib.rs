@@ -335,7 +335,14 @@ pub struct ItemStats {
     pub agility: Option<u32>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct StatChange {
+    pub strength: Option<i32>,
+    pub intelligence: Option<i32>,
+    pub agility: Option<i32>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct PlayerStats {
     #[serde(rename = "a")]
     pub strength: u32,
@@ -344,6 +351,7 @@ pub struct PlayerStats {
     #[serde(rename = "c")]
     pub agility: u32,
 }
+
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Projectile {
@@ -391,7 +399,7 @@ impl Display for DamageType {
 pub enum Effect {
     Heal(u32),
     Revive,
-    Transform(Form)
-    // GrantBuff(String), //TODO af
+    Transform(Form),
+    StatChange(StatChange),
     // GainAbility
 }

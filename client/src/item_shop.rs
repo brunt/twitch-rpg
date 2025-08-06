@@ -3,8 +3,10 @@ use crate::sprites::items_sprites::ITEMS_SPRITES;
 use crate::sprites::{ITEM_SPRITE_DIMENSION, SpriteRect};
 use common::{ItemQuality, MenuItem, ShopItem};
 use std::collections::HashMap;
+use leptos::context::use_context;
+use leptos::prelude::{Get, LocalStorage, ReadSignal};
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
-
+use crate::SpriteSheets;
 // TODO: reshape shop item
 // /////////////////////////
 // //  ITEM NAME         #//
@@ -16,7 +18,7 @@ use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
 pub(crate) fn draw_shop_interface(
     ctx: &CanvasRenderingContext2d,
-    item_image: &HtmlImageElement,
+    sprites: &SpriteSheets,
     items: &HashMap<MenuItem, ShopItem>,
     start_x: f64,
     start_y: f64,
@@ -26,6 +28,8 @@ pub(crate) fn draw_shop_interface(
     const ITEM_SLOT_WIDTH: f64 = ITEM_SLOT_SIZE * 1.5;
 
     let padding = 12.0;
+            
+   ctx.draw_image_with_html_image_element(&sprites.background, 0.0, 0.0).unwrap();
 
     for (menu_item, item) in items.iter() {
         let row = menu_item.0 / slots_per_row;
@@ -41,7 +45,7 @@ pub(crate) fn draw_shop_interface(
         let sprite_y = y + 20.0;
         draw_item_sprite(
             ctx,
-            item_image,
+            &sprites.items,
             ITEMS_SPRITES.get(&item.id),
             sprite_x,
             sprite_y,
@@ -89,7 +93,7 @@ pub(crate) fn draw_shop_interface(
         // Draw gold sprite
         draw_item_sprite(
             ctx,
-            item_image,
+            &sprites.items,
             Some(ITEMS_SPRITES.get(&138).unwrap()),
             x + 70.0,
             y + 25.0,

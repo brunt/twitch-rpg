@@ -64,9 +64,7 @@ pub fn create_world() -> World {
     world.insert(GameState::InTown);
     world.insert::<Option<CountdownTimer>>(None);
     world.insert(DeltaTime::default());
-    world.insert(ShopItemPool {
-        all_items: initialize_shop_items(),
-    });
+    world.insert(ShopItemPool::new());
     world.insert(GroupDestination {
         target_room_id: None,
     });

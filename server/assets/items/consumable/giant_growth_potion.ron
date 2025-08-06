@@ -7,6 +7,7 @@ Item(
     description: "Grow in size",
     consumable: true,
     effects: Some([
-        (Transform(Scaled(1.5)), Some(60.0))
+        (Transform(Scaled(1.5)), Some(60.0)),
+        (StatChange(( strength: Some(10), agility: None, intelligence: None )), Some(60.0)),
     ]),
 )

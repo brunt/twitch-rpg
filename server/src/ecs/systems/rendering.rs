@@ -1,18 +1,15 @@
 use crate::ecs::components::class::{CharacterClass, ShowCharacter};
 use crate::ecs::components::combat::{FiredProjectile, HealthComponent, RangedAttacker};
+use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::TargetPosition;
 use crate::ecs::components::{
     DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Stats,
 };
 use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
-use common::{
-    DamageType, EntityPosition, Form, GameSnapShot, Health, ItemQuality, PlayerSnapshot,
-    PlayerStats, Projectile, ShopItem,
-};
+use common::{EntityPosition, Form, GameSnapShot, Health, PlayerSnapshot, PlayerStats, Projectile};
 use specs::{Entities, Join, LendJoin, ReadExpect, ReadStorage, System, WriteStorage};
 use tokio::sync::broadcast::Sender;
-use crate::ecs::components::form::FormComponent;
 
 /// This system generates a struct that will get serialized to JSON and sent to the frontend.
 /// Information from it will be used to draw to the canvas

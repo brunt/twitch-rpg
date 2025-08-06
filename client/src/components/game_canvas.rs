@@ -5,13 +5,15 @@ use crate::sprites::SPRITE_DIMENSION;
 use crate::sprites::spellfx_missiles_sprites::ActiveProjectile;
 use common::GameSnapShot;
 use leptos::html::Canvas;
-use leptos::prelude::{Effect, Get, NodeRef, NodeRefAttribute, Signal};
+use leptos::prelude::{document, Effect, Get, LocalStorage, NodeRef, NodeRefAttribute, ReadSignal, Signal};
 use leptos::{IntoView, component, view};
 use std::cell::RefCell;
 use std::rc::Rc;
+use leptos::context::use_context;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
-use web_sys::{CanvasRenderingContext2d, window};
+use web_sys::{CanvasRenderingContext2d, window, HtmlImageElement};
+use crate::SpriteSheets;
 
 #[component]
 pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoView {
@@ -19,21 +21,10 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
     const CANVAS_WIDTH: f64 = 1280.0;
     const CANVAS_HEIGHT: f64 = 720.0;
 
-    // Load sprites once when the component is created.
-    // As per your correction, load_images returns [HtmlImageElement; 10] directly.
-    let [
-        terrain_image,
-        monster_image,
-        item_image,
-        _,             // Placeholder for unused image elements
-        _,             // Placeholder for unused image elements
-        _,             // Placeholder for unused image elements
-        _,             // Placeholder for unused image elements
-        _,             // Placeholder for unused image elements
-        _,             // Placeholder for unused image elements
-        missile_image, // This is an HtmlImageElement
-    ] = load_images();
-
+    let sprites = use_context::<ReadSignal<SpriteSheets, LocalStorage>>()
+        .expect("SpriteSheets context not found")
+        .get();
+    
     // Shared mutable state for the game logic. Rc provides multiple ownership,
     // and RefCell allows mutable borrowing at runtime.
     let latest_snapshot = Rc::new(RefCell::new(None));
@@ -83,15 +74,9 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
     let active_projectiles_outer = active_projectiles.clone();
     let f_outer = f.clone();
     let g_outer = g.clone();
-
-    // These are now HtmlImageElement directly, not Signals.
-    let terrain_image_outer = terrain_image.clone();
-    let monster_image_outer = monster_image.clone();
-    let item_image_outer = item_image.clone();
-    let missile_image_outer = missile_image.clone();
-
     let win_outer = window().unwrap(); // Capture window once for this effect.
-
+    let sprites_clone = sprites.clone();
+    
     Effect::new(move |_| {
         // This effect runs when its dependencies change (e.g., canvas_ref becomes available).
         // It sets up and starts the animation loop.
@@ -113,12 +98,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
         let latest_snapshot_for_closure = latest_snapshot_outer.clone();
         let active_projectiles_for_closure = active_projectiles_outer.clone();
         let g_for_closure = g_outer.clone();
-
-        // These are now HtmlImageElement directly, not Signals.
-        let terrain_image_for_closure = terrain_image_outer.clone();
-        let monster_image_for_closure = monster_image_outer.clone();
-        let item_image_for_closure = item_image_outer.clone();
-        let missile_image_for_closure = missile_image_outer.clone();
+        let sprites_for_closure = sprites_clone.clone();
 
         let win_for_closure = win_outer.clone(); // window() is not Rc, so clone the value.
 
@@ -150,12 +130,10 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                     snapshot.difficulty,
                     snapshot.floor_positions.as_ref(),
                 ) {
-                    // Draw dungeon floor if in dungeon.
-                    // Pass HtmlImageElement directly.
                     draw_dungeon_floor(
                         &ctx,
-                        &terrain_image_for_closure,
-                        &monster_image_for_closure,
+                        &sprites_for_closure.terrain,
+                        &sprites_for_closure.monsters,
                         floor,
                         CANVAS_WIDTH,
                         CANVAS_HEIGHT,
@@ -180,7 +158,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                     if let Some(shop_items) = snapshot.shop_items.as_ref() {
                         draw_shop_interface(
                             &ctx,
-                            &item_image_for_closure,
+                            &sprites_for_closure,
                             shop_items,
                             30.0,
                             30.0,
@@ -231,7 +209,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                     leptos::logging::log!("Camera position: x={}, y={}", camera_x, camera_y);
 
                     // Draw the projectile sprite.
-                    draw_sprite(&ctx, &missile_image_for_closure, &p.sprite, x, y, 1.0, None);
+                    draw_sprite(&ctx, &sprites_for_closure.projectiles, &p.sprite, x, y, 1.0, None);
                     true // Keep projectile if animation is ongoing.
                 });
             }

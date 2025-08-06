@@ -3,26 +3,33 @@ mod dungeon_floor;
 mod item_shop;
 mod sprites;
 
-use common::Effect as GameEffect;
-use common::ItemQuality::{Common, Epic, Uncommon};
-use common::{
-    AttackModifiers, DefenseModifiers, EquipmentSlot, Form, GameSnapShot, Health, Item,
-    ItemQuality, ItemStats, MenuItem, OtherModifiers, PlayerClass, PlayerSnapshot, PlayerStats,
-    ShopItem,
-};
+use common::GameSnapShot;
 use components::bottom_panel::BottomPanel;
 use components::game_canvas::GameCanvas;
 use components::side_panel::SidePanelCharacterSheet;
+use leptos::context::provide_context;
 use leptos::mount::mount_to_body;
-use leptos::prelude::{
-    ClassAttribute, Effect, ElementChild, Get, GetUntracked, IntoInner, NodeRefAttribute, Set,
-    StyleAttribute, signal,
-};
-use leptos::{IntoView, component, view};
-use std::collections::HashMap;
+use leptos::prelude::{signal, signal_local, ClassAttribute, Effect, ElementChild, Get, GetUntracked, IntoInner, NodeRefAttribute, Set, StyleAttribute};
+use leptos::{component, view, IntoView};
+use std::rc::Rc;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
-use web_sys::{EventSource, MessageEvent};
+use web_sys::{EventSource, HtmlImageElement, MessageEvent};
+
+#[derive(Clone)]
+pub struct SpriteSheets{
+    pub terrain: Rc<HtmlImageElement>,
+    pub items: Rc<HtmlImageElement>,
+    pub monsters: Rc<HtmlImageElement>,
+    pub projectiles: Rc<HtmlImageElement>,
+    pub spellfx1: Rc<HtmlImageElement>,
+    pub spellfx2: Rc<HtmlImageElement>,
+    pub spellfx3: Rc<HtmlImageElement>,
+    pub spellfx4: Rc<HtmlImageElement>,
+    pub spellfx5: Rc<HtmlImageElement>,
+    pub damage_fx: Rc<HtmlImageElement>,
+    pub background: Rc<HtmlImageElement>,
+}
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -31,7 +38,65 @@ fn main() {
 
 #[component]
 fn App() -> impl IntoView {
+    // create a single context for all sprites
+    let terrain = Rc::new(HtmlImageElement::new().unwrap());
+    let monsters = Rc::new(HtmlImageElement::new().unwrap());
+    let items = Rc::new(HtmlImageElement::new().unwrap());
+    let spellfx1 = Rc::new(HtmlImageElement::new().unwrap());
+    let spellfx2 = Rc::new(HtmlImageElement::new().unwrap());
+    let spellfx3 = Rc::new(HtmlImageElement::new().unwrap());
+    let spellfx4 = Rc::new(HtmlImageElement::new().unwrap());
+    let spellfx5 = Rc::new(HtmlImageElement::new().unwrap());
+    let damage_fx = Rc::new(HtmlImageElement::new().unwrap());
+    let projectiles = Rc::new(HtmlImageElement::new().unwrap());
+    let background = Rc::new(HtmlImageElement::new().unwrap());
+
+    terrain.set_src("public/sprites/terrain.png");
+    items.set_src("public/sprites/items.png");
+    monsters.set_src("public/sprites/monsters.png");
+    spellfx1.set_src("public/sprites/SpellFXAnim1.png");
+    spellfx2.set_src("public/sprites/SpellFXAnim2.png");
+    spellfx3.set_src("public/sprites/SpellFXAnim3.png");
+    spellfx4.set_src("public/sprites/SpellFXAnim4.png");
+    spellfx5.set_src("public/sprites/SpellFXAnim5.png");
+    damage_fx.set_src("public/sprites/DamageFX.png");
+    projectiles.set_src("public/sprites/SpellFXMissiles.png");
+    projectiles.set_src("public/sprites/SpellFXMissiles.png");
+    background.set_src("public/img/bg.jpg");
+    
+    let (sprites, _) = signal_local(SpriteSheets {
+        items,
+        monsters,
+        projectiles,
+        spellfx1,
+        spellfx2,
+        spellfx3,
+        spellfx4,
+        spellfx5,
+        terrain,
+        damage_fx,
+        background,
+    });
+    leptos::logging::log!("making context");
+    provide_context(sprites);
+
     let (gamestate, set_gamestate) = signal::<Option<GameSnapShot>>(None);
+
+    // TODO: use this for real server communication
+    Effect::new(move |_| {
+        let sse_event = EventSource::new("/sse").expect_throw("Failed to create EventSource");
+        let callback = Closure::wrap(Box::new(move |event: MessageEvent| {
+            if let Some(text) = event.data().as_string() {
+                leptos::logging::log!("{}", text);
+                set_gamestate
+                    .set(serde_json::from_str(&text).expect_throw("Failed to parse game state"));
+            }
+        }) as Box<dyn FnMut(MessageEvent)>);
+        sse_event.set_onmessage(Some(callback.as_ref().unchecked_ref()));
+    
+        callback.forget();
+    });
+    
     // MOCK DATA FOR LOCAL DEV
     // Effect::new(move |_| {
     //     let mock_snapshot = GameSnapShot {
@@ -55,14 +120,15 @@ fn App() -> impl IntoView {
     //                     agility: 3,
     //                 },
     //                 show: false,
-    //                 equipped_items: HashMap::from([(EquipmentSlot::UtilitySlot,  EquippedItem {
+    //                 equipped_items: HashMap::from([(EquipmentSlot::UtilitySlot,  Item {
     //                     item_id: 26,
     //                     name: "Healing Potion".to_string(),
     //                     quality: Common,
-    //                     slot: EquipmentSlot::MainHand,
+    //                     equip_slot: EquipmentSlot::MainHand,
     //                     stats: None,
     //                     consumable: true,
-    //                     effects: Some(vec![GameEffect::Heal(4)])
+    //                     effects: Some(vec![(GameEffect::Heal(4), None)]),
+    //                     description: "".to_string(),
     //                 })])
     //             },
     //             PlayerSnapshot {
@@ -93,32 +159,35 @@ fn App() -> impl IntoView {
     //                     agility: 3,
     //                 },
     //                 show: true,
-    //                 equipped_items: HashMap::from([(EquipmentSlot::Feet,  EquippedItem {
+    //                 equipped_items: HashMap::from([(EquipmentSlot::Feet,  Item {
     //                     item_id: 1,
     //                     name: "boots".to_string(),
     //                     quality: Common,
-    //                     slot: EquipmentSlot::Feet,
+    //                     equip_slot: EquipmentSlot::Feet,
     //                     stats: None,
     //                     consumable: false,
     //                     effects: None,
+    //                     description: "".to_string(),
     //                 }),
-    //                     (EquipmentSlot::MainHand,  EquippedItem {
+    //                     (EquipmentSlot::MainHand,  Item {
     //                         item_id: 2,
     //                         name: "flogger".to_string(),
     //                         quality: Uncommon,
-    //                         slot: EquipmentSlot::MainHand,
+    //                         equip_slot: EquipmentSlot::MainHand,
     //                         stats: None,
     //                         consumable: false,
     //                         effects: None,
+    //                         description: "".to_string(),
     //                     }),
-    //                     (EquipmentSlot::Body,  EquippedItem {
+    //                     (EquipmentSlot::Body,  Item {
     //                         item_id: 555,
     //                         name: "flogger".to_string(),
     //                         quality: Epic,
-    //                         slot: EquipmentSlot::MainHand,
+    //                         equip_slot: EquipmentSlot::MainHand,
     //                         stats: None,
     //                         consumable: false,
     //                         effects: None,
+    //                         description: "".to_string(),
     //                     }),
     //                 ])
     //             },
@@ -251,21 +320,6 @@ fn App() -> impl IntoView {
     //     set_gamestate.set(Some(mock_snapshot));
     // });
 
-    // TODO: use this for real server communication
-    Effect::new(move |_| {
-        let sse_event = EventSource::new("/sse").expect_throw("Failed to create EventSource");
-        let callback = Closure::wrap(Box::new(move |event: MessageEvent| {
-            if let Some(text) = event.data().as_string() {
-                leptos::logging::log!("{}", text);
-                set_gamestate
-                    .set(serde_json::from_str(&text).expect_throw("Failed to parse game state"));
-            }
-        }) as Box<dyn FnMut(MessageEvent)>);
-        sse_event.set_onmessage(Some(callback.as_ref().unchecked_ref()));
-
-        callback.forget();
-    });
-
     view! {
         <div class="flex flex-row">
             <div>
@@ -294,7 +348,7 @@ fn App() -> impl IntoView {
 //                     evasion_rating: 0,
 //                 }),
 //                 other_modifiers: None,
-//
+// 
 //                 strength: None,
 //                 intelligence: Some(9),
 //                 agility: None,
@@ -332,7 +386,7 @@ fn App() -> impl IntoView {
 //             name: "Trident".to_string(),
 //             quality: ItemQuality::Uncommon,
 //             equip_slot: EquipmentSlot::MainHand,
-//
+// 
 //             price: 18,
 //             stats: Some(ItemStats {
 //                 attack_modifiers: None,
@@ -518,7 +572,7 @@ fn App() -> impl IntoView {
 //             price: 3,
 //             description: "Restores 4hp".to_string(),
 //             consumable: true,
-//             effects: Some(vec![common::Effect::Heal(4)])
+//             effects: Some(vec![(common::Effect::Heal(4), None)])
 //         })
 //     ])
 // }

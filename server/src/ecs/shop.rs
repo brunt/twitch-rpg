@@ -8,6 +8,22 @@ pub struct ShopItemPool {
     pub all_items: Vec<ShopItem>,
 }
 
+impl ShopItemPool {
+    pub fn new() -> Self {
+        use ItemQuality::*;
+        let allowed = vec![Common, Uncommon];
+        
+        let all_items = load_items_by_quality(|item| {
+            if allowed.contains(&item.quality) {
+                Some(item.to_shop_item())
+            } else {
+                None
+            }
+        });
+        Self { all_items }
+    }
+}
+
 static ASSETS: LazyLock<AssetCache> = LazyLock::new(|| {
     AssetCache::new("server").unwrap()
 });

@@ -201,13 +201,26 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                         }
                                         if let Some(duration) = duration {
                                             active_effects
-                                                .entry(e).expect("REASON")
+                                                .entry(e).expect("active effects entry")
                                                 .or_insert_with(ActiveEffects::default)
                                                 .effects
                                                 .push(TimedEffect {
                                                     effect: effect.clone(),
                                                     remaining_secs: *duration,
                                                 });
+                                        }
+                                    }
+                                    Effect::StatChange(stat_change) => {
+                                        if let Some(entity_stats) = stats.get_mut(e) {
+                                            if let Some(delta_str) = stat_change.strength {
+                                                entity_stats.strength = (entity_stats.strength as i32 + delta_str).max(0) as u32;
+                                            }
+                                            if let Some(delta_agi) = stat_change.agility {
+                                                entity_stats.agility = (entity_stats.agility as i32 + delta_agi).max(0) as u32;
+                                            }
+                                            if let Some(delta_int) = stat_change.intelligence {
+                                                entity_stats.intelligence = (entity_stats.intelligence as i32 + delta_int).max(0) as u32;
+                                            }
                                         }
                                     }
                                     _ => {}
