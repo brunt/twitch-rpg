@@ -14,6 +14,7 @@ use specs::{
 };
 use std::collections::VecDeque;
 use tatami_dungeon::Dungeon;
+use crate::ecs::components::effect::{ActiveEffects, TimedEffect};
 use crate::ecs::components::form::FormComponent;
 
 pub type CommandQueue = VecDeque<(String, RpgCommand, bool)>;
@@ -34,6 +35,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
         WriteStorage<'a, Stats>,
         WriteStorage<'a, ShowCharacter>,
         WriteStorage<'a, FormComponent>,
+        WriteStorage<'a, ActiveEffects>,
         ReadExpect<'a, ShopInventory>,
         Entities<'a>,
     );
@@ -53,6 +55,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
             mut stats,
             mut show_characters,
             mut forms,
+            mut active_effects,
             ref shop_inventory,
             ref entities,
         ): Self::SystemData,
@@ -165,7 +168,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 return;
                             };
                             let Some(effects) = &item.effects else { return };
-                            for effect in effects {
+                            for (effect, duration) in effects {
                                 match effect {
                                     Effect::Heal(amount) => {
                                         let Some(current_health) = healths.get_mut(e) else {
@@ -195,6 +198,16 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                                 let Some(form) = forms.get_mut(e) else { return };
                                                 form.0 = Form::Normal;
                                             }
+                                        }
+                                        if let Some(duration) = duration {
+                                            active_effects
+                                                .entry(e).expect("REASON")
+                                                .or_insert_with(ActiveEffects::default)
+                                                .effects
+                                                .push(TimedEffect {
+                                                    effect: effect.clone(),
+                                                    remaining_secs: *duration,
+                                                });
                                         }
                                     }
                                     _ => {}

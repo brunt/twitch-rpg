@@ -128,13 +128,6 @@ impl<'a> System<'a> for CountdownSystem {
                         )
                         .expect("failed to add defense_component");
                     forms.insert(entity, FormComponent(Form::Normal)).expect("failed to add form");
-                    //TODO: conditionally set melee/range based on equipped item
-                    // melee
-                    //     .insert(entity, MeleeAttacker)
-                    //     .expect("failed to add melee");
-                    ranged
-                        .insert(entity, RangedAttacker)
-                        .expect("failed to add ranged");
                 }
 
                 let player_entities: Vec<_> =

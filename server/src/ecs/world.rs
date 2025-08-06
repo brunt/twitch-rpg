@@ -17,12 +17,13 @@ use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::{
     CanMove, DesiredTargetPosition, MovementSpeed, Path, TargetPosition, Wander,
 };
-use crate::ecs::components::{ActiveEffects, DungeonItem, Opened};
+use crate::ecs::components::{DungeonItem, Opened};
 use crate::ecs::resources::{
     Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, GroupDestination, ShopInventory,
 };
 use crate::ecs::shop::{ShopItemPool, initialize_shop_items};
 use specs::{World, WorldExt};
+use crate::ecs::components::effect::{ActiveEffects, TimedEffect};
 use crate::ecs::components::form::FormComponent;
 
 pub fn create_world() -> World {
@@ -51,13 +52,13 @@ pub fn create_world() -> World {
     world.register::<MeleeAttacker>();
     world.register::<RangedAttacker>();
     world.register::<DefenseComponent>();
-    world.register::<ActiveEffects>();
     world.register::<Opened>();
     world.register::<ShowCharacter>();
     world.register::<FiredProjectile>();
     world.register::<CanMove>();
     world.register::<AttackTimer>();
     world.register::<FormComponent>();
+    world.register::<ActiveEffects>();
 
     // resources
     world.insert(GameState::InTown);

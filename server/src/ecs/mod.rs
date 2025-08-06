@@ -27,6 +27,8 @@ use common::GameSnapShot;
 use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
+use crate::ecs::systems::effect_expiration::EffectExpirationSystem;
+use crate::ecs::systems::weapon_classification::WeaponClassifierSystem;
 
 pub mod resources;
 mod shop;
@@ -104,6 +106,8 @@ pub fn run_game_server(
         )
         .with(DungeonComplete, "dungeon_complete", &[])
         .with(LevelUpSystem, "level_up", &["dungeon_complete"])
+        .with(WeaponClassifierSystem, "weapon_classification", &[])
+        .with(EffectExpirationSystem, "effect_expiration", &[])
         .build();
 
     let mut last_frame_time = std::time::Instant::now();

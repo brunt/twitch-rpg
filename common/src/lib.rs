@@ -68,13 +68,9 @@ pub struct PlayerSnapshot {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Form {
-    // #[serde(rename = "a")]
     Normal,
-    // #[serde(rename = "b")]
     Polymorphed(String),
-    // #[serde(rename = "c")]
     Invisible,
-    // #[serde(rename = "d")]
     Scaled(f64), // larger or smaller
 }
 
@@ -166,7 +162,7 @@ pub struct ShopItem {
     pub price: u32,
     pub stats: Option<ItemStats>,
     pub consumable: bool,
-    pub effects: Option<Vec<Effect>>,
+    pub effects: Option<Vec<(Effect, Option<f64>)>>,
     pub description: String,
 }
 
@@ -251,9 +247,8 @@ pub struct Item {
     pub equip_slot: EquipmentSlot,
     pub stats: Option<ItemStats>,
     pub consumable: bool,
-    pub effects: Option<Vec<Effect>>,
+    pub effects: Option<Vec<(Effect, Option<f64>)>>,
     pub description: String,
-    //TODO: how to grant abilities?
 }
 
 impl FileAsset for Item {
@@ -276,13 +271,13 @@ impl Item {
         });
 
         let effects_price: u32 = self.effects.as_ref().map_or(0, |effects| {
-            effects.iter().fold(0, |acc, effect| {
+            effects.iter().fold(0, |acc, (effect, duration)| {
                 acc + match effect {
-                    Effect::Heal(amount) => *amount * 3, // example: healing effect is worth 3x its amount
-                    // Effect::Damage(amount) => *amount as i32 * 4, // damage effect worth 4x
-                    // Effect::Buff(_) => 10, // flat price for buffs, example
-                    _ => 5,
-                }
+                    Effect::Heal(amount) => *amount * 3,
+                    Effect::Transform(Form::Scaled(_)) => 10,
+                    Effect::Transform(Form::Invisible) => 20,
+                    _ => 20,
+                } * duration.map_or(1, |d| (d / 60.0) as u32)
             })
         });
 

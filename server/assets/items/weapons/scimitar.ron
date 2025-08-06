@@ -1,0 +1,22 @@
+Item(
+    item_id: 7,
+    name: "Scimitar",
+    quality: Uncommon,
+    equip_slot: MainHand,
+    stats: Some(ItemStats(
+        attack_modifiers: Some(AttackModifiers(
+            damage_bonus: 5,
+            hit_rating_bonus: 7,
+            range_bonus: 0,
+            cooldown_reduction_ms: 250,
+        )),
+        defense_modifiers: None,
+        other_modifiers: None,
+        strength: Some(2),
+        intelligence: None,
+        agility: Some(3),
+    )),
+    description: "Melee attacks cut deeper",
+    consumable: false,
+    effects: None,
+)

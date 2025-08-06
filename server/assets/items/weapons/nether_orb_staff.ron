@@ -1,0 +1,22 @@
+Item(
+    item_id: 9,
+    name: "Nether-orb Staff",
+    quality: Rare,
+    equip_slot: MainHand,
+    stats: Some(ItemStats(
+        attack_modifiers: Some(AttackModifiers(
+            damage_bonus: 1,
+            hit_rating_bonus: 5,
+            range_bonus: 4,
+            cooldown_reduction_ms: 500,
+        )),
+        defense_modifiers: None,
+        other_modifiers: None,
+        strength: None,
+        intelligence: Some(4),
+        agility: None,
+    )),
+    description: "Reduces Cooldowns slightly",
+    consumable: false,
+    effects: None,
+)

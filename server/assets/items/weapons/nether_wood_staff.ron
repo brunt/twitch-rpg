@@ -1,0 +1,22 @@
+Item(
+    item_id: 9,
+    name: "Netherwood Staff",
+    quality: Uncommon,
+    equip_slot: MainHand,
+    stats: Some(ItemStats(
+        attack_modifiers: Some(AttackModifiers(
+            damage_bonus: 1,
+            hit_rating_bonus: 5,
+            range_bonus: 4,
+            cooldown_reduction_ms: 100,
+        )),
+        defense_modifiers: None,
+        other_modifiers: None,
+        strength: None,
+        intelligence: Some(2),
+        agility: None,
+    )),
+    description: "Reduces Cooldowns slightly",
+    consumable: false,
+    effects: None,
+)

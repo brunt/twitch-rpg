@@ -275,7 +275,7 @@ impl CountdownTimer {
 
 impl Default for CountdownTimer {
     fn default() -> Self {
-        Self::new(Duration::from_secs(30))
+        Self::new(Duration::from_secs(10))
     }
 }
 

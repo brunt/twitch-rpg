@@ -8,6 +8,7 @@ use crate::ecs::components::{Experience, Level, Money, Name, Player, Position};
 use crate::ecs::resources::{Adventure, GameState, RoomCheck};
 use specs::{Entities, Join, ReadStorage, System, WriteExpect, WriteStorage};
 use std::ops::Deref;
+use crate::ecs::shop::initialize_reward_items;
 
 pub struct DungeonComplete;
 
@@ -104,6 +105,7 @@ impl<'a> System<'a> for DungeonComplete {
                     attack_components.remove(entity);
                     attack_timer.remove(entity);
                     // dole out rewards
+                    let items = initialize_reward_items(adv.difficulty);
 
                     // TODO: does this play with the level up system?
                     if let Some(mut exp) = experiences.get_mut(entity) {

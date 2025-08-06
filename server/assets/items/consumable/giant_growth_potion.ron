@@ -1,5 +1,5 @@
 Item(
-    item_id: 74,
+    item_id: 170,
     name: "Elixir of Giants",
     quality: Uncommon,
     equip_slot: UtilitySlot,
@@ -7,6 +7,6 @@ Item(
     description: "Grow in size",
     consumable: true,
     effects: Some([
-        Transform(Scaled(1.5))
+        (Transform(Scaled(1.5)), Some(60.0))
     ]),
 )

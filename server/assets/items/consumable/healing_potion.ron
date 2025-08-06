@@ -6,5 +6,5 @@ Item(
     stats: None,
     description: "Restores 4hp",
     consumable: true,
-    effects: Some([Heal(4)]),
+    effects: Some([(Heal(4), None)]),
 )

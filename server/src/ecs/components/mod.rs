@@ -10,6 +10,7 @@ pub mod combat;
 pub mod inventory;
 pub mod movement;
 pub mod form;
+pub mod effect;
 
 // Corpse component for defeated entities
 #[derive(Debug, Component)]
@@ -230,20 +231,6 @@ impl From<&Stats> for PlayerStats {
             intelligence: stats.intelligence,
         }
     }
-}
-
-// Active effects component (buffs/debuffs)
-#[derive(Debug, Component)]
-pub struct ActiveEffects {
-    pub effects: Vec<TimedEffect>,
-}
-
-// Timed effect for buffs/debuffs
-#[derive(Debug, Clone)]
-pub struct TimedEffect {
-    pub effect_type: BuffEffect,
-    pub start_time: std::time::Instant,
-    pub duration: std::time::Duration,
 }
 
 // Resource component for mana, stamina, etc.
