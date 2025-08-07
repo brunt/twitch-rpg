@@ -1,6 +1,7 @@
 use crate::ecs::components::combat::{
     AttackComponent, AttackTarget, AttackTimer, DefenseComponent, HealthComponent, MeleeAttacker,
 };
+use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::movement::{CanMove, MovementSpeed, TargetPosition};
 use crate::ecs::components::{Enemy, Level, Name, Player, Position};
 use crate::ecs::resources::{Adventure, DirectionOffset, RoomCheck};
@@ -8,7 +9,6 @@ use common::{Form, Health};
 use rand::seq::IndexedRandom;
 use specs::{Entities, Join, ReadStorage, System, WriteExpect, WriteStorage};
 use tatami_dungeon::Position as TatamiPosition;
-use crate::ecs::components::form::FormComponent;
 
 pub struct RoomExplorationSystem;
 
@@ -123,7 +123,9 @@ impl<'a> System<'a> for RoomExplorationSystem {
                                 DefenseComponent::from_enemy_difficulty(adv.difficulty),
                             )
                             .expect("Failed to insert defense_component");
-                        forms.insert(enemy, FormComponent(Form::Normal)).expect("failed to add form");
+                        forms
+                            .insert(enemy, FormComponent(Form::Normal))
+                            .expect("failed to add form");
                         melee
                             .insert(enemy, MeleeAttacker)
                             .expect("Failed to insert melee");

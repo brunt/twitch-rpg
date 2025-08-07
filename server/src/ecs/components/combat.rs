@@ -149,19 +149,6 @@ impl HealthComponent {
         matches!(self.0, Health::Alive { .. })
     }
 
-    pub fn new_from_class(class: &PlayerClass) -> Self {
-        Self(match class {
-            PlayerClass::Fighter | PlayerClass::Paladin | PlayerClass::Ranger => {
-                Health::Alive { hp: 10, max_hp: 10 }
-            }
-            PlayerClass::Rogue
-            | PlayerClass::Cleric
-            | PlayerClass::Druid
-            | PlayerClass::Warlock => Health::Alive { hp: 8, max_hp: 8 },
-            PlayerClass::Wizard | PlayerClass::Sorcerer => Health::Alive { hp: 6, max_hp: 6 },
-        })
-    }
-
     pub fn new_from_difficulty(difficulty: u32) -> Self {
         Self(Health::Alive {
             hp: 10 * difficulty,

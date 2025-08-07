@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use common::Effect;
+use serde::{Deserialize, Serialize};
 use specs::prelude::*;
 use specs_derive::Component;
 

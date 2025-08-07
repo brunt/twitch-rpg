@@ -3,6 +3,7 @@ use crate::ecs::components::combat::{
     AttackComponent, AttackTarget, AttackTimer, DefenseComponent, HealthComponent, MeleeAttacker,
     RangedAttacker,
 };
+use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::{
     CanMove, DesiredTargetPosition, MovementSpeed, TargetPosition,
@@ -14,7 +15,6 @@ use common::{Form, Health, PlayerClass};
 use rand::seq::IndexedRandom;
 use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
 use std::time;
-use crate::ecs::components::form::FormComponent;
 
 pub struct CountdownSystem {
     /// The minimum number of players in a lobby before the countdown timer starts.
@@ -127,7 +127,9 @@ impl<'a> System<'a> for CountdownSystem {
                             },
                         )
                         .expect("failed to add defense_component");
-                    forms.insert(entity, FormComponent(Form::Normal)).expect("failed to add form");
+                    forms
+                        .insert(entity, FormComponent(Form::Normal))
+                        .expect("failed to add form");
                 }
 
                 let player_entities: Vec<_> =
@@ -165,7 +167,9 @@ impl<'a> System<'a> for CountdownSystem {
                                 AttackComponent::from_enemy_difficulty(adv.difficulty),
                             )
                             .expect("failed to add attack_component");
-                        forms.insert(enemy, FormComponent(Form::Normal)).expect("failed to add form");
+                        forms
+                            .insert(enemy, FormComponent(Form::Normal))
+                            .expect("failed to add form");
                         defense_components
                             .insert(
                                 enemy,

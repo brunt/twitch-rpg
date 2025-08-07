@@ -155,14 +155,16 @@ impl<'a> System<'a> for Rendering {
                         )
                             .join()
                             .map(
-                                |(pos, name, level, _, health, form, target_pos_maybe)| EntityPosition {
-                                    entity_type: name.0.clone(),
-                                    position: tatami_dungeon::Position::from(pos),
-                                    level: level.0,
-                                    target_position: target_pos_maybe
-                                        .map(tatami_dungeon::Position::from),
-                                    health: Some(health.0.clone()),
-                                    form: form.0.clone(),
+                                |(pos, name, level, _, health, form, target_pos_maybe)| {
+                                    EntityPosition {
+                                        entity_type: name.0.clone(),
+                                        position: tatami_dungeon::Position::from(pos),
+                                        level: level.0,
+                                        target_position: target_pos_maybe
+                                            .map(tatami_dungeon::Position::from),
+                                        health: Some(health.0.clone()),
+                                        form: form.0.clone(),
+                                    }
                                 },
                             ),
                     )
@@ -220,20 +222,30 @@ impl<'a> System<'a> for Rendering {
                     projectiles: Some(projectile_data),
                 };
 
-                for (entity, name, health, character_class, level, money, stats, equipment, form, show) in
-                    (
-                        &entities,
-                        &names,
-                        &health,
-                        &character_classes,
-                        &levels,
-                        &monies,
-                        &stats,
-                        &equipment,
-                        &forms,
-                        show_characters.maybe(),
-                    )
-                        .join()
+                for (
+                    entity,
+                    name,
+                    health,
+                    character_class,
+                    level,
+                    money,
+                    stats,
+                    equipment,
+                    form,
+                    show,
+                ) in (
+                    &entities,
+                    &names,
+                    &health,
+                    &character_classes,
+                    &levels,
+                    &monies,
+                    &stats,
+                    &equipment,
+                    &forms,
+                    show_characters.maybe(),
+                )
+                    .join()
                 {
                     gs.party.push(PlayerSnapshot {
                         name: name.0.clone(),

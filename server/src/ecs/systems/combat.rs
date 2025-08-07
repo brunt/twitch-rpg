@@ -81,6 +81,7 @@ impl<'a> System<'a> for CombatSystem {
 
             let actual_damage = attack.damage.saturating_sub(defense);
 
+            // this component gets re-added in the attack_cooldown system
             can_move.remove(attacker_entity);
 
             // Apply damage if target is alive

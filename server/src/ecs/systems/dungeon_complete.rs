@@ -6,9 +6,9 @@ use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::{CanMove, MovementSpeed, Path, TargetPosition};
 use crate::ecs::components::{Experience, Level, Money, Name, Player, Position};
 use crate::ecs::resources::{Adventure, GameState, RoomCheck};
+use crate::ecs::shop::initialize_reward_items;
 use specs::{Entities, Join, ReadStorage, System, WriteExpect, WriteStorage};
 use std::ops::Deref;
-use crate::ecs::shop::initialize_reward_items;
 
 pub struct DungeonComplete;
 

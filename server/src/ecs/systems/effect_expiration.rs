@@ -1,10 +1,10 @@
-use pathfinding::num_traits::SaturatingAdd;
-use specs::prelude::*;
-use crate::ecs::resources::DeltaTime;
+use crate::ecs::components::Stats;
 use crate::ecs::components::effect::{ActiveEffects, TimedEffect};
 use crate::ecs::components::form::FormComponent;
+use crate::ecs::resources::DeltaTime;
 use common::{Effect, Form};
-use crate::ecs::components::Stats;
+use pathfinding::num_traits::SaturatingAdd;
+use specs::prelude::*;
 
 pub struct EffectExpirationSystem;
 
@@ -17,7 +17,10 @@ impl<'a> System<'a> for EffectExpirationSystem {
         Entities<'a>,
     );
 
-    fn run(&mut self, (mut active_effects, mut forms, mut stats, delta, entities): Self::SystemData) {
+    fn run(
+        &mut self,
+        (mut active_effects, mut forms, mut stats, delta, entities): Self::SystemData,
+    ) {
         let delta_secs = delta.0;
 
         for (entity, active) in (&entities, &mut active_effects).join() {
@@ -36,17 +39,20 @@ impl<'a> System<'a> for EffectExpirationSystem {
                                 form.0 = Form::Normal;
                             }
                         }
-                        //TODO: system where stats change hp, etc
                         Effect::StatChange(stat_change) => {
                             if let Some(entity_stats) = stats.get_mut(entity) {
                                 if let Some(delta_str) = stat_change.strength {
-                                    entity_stats.strength = (entity_stats.strength as i32 - delta_str).max(0) as u32;
+                                    entity_stats.strength =
+                                        (entity_stats.strength as i32 - delta_str).max(0) as u32;
                                 }
                                 if let Some(delta_agi) = stat_change.agility {
-                                    entity_stats.agility = (entity_stats.agility as i32 - delta_agi).max(0) as u32;
+                                    entity_stats.agility =
+                                        (entity_stats.agility as i32 - delta_agi).max(0) as u32;
                                 }
                                 if let Some(delta_int) = stat_change.intelligence {
-                                    entity_stats.intelligence = (entity_stats.intelligence as i32 - delta_int).max(0) as u32;
+                                    entity_stats.intelligence =
+                                        (entity_stats.intelligence as i32 - delta_int).max(0)
+                                            as u32;
                                 }
                             }
                         }

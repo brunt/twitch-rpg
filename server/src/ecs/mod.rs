@@ -10,6 +10,7 @@ use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::countdown::CountdownSystem;
 use crate::ecs::systems::death_handler::DeathCleanupSystem;
 use crate::ecs::systems::dungeon_complete::DungeonComplete;
+use crate::ecs::systems::effect_expiration::EffectExpirationSystem;
 use crate::ecs::systems::enemy_ai::EnemyAISystem;
 use crate::ecs::systems::group_coordination::GroupCoordination;
 use crate::ecs::systems::item_pickup::ItemPickup;
@@ -22,13 +23,14 @@ use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
 use crate::ecs::systems::room_exploration::RoomExplorationSystem;
 use crate::ecs::systems::shop_population::ShopPopulation;
+use crate::ecs::systems::stat_change::StatSyncSystem;
+use crate::ecs::systems::weapon_classification::WeaponClassifierSystem;
 use crate::ecs::world::create_world;
+use common::Effect::StatChange;
 use common::GameSnapShot;
 use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
-use crate::ecs::systems::effect_expiration::EffectExpirationSystem;
-use crate::ecs::systems::weapon_classification::WeaponClassifierSystem;
 
 pub mod resources;
 mod shop;
@@ -108,6 +110,7 @@ pub fn run_game_server(
         .with(LevelUpSystem, "level_up", &["dungeon_complete"])
         .with(WeaponClassifierSystem, "weapon_classification", &[])
         .with(EffectExpirationSystem, "effect_expiration", &[])
+        .with(StatSyncSystem, "stat_sync", &["effect_expiration"])
         .build();
 
     let mut last_frame_time = std::time::Instant::now();
@@ -126,6 +129,7 @@ pub fn run_game_server(
 
         // run systems
         dispatcher.dispatch(&gw.ecs);
+        // slow_dispatcher.dispatch(&gw.ecs);
 
         // cleanup etc
         gw.ecs.maintain();

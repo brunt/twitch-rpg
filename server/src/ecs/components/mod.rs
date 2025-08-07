@@ -7,10 +7,10 @@ use std::fmt::Display;
 
 pub mod class;
 pub mod combat;
+pub mod effect;
+pub mod form;
 pub mod inventory;
 pub mod movement;
-pub mod form;
-pub mod effect;
 
 // Corpse component for defeated entities
 #[derive(Debug, Component)]
@@ -231,15 +231,6 @@ impl From<&Stats> for PlayerStats {
             intelligence: stats.intelligence,
         }
     }
-}
-
-// Resource component for mana, stamina, etc.
-#[derive(Debug, Component, Clone)]
-pub struct Resource {
-    pub mana: u32,
-    pub max_mana: u32,
-    pub stamina: u32,
-    pub max_stamina: u32,
 }
 
 #[derive(Debug, Component, Clone)]

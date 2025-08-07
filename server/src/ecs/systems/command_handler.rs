@@ -1,12 +1,11 @@
-// In server/src/ecs/systems/command_handler.rs
 use crate::commands::PlayerCommand::Use;
 use crate::commands::{PlayerCommand, RpgCommand};
 use crate::ecs::components::class::{CharacterClass, ShowCharacter};
 use crate::ecs::components::combat::HealthComponent;
+use crate::ecs::components::effect::{ActiveEffects, TimedEffect};
+use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::inventory::Equipment;
-use crate::ecs::components::{
-    Experience, Level, Money, MovementAI, MovementAIKind, Name, Player, Position, Resource, Stats,
-};
+use crate::ecs::components::{Level, Money, Name, Player, Stats};
 use crate::ecs::resources::{GameState, ShopInventory};
 use common::{Effect, EquipmentSlot, Form, Health};
 use specs::{
@@ -14,8 +13,6 @@ use specs::{
 };
 use std::collections::VecDeque;
 use tatami_dungeon::Dungeon;
-use crate::ecs::components::effect::{ActiveEffects, TimedEffect};
-use crate::ecs::components::form::FormComponent;
 
 pub type CommandQueue = VecDeque<(String, RpgCommand, bool)>;
 
@@ -83,7 +80,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 .insert(player_entity, Name(player_name))
                                 .expect("failed to set name");
                             healths
-                                .insert(player_entity, HealthComponent::new_from_class(&class))
+                                .insert(player_entity, HealthComponent::default())
                                 .expect("failed to set default health");
                             stats
                                 .insert(player_entity, Stats::new(&class))
@@ -189,7 +186,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                             Form::Scaled(scale) => {
                                                 let Some(form) = forms.get_mut(e) else { return };
                                                 form.0 = Form::Scaled(*scale);
-                                            },
+                                            }
                                             Form::Invisible => {
                                                 let Some(form) = forms.get_mut(e) else { return };
                                                 form.0 = Form::Invisible;
@@ -201,7 +198,8 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                         }
                                         if let Some(duration) = duration {
                                             active_effects
-                                                .entry(e).expect("active effects entry")
+                                                .entry(e)
+                                                .expect("active effects entry")
                                                 .or_insert_with(ActiveEffects::default)
                                                 .effects
                                                 .push(TimedEffect {
@@ -213,14 +211,34 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                     Effect::StatChange(stat_change) => {
                                         if let Some(entity_stats) = stats.get_mut(e) {
                                             if let Some(delta_str) = stat_change.strength {
-                                                entity_stats.strength = (entity_stats.strength as i32 + delta_str).max(0) as u32;
+                                                entity_stats.strength =
+                                                    (entity_stats.strength as i32 + delta_str)
+                                                        .max(0)
+                                                        as u32;
                                             }
                                             if let Some(delta_agi) = stat_change.agility {
-                                                entity_stats.agility = (entity_stats.agility as i32 + delta_agi).max(0) as u32;
+                                                entity_stats.agility = (entity_stats.agility as i32
+                                                    + delta_agi)
+                                                    .max(0)
+                                                    as u32;
                                             }
                                             if let Some(delta_int) = stat_change.intelligence {
-                                                entity_stats.intelligence = (entity_stats.intelligence as i32 + delta_int).max(0) as u32;
+                                                entity_stats.intelligence =
+                                                    (entity_stats.intelligence as i32 + delta_int)
+                                                        .max(0)
+                                                        as u32;
                                             }
+                                        }
+                                        if let Some(duration) = duration {
+                                            active_effects
+                                                .entry(e)
+                                                .expect("active effects entry")
+                                                .or_insert_with(ActiveEffects::default)
+                                                .effects
+                                                .push(TimedEffect {
+                                                    effect: effect.clone(),
+                                                    remaining_secs: *duration,
+                                                });
                                         }
                                     }
                                     _ => {}
