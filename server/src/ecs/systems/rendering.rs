@@ -1,3 +1,4 @@
+use specs::LendJoin;
 use crate::ecs::components::class::{CharacterClass, ShowCharacter};
 use crate::ecs::components::combat::{FiredProjectile, HealthComponent, RangedAttacker};
 use crate::ecs::components::form::FormComponent;
@@ -6,9 +7,9 @@ use crate::ecs::components::movement::TargetPosition;
 use crate::ecs::components::{
     DungeonItem, Enemy, Level, Money, Name, Opened, Player, Position, Stats,
 };
-use crate::ecs::resources::{Adventure, CountdownTimer, GameState, ShopInventory};
+use crate::ecs::resources::{Adventure, CountdownTimer, DungeonLoot, GameState, ShopInventory};
 use common::{EntityPosition, Form, GameSnapShot, Health, PlayerSnapshot, PlayerStats, Projectile};
-use specs::{Entities, Join, LendJoin, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage};
 use tokio::sync::broadcast::Sender;
 
 /// This system generates a struct that will get serialized to JSON and sent to the frontend.
@@ -40,6 +41,7 @@ impl<'a> System<'a> for Rendering {
         ReadExpect<'a, GameState>,
         ReadExpect<'a, Option<CountdownTimer>>,
         ReadExpect<'a, ShopInventory>,
+        ReadExpect<'a, Option<DungeonLoot>>,
         ReadExpect<'a, Option<Adventure>>,
         // inventory
     );
@@ -68,6 +70,7 @@ impl<'a> System<'a> for Rendering {
             game_state,
             countdown,
             shop_inventory,
+            dungeon_loot,
             adventure,
         ): Self::SystemData,
     ) {
@@ -86,6 +89,7 @@ impl<'a> System<'a> for Rendering {
                     ready_timer: countdown.clone().map(|c| c.to_serialized()),
                     difficulty: None,
                     projectiles: None,
+                    loot: None,
                 };
 
                 for (entity, name, health, character_class, level, money, stats, equipment, show) in
@@ -220,6 +224,7 @@ impl<'a> System<'a> for Rendering {
                     ready_timer: None,
                     difficulty: Some(adventure.clone().map_or(1, |adv| adv.difficulty)),
                     projectiles: Some(projectile_data),
+                    loot: dungeon_loot.clone().map(|l| l.items),
                 };
 
                 for (
@@ -266,6 +271,7 @@ impl<'a> System<'a> for Rendering {
                 _ = self.sender.send(gs);
             }
             GameState::AfterDungeon => {
+                
                 // surviving players receive gold
                 // surviving players gain experience
                 // surviving players automatically roll for looted items

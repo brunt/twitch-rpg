@@ -1,19 +1,21 @@
+use crate::SpriteSheets;
 use crate::components::{AnimationState, draw_sprite, load_images};
 use crate::dungeon_floor::draw_dungeon_floor;
 use crate::item_shop::draw_shop_interface;
 use crate::sprites::SPRITE_DIMENSION;
 use crate::sprites::spellfx_missiles_sprites::ActiveProjectile;
 use common::GameSnapShot;
+use leptos::context::use_context;
 use leptos::html::Canvas;
-use leptos::prelude::{document, Effect, Get, LocalStorage, NodeRef, NodeRefAttribute, ReadSignal, Signal};
+use leptos::prelude::{
+    Effect, Get, LocalStorage, NodeRef, NodeRefAttribute, ReadSignal, Signal, document,
+};
 use leptos::{IntoView, component, view};
 use std::cell::RefCell;
 use std::rc::Rc;
-use leptos::context::use_context;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
-use web_sys::{CanvasRenderingContext2d, window, HtmlImageElement};
-use crate::SpriteSheets;
+use web_sys::{CanvasRenderingContext2d, HtmlImageElement, window};
 
 #[component]
 pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoView {
@@ -24,7 +26,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
     let sprites = use_context::<ReadSignal<SpriteSheets, LocalStorage>>()
         .expect("SpriteSheets context not found")
         .get();
-    
+
     // Shared mutable state for the game logic. Rc provides multiple ownership,
     // and RefCell allows mutable borrowing at runtime.
     let latest_snapshot = Rc::new(RefCell::new(None));
@@ -76,7 +78,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
     let g_outer = g.clone();
     let win_outer = window().unwrap(); // Capture window once for this effect.
     let sprites_clone = sprites.clone();
-    
+
     Effect::new(move |_| {
         // This effect runs when its dependencies change (e.g., canvas_ref becomes available).
         // It sets up and starts the animation loop.
@@ -143,14 +145,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                     );
                 } else {
                     if let Some(shop_items) = snapshot.shop_items.as_ref() {
-                        draw_shop_interface(
-                            &ctx,
-                            &sprites_for_closure,
-                            shop_items,
-                            30.0,
-                            30.0,
-                            4,
-                        )
+                        draw_shop_interface(&ctx, &sprites_for_closure, shop_items, 30.0, 30.0, 4)
                     };
                     // Draw ready timer or shop interface if not in dungeon.
                     if let Some(ready_timer) = &snapshot.ready_timer {
@@ -163,7 +158,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                             CANVAS_WIDTH * 0.45,
                             20.0,
                         )
-                            .expect("failed to count down");
+                        .expect("failed to count down");
                     }
                 }
 
@@ -209,7 +204,15 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                     leptos::logging::log!("Camera position: x={}, y={}", camera_x, camera_y);
 
                     // Draw the projectile sprite.
-                    draw_sprite(&ctx, &sprites_for_closure.projectiles, &p.sprite, x, y, 1.0, None);
+                    draw_sprite(
+                        &ctx,
+                        &sprites_for_closure.projectiles,
+                        &p.sprite,
+                        x,
+                        y,
+                        1.0,
+                        None,
+                    );
                     true // Keep projectile if animation is ongoing.
                 });
             }

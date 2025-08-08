@@ -69,8 +69,9 @@ pub fn run_game_server(
             &["command_handler"],
         )
         .with(CombatSystem, "combat", &[])
+        .with(DeathCleanupSystem, "death_cleanup", &[])
         .with(AttackCooldownSystem, "attack_cooldown", &["combat"])
-        .with(Movement, "movement", &["combat"])
+        .with(Movement, "movement", &["combat", "death_cleanup"])
         .with(
             AssignRoomTargetSystem,
             "assign_room_target",
@@ -96,7 +97,6 @@ pub fn run_game_server(
             "shop_population",
             &["rendering", "command_handler"],
         )
-        .with(DeathCleanupSystem, "death_cleanup", &[])
         .with(ItemPickup, "item_pickup", &["movement"])
         .with(RoomExplorationSystem, "room_exploration", &["movement"])
         .with(EnemyAISystem, "enemy_ai", &["movement"])

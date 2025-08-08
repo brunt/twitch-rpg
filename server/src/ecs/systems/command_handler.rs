@@ -115,27 +115,23 @@ impl<'a> System<'a> for CommandHandlerSystem {
                             //TODO: load data from database
                         }
                         RpgCommand::PlayerCommand(PlayerCommand::Buy(item)) => {
-                            // get the entity of the player, get that entity's money, subtract gold from their money,
-                            // get the entity's inventory, add item at MenuItem(#) to their inventory
                             if let Some((e, _name)) = (entities, &names)
                                 .join()
                                 .find(|(_, name)| name.0 == player_name)
                             {
-                                // if an item is purchased, it is equipped in an item slot, old item is overwritten
-                                money.get_mut(e).map(|gold| {
-                                    let price =
-                                        shop_inventory.items.get(&item).map_or(5, |f| f.price);
-                                    if gold.0 < price {
-                                        return;
+                                if let Some(shop_item) = shop_inventory.items.get(&item) {
+                                    if let Some(gold) = money.get_mut(e) {
+                                        if gold.0 >= shop_item.price {
+                                            gold.0 -= shop_item.price;
+
+                                            if let Some(equip_slots) = equipment.get_mut(e) {
+                                                equip_slots
+                                                    .slots
+                                                    .insert(shop_item.equip_slot.clone(), shop_item.to_item());
+                                            }
+                                        }
                                     }
-                                    gold.0 -= price;
-                                });
-                                equipment.get_mut(e).map(|equip_slots| {
-                                    let item = shop_inventory.items.get(&item).unwrap();
-                                    equip_slots
-                                        .slots
-                                        .insert(item.equip_slot.clone(), item.to_item())
-                                });
+                                }
                             }
                         }
                         RpgCommand::PlayerCommand(PlayerCommand::Show) => {

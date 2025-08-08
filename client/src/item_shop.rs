@@ -1,12 +1,12 @@
+use crate::SpriteSheets;
 use crate::components::draw_item_sprite;
 use crate::sprites::items_sprites::ITEMS_SPRITES;
 use crate::sprites::{ITEM_SPRITE_DIMENSION, SpriteRect};
 use common::{ItemQuality, MenuItem, ShopItem};
-use std::collections::HashMap;
 use leptos::context::use_context;
 use leptos::prelude::{Get, LocalStorage, ReadSignal};
+use std::collections::HashMap;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
-use crate::SpriteSheets;
 // TODO: reshape shop item
 // /////////////////////////
 // //  ITEM NAME         #//
@@ -28,8 +28,9 @@ pub(crate) fn draw_shop_interface(
     const ITEM_SLOT_WIDTH: f64 = ITEM_SLOT_SIZE * 1.5;
 
     let padding = 12.0;
-            
-   ctx.draw_image_with_html_image_element(&sprites.background, 0.0, 0.0).unwrap();
+
+    ctx.draw_image_with_html_image_element(&sprites.background, 0.0, 0.0)
+        .unwrap();
 
     for (menu_item, item) in items.iter() {
         let row = menu_item.0 / slots_per_row;

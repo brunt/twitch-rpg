@@ -14,13 +14,14 @@ impl<'a> System<'a> for ItemPickup {
         ReadStorage<'a, DungeonItem>,
         WriteStorage<'a, Opened>,
         WriteStorage<'a, TargetPosition>,
-        WriteExpect<'a, DungeonLoot>,
+        WriteExpect<'a, Option<DungeonLoot>>,
     );
 
     fn run(
         &mut self,
         (entities, positions, players, items, mut opened, mut targets, mut dungeon_loot): Self::SystemData,
     ) {
+        let Some(dungeon_loot) = dungeon_loot.as_mut() else { return };
         // Create a map of unopened item positions
         let mut unopened_items: Vec<(Entity, &Position)> = (&entities, &items, &positions)
             .join()

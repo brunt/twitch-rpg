@@ -246,7 +246,7 @@ pub struct ShopInventory {
     pub items: HashMap<MenuItem, ShopItem>,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, Debug)]
 pub struct DungeonLoot {
     pub items: u32,
 }

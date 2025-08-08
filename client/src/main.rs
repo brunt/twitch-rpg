@@ -3,21 +3,31 @@ mod dungeon_floor;
 mod item_shop;
 mod sprites;
 
+use common::EquipmentSlot;
 use common::GameSnapShot;
+use common::Health;
+use common::Item;
+use common::ItemQuality::Common;
+use common::PlayerSnapshot;
+use common::PlayerStats;
 use components::bottom_panel::BottomPanel;
 use components::game_canvas::GameCanvas;
 use components::side_panel::SidePanelCharacterSheet;
 use leptos::context::provide_context;
 use leptos::mount::mount_to_body;
-use leptos::prelude::{signal, signal_local, ClassAttribute, Effect, ElementChild, Get, GetUntracked, IntoInner, NodeRefAttribute, Set, StyleAttribute};
-use leptos::{component, view, IntoView};
+use leptos::prelude::{
+    ClassAttribute, Effect, ElementChild, Get, GetUntracked, IntoInner, NodeRefAttribute, Set,
+    StyleAttribute, signal, signal_local,
+};
+use leptos::{IntoView, component, view};
+use std::collections::HashMap;
 use std::rc::Rc;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{EventSource, HtmlImageElement, MessageEvent};
 
 #[derive(Clone)]
-pub struct SpriteSheets{
+pub struct SpriteSheets {
     pub terrain: Rc<HtmlImageElement>,
     pub items: Rc<HtmlImageElement>,
     pub monsters: Rc<HtmlImageElement>,
@@ -63,7 +73,7 @@ fn App() -> impl IntoView {
     projectiles.set_src("public/sprites/SpellFXMissiles.png");
     projectiles.set_src("public/sprites/SpellFXMissiles.png");
     background.set_src("public/img/bg.jpg");
-    
+
     let (sprites, _) = signal_local(SpriteSheets {
         items,
         monsters,
@@ -93,10 +103,10 @@ fn App() -> impl IntoView {
             }
         }) as Box<dyn FnMut(MessageEvent)>);
         sse_event.set_onmessage(Some(callback.as_ref().unchecked_ref()));
-    
+
         callback.forget();
     });
-    
+
     // MOCK DATA FOR LOCAL DEV
     // Effect::new(move |_| {
     //     let mock_snapshot = GameSnapShot {
@@ -326,7 +336,7 @@ fn App() -> impl IntoView {
                 <div class="w-[1280px] h-[720px]">
                     <GameCanvas gs=gamestate />
                 </div>
-                <BottomPanel />
+                <BottomPanel gs=gamestate />
             </div>
             <SidePanelCharacterSheet gs=gamestate />
         </div>
@@ -348,7 +358,7 @@ fn App() -> impl IntoView {
 //                     evasion_rating: 0,
 //                 }),
 //                 other_modifiers: None,
-// 
+//
 //                 strength: None,
 //                 intelligence: Some(9),
 //                 agility: None,
@@ -386,7 +396,7 @@ fn App() -> impl IntoView {
 //             name: "Trident".to_string(),
 //             quality: ItemQuality::Uncommon,
 //             equip_slot: EquipmentSlot::MainHand,
-// 
+//
 //             price: 18,
 //             stats: Some(ItemStats {
 //                 attack_modifiers: None,

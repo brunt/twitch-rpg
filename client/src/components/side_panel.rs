@@ -179,11 +179,15 @@ fn ExtraStats(#[prop(into)] player: PlayerSnapshot) -> impl IntoView {
             <div class="flex flex-row justify-between gap-4">
                 <div class="flex flex-col gap-1">
                     {move || {
-                        player
+                        let mut equipped: Vec<_> = player
                             .equipped_items
                             .iter()
                             .filter(|(slot, _)| !matches!(slot, EquipmentSlot::UtilitySlot))
-                            .map(|(slot, item)| {
+                            .collect();
+                        equipped.sort_by_key(|(slot, _)| slot.slot_order());
+
+                        equipped.into_iter()
+                        .map(|(slot, item)| {
                                 view! {
                                     <div class="flex items-center gap-2">
                                         <ItemSpriteCanvas item=item.clone() />

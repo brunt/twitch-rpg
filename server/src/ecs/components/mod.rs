@@ -94,6 +94,7 @@ pub struct Player;
 #[storage(NullStorage)]
 pub struct Enemy;
 
+// TODO: delete?
 #[derive(Debug, Component, Clone, Default)]
 #[storage(NullStorage)]
 pub struct DungeonItem;

@@ -17,7 +17,7 @@ pub fn get_dead_sprite() -> SpriteRect {
 
 pub fn get_terrain(tileset: &TileSet) -> [SpriteRect; 9] {
     match tileset {
-        /// floor, wall, chest, opened chest, up-down door, left-right door, stair, doodad A, doodad B
+        // floor, wall, chest, opened chest, up-down door, left-right door, stair, doodad A, doodad B
         // TODO: 1154 is an invisible sprite, use correct door sprites where appropriate
         TileSet::Woods => [
             TERRAIN_SPRITE_1044,

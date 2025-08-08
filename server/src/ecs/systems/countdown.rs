@@ -9,7 +9,7 @@ use crate::ecs::components::movement::{
     CanMove, DesiredTargetPosition, MovementSpeed, TargetPosition,
 };
 use crate::ecs::components::{DungeonItem, Enemy, Level, Name, Player, Position, Stats};
-use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, GameState, ShopInventory};
+use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, ShopInventory};
 use crate::ecs::systems::pathfinding::PathfindingSystem;
 use common::{Form, Health, PlayerClass};
 use rand::seq::IndexedRandom;
@@ -26,6 +26,7 @@ impl<'a> System<'a> for CountdownSystem {
         WriteExpect<'a, Option<CountdownTimer>>,
         WriteExpect<'a, GameState>,
         WriteExpect<'a, Option<Adventure>>,
+        WriteExpect<'a, Option<DungeonLoot>>,
         ReadStorage<'a, Player>,
         WriteStorage<'a, Enemy>,
         WriteStorage<'a, Position>,
@@ -55,6 +56,7 @@ impl<'a> System<'a> for CountdownSystem {
             mut game_timer,
             mut game_state,
             mut adventure,
+            mut dungeon_loot,
             players,
             mut enemies,
             mut positions,
@@ -207,11 +209,12 @@ impl<'a> System<'a> for CountdownSystem {
                         .insert(item, DungeonItem)
                         .expect("failed to be an item");
                 });
-
+                
                 *adventure = Some(adv);
                 *game_state = GameState::OnAdventure;
                 *game_timer = None;
                 *shop_inventory = ShopInventory::default();
+                *dungeon_loot = Some(DungeonLoot::default());
             }
         }
     }

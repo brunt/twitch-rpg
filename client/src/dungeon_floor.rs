@@ -215,10 +215,10 @@ pub fn draw_dungeon_floor(
                 cl => {
                     if let Ok(player_class) = PlayerClass::from_str(cl) {
                         let scale = if let Form::Scaled(x) = form { *x } else { 1.0 };
-                        
+
                         let adjusted_x = x - (SPRITE_DIMENSION as f64 * (scale - 1.0) / 2.0);
                         let adjusted_y = y - (SPRITE_DIMENSION as f64 * (scale - 1.0));
-                        
+
                         draw_sprite(
                             ctx,
                             monster_image,

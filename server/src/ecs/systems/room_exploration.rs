@@ -6,7 +6,7 @@ use crate::ecs::components::movement::{CanMove, MovementSpeed, TargetPosition};
 use crate::ecs::components::{Enemy, Level, Name, Player, Position};
 use crate::ecs::resources::{Adventure, DirectionOffset, RoomCheck};
 use common::{Form, Health};
-use rand::seq::IndexedRandom;
+use rand::seq::{IndexedRandom, IteratorRandom};
 use specs::{Entities, Join, ReadStorage, System, WriteExpect, WriteStorage};
 use tatami_dungeon::Position as TatamiPosition;
 
@@ -68,9 +68,11 @@ impl<'a> System<'a> for RoomExplorationSystem {
             .map(|(pos, _)| pos.clone())
             .collect();
 
+        // TODO: filter().choose() does not fix players getting stuck in a cycle with find()
+        let mut rng = rand::rngs::ThreadRng::default();
         for player_pos in player_positions {
             for conn in &current_room.connections {
-                let Some(next_room) = floor.rooms.iter().find(|r| r.id == conn.id) else {
+                let Some(next_room) = floor.rooms.iter().filter(|r| r.id == conn.id).choose(&mut rng) else {
                     continue;
                 };
 

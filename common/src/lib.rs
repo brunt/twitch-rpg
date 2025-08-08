@@ -25,6 +25,8 @@ pub struct GameSnapShot {
     pub difficulty: Option<u32>,
     #[serde(rename = "h")]
     pub projectiles: Option<Vec<Projectile>>,
+    #[serde(rename = "i")]
+    pub loot: Option<u32>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -221,6 +223,21 @@ pub enum EquipmentSlot {
     Finger,
     Neck,
     UtilitySlot,
+}
+
+impl EquipmentSlot {
+    pub fn slot_order(&self) -> usize {
+        match self {
+            Self::MainHand => 0,
+            Self::Head => 1,
+            Self::Body => 2,
+            Self::Legs => 3,
+            Self::Feet => 4,
+            Self::Finger => 5,
+            Self::Neck => 6,
+            Self::UtilitySlot => 7,
+        }
+    }
 }
 
 impl Display for EquipmentSlot {

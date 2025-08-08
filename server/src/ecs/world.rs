@@ -68,6 +68,6 @@ pub fn create_world() -> World {
     });
     world.insert(ShopInventory::default());
     world.insert(Option::<Adventure>::None);
-    world.insert(DungeonLoot::default());
+    world.insert(Option::<DungeonLoot>::None);
     world
 }
