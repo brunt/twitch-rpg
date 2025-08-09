@@ -24,6 +24,7 @@ use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
 use crate::ecs::systems::room_exploration::RoomExplorationSystem;
 use crate::ecs::systems::shop_population::ShopPopulation;
+use crate::ecs::systems::stat_aggregation::StatAggregation;
 use crate::ecs::systems::stat_change::StatSyncSystem;
 use crate::ecs::systems::weapon_classification::WeaponClassifierSystem;
 use crate::ecs::world::create_world;
@@ -112,7 +113,12 @@ pub fn run_game_server(
         .with(LevelUpSystem, "level_up", &["dungeon_complete"])
         .with(WeaponClassifierSystem, "weapon_classification", &[])
         .with(EffectExpirationSystem, "effect_expiration", &[])
-        .with(StatSyncSystem, "stat_sync", &["effect_expiration"])
+        .with(StatAggregation, "stat_aggregation", &[])
+        .with(
+            StatSyncSystem,
+            "stat_sync",
+            &["effect_expiration", "stat_aggregation"],
+        )
         .build();
 
     let mut last_frame_time = std::time::Instant::now();

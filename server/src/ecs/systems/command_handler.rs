@@ -125,9 +125,10 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                             gold.0 -= shop_item.price;
 
                                             if let Some(equip_slots) = equipment.get_mut(e) {
-                                                equip_slots
-                                                    .slots
-                                                    .insert(shop_item.equip_slot.clone(), shop_item.to_item());
+                                                equip_slots.slots.insert(
+                                                    shop_item.equip_slot.clone(),
+                                                    shop_item.to_item(),
+                                                );
                                             }
                                         }
                                     }
@@ -205,26 +206,8 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                         }
                                     }
                                     Effect::StatChange(stat_change) => {
-                                        if let Some(entity_stats) = stats.get_mut(e) {
-                                            if let Some(delta_str) = stat_change.strength {
-                                                entity_stats.strength =
-                                                    (entity_stats.strength as i32 + delta_str)
-                                                        .max(0)
-                                                        as u32;
-                                            }
-                                            if let Some(delta_agi) = stat_change.agility {
-                                                entity_stats.agility = (entity_stats.agility as i32
-                                                    + delta_agi)
-                                                    .max(0)
-                                                    as u32;
-                                            }
-                                            if let Some(delta_int) = stat_change.intelligence {
-                                                entity_stats.intelligence =
-                                                    (entity_stats.intelligence as i32 + delta_int)
-                                                        .max(0)
-                                                        as u32;
-                                            }
-                                        }
+                                        // StatAggregation system will handle stat calculations
+                                        // We only need to add the effect to ActiveEffects if it has a duration
                                         if let Some(duration) = duration {
                                             active_effects
                                                 .entry(e)

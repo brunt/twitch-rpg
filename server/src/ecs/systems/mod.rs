@@ -20,5 +20,6 @@ pub mod random_wander;
 pub(crate) mod rendering;
 pub(crate) mod room_exploration;
 pub(crate) mod shop_population;
+pub(crate) mod stat_aggregation;
 pub(crate) mod stat_change;
 pub(crate) mod weapon_classification;
