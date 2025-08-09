@@ -16,6 +16,7 @@ use crate::ecs::systems::group_coordination::GroupCoordination;
 use crate::ecs::systems::item_pickup::ItemPickup;
 use crate::ecs::systems::level_up::LevelUpSystem;
 use crate::ecs::systems::movement::Movement;
+use crate::ecs::systems::party_wipe::PartyWipeSystem;
 use crate::ecs::systems::pathfinding::PathfindingSystem;
 use crate::ecs::systems::player_ai::PlayerAI;
 use crate::ecs::systems::projectile_cleanup::ProjectileCleanupSystem;
@@ -70,6 +71,7 @@ pub fn run_game_server(
         )
         .with(CombatSystem, "combat", &[])
         .with(DeathCleanupSystem, "death_cleanup", &[])
+        .with(PartyWipeSystem, "party_wipe", &["death_cleanup"])
         .with(AttackCooldownSystem, "attack_cooldown", &["combat"])
         .with(Movement, "movement", &["combat", "death_cleanup"])
         .with(
@@ -114,7 +116,10 @@ pub fn run_game_server(
         .build();
 
     let mut last_frame_time = std::time::Instant::now();
+    let target_frame_duration = std::time::Duration::from_millis(500);
     loop {
+        let loop_start = std::time::Instant::now();
+
         while let Ok((player, command, is_privileged)) = gw.rx.try_recv() {
             if let Some(queue) = gw.ecs.get_mut::<CommandQueue>() {
                 queue.push_back((player, command, is_privileged));
@@ -134,7 +139,9 @@ pub fn run_game_server(
         // cleanup etc
         gw.ecs.maintain();
 
-        // TODO: figure out a time interval appropriate for this game
-        std::thread::sleep(std::time::Duration::from_millis(500));
+        let elapsed = loop_start.elapsed();
+        if elapsed < target_frame_duration {
+            std::thread::sleep(target_frame_duration - elapsed);
+        }
     }
 }

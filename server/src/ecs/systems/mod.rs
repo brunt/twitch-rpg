@@ -11,6 +11,7 @@ pub(crate) mod group_coordination;
 pub(crate) mod item_pickup;
 pub(crate) mod level_up;
 pub mod movement;
+pub(crate) mod party_wipe;
 pub(crate) mod pathfinding;
 pub(crate) mod player_ai;
 pub(crate) mod player_spacing;
