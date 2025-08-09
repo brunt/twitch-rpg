@@ -68,7 +68,7 @@ pub fn SidePanelCharacterSheet(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -
                             .enumerate()
                             .filter(|(i, _)| i % 2 == 0)
                             .map(|(i, player)| {
-                                let is_expanded = show_player_stats.get().contains(&i);
+                                let is_expanded = show_player_stats.get().contains(&i) || gs.party.len() < 5;
                                 view! {
                                     <PlayerPanel player=player.clone() is_expanded=is_expanded />
                                 }
@@ -84,7 +84,7 @@ pub fn SidePanelCharacterSheet(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -
                             .enumerate()
                             .filter(|(i, _)| i % 2 == 1)
                             .map(|(i, player)| {
-                                let is_expanded = show_player_stats.get().contains(&i);
+                                let is_expanded = show_player_stats.get().contains(&i) || gs.party.len() < 5;
                                 view! {
                                     <PlayerPanel player=player.clone() is_expanded=is_expanded />
                                 }
@@ -106,7 +106,7 @@ fn PlayerPanel(
 
     Effect::new(move |_| {
         if is_expanded {
-            set_height_style.set("147px".to_string());
+            set_height_style.set("175px".to_string());
         } else {
             set_height_style.set("0px".to_string());
         }
@@ -177,7 +177,7 @@ fn ExtraStats(#[prop(into)] player: PlayerSnapshot) -> impl IntoView {
     view! {
         <div class="px-2 pb-2">
             <div class="flex flex-row justify-between gap-4">
-                <div class="flex flex-col gap-1">
+                <div class="grid grid-cols-2 gap-1">
                     {move || {
                         let mut equipped: Vec<_> = player
                             .equipped_items
@@ -191,24 +191,27 @@ fn ExtraStats(#[prop(into)] player: PlayerSnapshot) -> impl IntoView {
                                 view! {
                                     <div class="flex items-center gap-2">
                                         <ItemSpriteCanvas item=item.clone() />
-                                        <p>{item.name.clone()}</p>
+                                        // <p>{item.name.clone()}</p>
                                     </div>
                                 }
                             })
                             .collect::<Vec<_>>()
                     }}
                 </div>
-                <div>
-                    <div class="flex flex-col items-end gap-1">
-                        <p class="font-semibold text-sm text-rose-400">
-                            Strength: {player.stats.strength}
-                        </p>
-                        <p class="font-semibold text-sm text-green-500">
-                            Agility: {player.stats.agility}
-                        </p>
-                        <p class="font-semibold text-sm text-blue-500">
-                            Intelligence: {player.stats.intelligence}
-                        </p>
+                <div class="w-36">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex justify-between font-semibold text-sm text-rose-400">
+                            <span>Strength</span>
+                            <span>{player.stats.strength}</span>
+                        </div>
+                        <div class="flex justify-between font-semibold text-sm text-green-500">
+                            <span>Agility</span>
+                            <span>{player.stats.agility}</span>
+                        </div>
+                        <div class="flex justify-between font-semibold text-sm text-blue-500">
+                            <span>Intelligence</span>
+                            <span>{player.stats.intelligence}</span>
+                        </div>
                     </div>
                 </div>
             </div>

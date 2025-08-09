@@ -1,10 +1,8 @@
-use assets_manager::asset::Asset;
 use assets_manager::{BoxedError, FileAsset};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use std::time::Duration;
 use tatami_dungeon::Position;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -368,7 +366,6 @@ pub struct PlayerStats {
     #[serde(rename = "c")]
     pub agility: u32,
 }
-
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Projectile {
