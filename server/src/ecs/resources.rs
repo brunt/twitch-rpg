@@ -12,6 +12,66 @@ pub enum GameState {
     AfterDungeon,
 }
 
+#[derive(Clone, Debug)]
+pub struct ExplorationTree {
+    pub parent_links: HashMap<u32, u32>,
+    pub root: u32,
+}
+
+impl ExplorationTree {
+    pub fn new(root_id: u32) -> Self {
+        Self {
+            parent_links: HashMap::new(),
+            root: root_id,
+        }
+    }
+
+    pub fn add_child(&mut self, parent_id: u32, child_id: u32) {
+        self.parent_links.insert(child_id, parent_id);
+    }
+
+    pub fn get_all_explored_ids(&self) -> HashSet<u32> {
+        let mut explored: HashSet<u32> = self.parent_links.keys().cloned().collect();
+        explored.insert(self.root);
+        explored
+    }
+
+    pub fn contains(&self, room_id: &u32) -> bool {
+        *room_id == self.root || self.parent_links.contains_key(room_id)
+    }
+
+    /// Finds the correct room to backtrack to for a depth-first search.
+    /// It starts from the given room and traverses up its parents until it finds
+    /// a room with an unexplored connection.
+    pub fn find_next_room_for_dfs(
+        &self,
+        current_room_id: u32,
+        floor: &tatami_dungeon::Floor,
+    ) -> Option<u32> {
+        // Start from the current room and backtrack up to the root.
+        let mut backtrack_candidate = current_room_id;
+
+        loop {
+            // Check if the current candidate room has any unexplored children.
+            if let Some(room) = floor.rooms.iter().find(|r| r.id == backtrack_candidate) {
+                if room.connections.iter().any(|conn| !self.contains(&conn.id)) {
+                    // This room has unexplored paths, so this is our target.
+                    return Some(backtrack_candidate);
+                }
+            }
+
+            // If not, move to the parent.
+            if let Some(&parent_id) = self.parent_links.get(&backtrack_candidate) {
+                backtrack_candidate = parent_id;
+            } else {
+                // We've reached the root and there's no parent, so we're done.
+                // This implies the entire reachable part of the dungeon is explored.
+                return None;
+            }
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Adventure {
     /// PlayerPosition in this struct is only used for initial placement in ECS
@@ -27,15 +87,14 @@ pub struct Adventure {
     pub difficulty: u32,
 
     /// room IDs of rooms that players have visited (cleared when entering new floor?)
-    pub explored_rooms: HashSet<u32>,
+    pub explored_rooms: ExplorationTree,
 }
 
 impl Adventure {
     pub fn generate_with_params(params: GenerateDungeonParams) -> Self {
-        let mut dungeon = TatamiDungeon::generate_with_params(params);
-        let mut explored_rooms = HashSet::new();
+        let dungeon = TatamiDungeon::generate_with_params(params);
         let starting_room_id = dungeon.starting_room_id;
-        explored_rooms.insert(starting_room_id);
+        let explored_rooms = ExplorationTree::new(starting_room_id);
 
         Self {
             dungeon,
@@ -77,7 +136,7 @@ impl Adventure {
 
     pub fn filter_visible_rooms(&self) -> Vec<Vec<u8>> {
         let floor = &self.get_current_floor();
-        let visible_room_ids = &self.explored_rooms;
+        let visible_room_ids = self.explored_rooms.get_all_explored_ids();
 
         let height = floor.tiles.len();
         let width = floor.tiles.first().map(|row| row.len()).unwrap_or(0);
@@ -162,7 +221,7 @@ impl Adventure {
 
     pub fn get_visible_item_data(&self) -> Vec<Position> {
         let floor = &self.get_current_floor();
-        let explored = &self.explored_rooms;
+        let explored = self.explored_rooms.get_all_explored_ids();
         floor
             .rooms
             .iter()

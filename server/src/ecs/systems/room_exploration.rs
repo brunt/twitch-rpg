@@ -6,7 +6,7 @@ use crate::ecs::components::movement::{CanMove, MovementSpeed, TargetPosition};
 use crate::ecs::components::{Enemy, Level, Name, Player, Position};
 use crate::ecs::resources::{Adventure, DirectionOffset, RoomCheck};
 use common::{Form, Health};
-use rand::seq::{IndexedRandom, IteratorRandom};
+use rand::seq::IteratorRandom;
 use specs::{Entities, Join, ReadStorage, System, WriteExpect, WriteStorage};
 use tatami_dungeon::Position as TatamiPosition;
 
@@ -68,25 +68,31 @@ impl<'a> System<'a> for RoomExplorationSystem {
             .map(|(pos, _)| pos.clone())
             .collect();
 
-        // TODO: filter().choose() does not fix players getting stuck in a cycle with find()
-        let mut rng = rand::rngs::ThreadRng::default();
-        for player_pos in player_positions {
-            for conn in &current_room.connections {
-                let Some(next_room) = floor.rooms.iter().filter(|r| r.id == conn.id).choose(&mut rng) else {
-                    continue;
-                };
+        // --- Room Transition and Exploration Logic ---
+        // Find the first connection that a player has moved into.
+        'outer: for conn in &current_room.connections {
+            let Some(next_room) = floor.rooms.iter().find(|r| r.id == conn.id) else {
+                continue;
+            };
 
-                if next_room.contains(&TatamiPosition::from(&player_pos)) {
-                    if adv.explored_rooms.contains(&next_room.id) {
-                        adv.current_room_index = next_room.id;
+            for player_pos in &player_positions {
+                if next_room.contains(&TatamiPosition::from(player_pos)) {
+                    // A player has entered a connected room. Process this transition.
+                    let next_room_id = next_room.id;
+
+                    // If we've already explored this room, just update the current room and we're done.
+                    if adv.explored_rooms.contains(&next_room_id) {
+                        adv.current_room_index = next_room_id;
                         return;
                     }
 
-                    let enemy_positions = adv.get_room_enemy_data(next_room.id);
+                    // new room discovered
+                    adv.current_room_index = next_room_id;
+                    adv.explored_rooms.add_child(current_room_id, next_room_id);
+
+                    let enemy_positions = adv.get_room_enemy_data(next_room_id);
                     let player_entities: Vec<_> =
                         (&entities, &players).join().map(|(e, _)| e).collect();
-
-                    adv.current_room_index = next_room.id;
 
                     for enemy_pos in enemy_positions {
                         let enemy = entities.create();
@@ -111,7 +117,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
                             .insert(enemy, CanMove)
                             .expect("Failed to be able to move");
                         target_positions
-                            .insert(enemy, TargetPosition::from(&player_pos))
+                            .insert(enemy, TargetPosition::from(player_pos))
                             .expect("Failed to insert enemy target position");
                         attack_components
                             .insert(
@@ -132,22 +138,20 @@ impl<'a> System<'a> for RoomExplorationSystem {
                             .insert(enemy, MeleeAttacker)
                             .expect("Failed to insert melee");
 
-                        if let Some(&target_entity) =
-                            player_entities.choose(&mut rand::rngs::ThreadRng::default())
-                        {
+                        // Target the first available player deterministically.
+                        if let Some(target_entity) = player_entities.iter().next() {
                             attack_targets
                                 .insert(
                                     enemy,
                                     AttackTarget {
-                                        entity: target_entity,
+                                        entity: *target_entity,
                                     },
                                 )
                                 .expect("Failed to assign AttackTarget");
                         }
                     }
-
-                    adv.explored_rooms.insert(conn.id);
-                    return;
+                    // Once we've processed a transition, we break the outer loop and stop.
+                    break 'outer;
                 }
             }
         }

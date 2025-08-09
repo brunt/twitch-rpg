@@ -168,27 +168,23 @@ impl<'a> System<'a> for PlayerAI {
                         .expect("Failed to insert target position");
                 }
             } else {
-                let mut candidate_conns: Vec<&tatami_dungeon::Connection> =
-                    current_room.connections.iter().collect();
+                // Priority 5: Find a new destination (unexplored room or backtrack)
+                let unexplored_connection = current_room
+                    .connections
+                    .iter()
+                    .find(|conn| !adv.explored_rooms.contains(&conn.id));
 
-                // Prefer unexplored connections first
-                candidate_conns.sort_by_key(|c| adv.explored_rooms.contains(&c.id));
-
-                for conn in candidate_conns {
-                    if let Some(next_room) = adv
-                        .get_current_floor()
-                        .rooms
-                        .iter()
-                        .find(|r| r.id == conn.id)
+                if let Some(conn) = unexplored_connection {
+                    // Found an unexplored path, set it as the destination.
+                    group_destination.target_room_id = Some(conn.id);
+                } else {
+                    // No unexplored paths from here, we need to backtrack.
+                    let floor = adv.get_current_floor();
+                    if let Some(backtrack_room_id) = adv
+                        .explored_rooms
+                        .find_next_room_for_dfs(current_room.id, floor)
                     {
-                        group_destination.target_room_id = Some(next_room.id);
-                        // targets
-                        //     .insert(
-                        //         player_entity,
-                        //         DesiredTargetPosition::from(&next_room.center()),
-                        //     )
-                        //     .expect("Failed to insert target position");
-                        break;
+                        group_destination.target_room_id = Some(backtrack_room_id);
                     }
                 }
             }
