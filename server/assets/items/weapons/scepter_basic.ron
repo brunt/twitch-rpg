@@ -9,6 +9,7 @@ Item(
             hit_rating_bonus: 2,
             range_bonus: 2,
             cooldown_reduction_ms: 0,
+            crit_damage_multiplier: 0.0,
         )),
         defense_modifiers: None,
         other_modifiers: None,

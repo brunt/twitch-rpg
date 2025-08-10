@@ -96,7 +96,7 @@ impl<'a> System<'a> for CombatSystem {
                 if rng.random_range(0.0..1.0)
                     < (0.05 + 0.0005 * (attack.hit_rating - evasion) as f64).clamp(0.0, 1.0)
                 {
-                    (base_damage as f64 * (1.5 + attack.crit_damage_multiplier as f64)) as u32
+                    (base_damage as f64 * 1.5 + attack.crit_damage_multiplier) as u32
                 } else {
                     base_damage
                 }

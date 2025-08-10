@@ -1,9 +1,8 @@
 pub(crate) use crate::ecs::components::movement::Position;
+pub(crate) use common::PlayerClass;
 use common::PlayerStats;
-pub(crate) use common::{Health, PlayerClass};
 use specs::prelude::*;
 use specs_derive::Component;
-use std::fmt::Display;
 
 pub mod class;
 pub mod combat;
@@ -16,49 +15,6 @@ pub mod movement;
 #[derive(Debug, Component)]
 #[storage(NullStorage)]
 pub struct Corpse;
-
-// Equipment types
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum WeaponType {
-    Sword,
-    Axe,
-    Bow,
-    Staff,
-    Dagger,
-    Wand,
-    Mace,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ArmorType {
-    Head,
-    Chest,
-    Jewelry,
-    Hands,
-    Feet,
-    Legs,
-}
-
-// Armor component
-#[derive(Debug, Clone)]
-pub struct Armor {
-    pub name: String,
-    pub armor_type: ArmorType,
-    pub defense: u32,
-    pub attributes: Vec<ItemAttribute>,
-}
-
-// Item attributes for equipment
-#[derive(Debug, Clone)]
-pub enum ItemAttribute {
-    StrengthBonus(u32),
-    AgilityBonus(u32),
-    IntelligenceBonus(u32),
-    VitalityBonus(u32),
-    FireDamage(u32),
-    IceDamage(u32),
-    LightningDamage(u32),
-}
 
 // Experience and level
 #[derive(Debug, Component, Clone)]

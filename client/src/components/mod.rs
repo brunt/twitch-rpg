@@ -8,43 +8,6 @@ pub mod bottom_panel;
 pub mod game_canvas;
 pub mod side_panel;
 
-pub fn load_images() -> [HtmlImageElement; 10] {
-    let terrain_image = HtmlImageElement::new().unwrap();
-    let monster_image = HtmlImageElement::new().unwrap();
-    let item_image = HtmlImageElement::new().unwrap();
-    let spellfx_anim_1_image = HtmlImageElement::new().unwrap();
-    let spellfx_anim_2_image = HtmlImageElement::new().unwrap();
-    let spellfx_anim_3_image = HtmlImageElement::new().unwrap();
-    let spellfx_anim_4_image = HtmlImageElement::new().unwrap();
-    let spellfx_anim_5_image = HtmlImageElement::new().unwrap();
-    let damage_fx_sprite_image = HtmlImageElement::new().unwrap();
-    let missiles_image = HtmlImageElement::new().unwrap();
-
-    terrain_image.set_src("public/sprites/terrain.png");
-    item_image.set_src("public/sprites/items.png");
-    monster_image.set_src("public/sprites/monsters.png");
-    spellfx_anim_1_image.set_src("public/sprites/SpellFXAnim1.png");
-    spellfx_anim_2_image.set_src("public/sprites/SpellFXAnim2.png");
-    spellfx_anim_3_image.set_src("public/sprites/SpellFXAnim3.png");
-    spellfx_anim_4_image.set_src("public/sprites/SpellFXAnim4.png");
-    spellfx_anim_5_image.set_src("public/sprites/SpellFXAnim5.png");
-    damage_fx_sprite_image.set_src("public/sprites/DamageFX.png");
-    missiles_image.set_src("public/sprites/SpellFXMissiles.png");
-
-    [
-        terrain_image,
-        monster_image,
-        item_image,
-        spellfx_anim_1_image,
-        spellfx_anim_2_image,
-        spellfx_anim_3_image,
-        spellfx_anim_4_image,
-        spellfx_anim_5_image,
-        damage_fx_sprite_image,
-        missiles_image,
-    ]
-}
-
 pub fn draw_sprite(
     ctx: &CanvasRenderingContext2d,
     image: &HtmlImageElement,

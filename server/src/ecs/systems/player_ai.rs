@@ -1,5 +1,5 @@
 use crate::ecs::components::combat::{AttackTarget, HealthComponent};
-use crate::ecs::components::movement::{DesiredTargetPosition, TargetPosition};
+use crate::ecs::components::movement::DesiredTargetPosition;
 use crate::ecs::components::{DungeonItem, Enemy, Opened, Player, Position};
 use crate::ecs::resources::{Adventure, GroupDestination, RoomCheck};
 use common::Health;
@@ -61,7 +61,7 @@ impl<'a> System<'a> for PlayerAI {
             let enemies_in_room: Vec<(Entity, &Position)> =
                 (&entities, &enemies, &healths, &positions)
                     .join()
-                    .filter(|(enemy, _, health, pos)| {
+                    .filter(|(_, _, health, pos)| {
                         !matches!(health.0, Health::Dead)
                             && current_room.contains(&tatami_dungeon::Position::from(*pos))
                     })

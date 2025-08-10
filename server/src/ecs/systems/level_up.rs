@@ -1,5 +1,5 @@
 use crate::ecs::components::{Experience, Level};
-use crate::ecs::resources::{Adventure, GameState};
+use crate::ecs::resources::GameState;
 use pathfinding::num_traits::Pow;
 use specs::prelude::*;
 

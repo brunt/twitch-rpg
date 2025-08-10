@@ -321,6 +321,7 @@ pub struct AttackModifiers {
     pub hit_rating_bonus: i32,
     pub range_bonus: i32,
     pub cooldown_reduction_ms: i32,
+    pub crit_damage_multiplier: f64,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

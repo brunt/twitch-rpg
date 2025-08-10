@@ -68,9 +68,10 @@ pub struct AttackComponent {
     /// the range in tiles that is how far this entity can attack another entity
     pub range: u32,
     /// the time after which this entity may attack again in milliseconds
+    /// base attack cooldown is 2000ms and cooldown subtracts from that value
     pub cooldown: u32,
     /// additional multiplier added to critical damage (base 1.5x)
-    pub crit_damage_multiplier: f32,
+    pub crit_damage_multiplier: f64,
 }
 
 impl AttackComponent {
@@ -93,6 +94,7 @@ impl AttackComponent {
                 hit_rating_bonus: 0,
                 range_bonus: 0,
                 cooldown_reduction_ms: 0,
+                crit_damage_multiplier: 0.0,
             },
             |mut m, item| {
                 if let Some(stats) = &item.stats {
@@ -102,6 +104,7 @@ impl AttackComponent {
                         m.hit_rating_bonus += modifiers.hit_rating_bonus;
                         m.range_bonus += modifiers.range_bonus;
                         m.cooldown_reduction_ms += modifiers.cooldown_reduction_ms;
+                        m.crit_damage_multiplier += modifiers.crit_damage_multiplier;
                     }
                 }
                 m
