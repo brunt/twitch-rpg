@@ -1,4 +1,3 @@
-use specs::LendJoin;
 use crate::ecs::components::class::{CharacterClass, ShowCharacter};
 use crate::ecs::components::combat::{FiredProjectile, HealthComponent, RangedAttacker};
 use crate::ecs::components::form::FormComponent;
@@ -9,6 +8,7 @@ use crate::ecs::components::{
 };
 use crate::ecs::resources::{Adventure, CountdownTimer, DungeonLoot, GameState, ShopInventory};
 use common::{EntityPosition, Form, GameSnapShot, Health, PlayerSnapshot, PlayerStats, Projectile};
+use specs::LendJoin;
 use specs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage};
 use tokio::sync::broadcast::Sender;
 
@@ -271,7 +271,7 @@ impl<'a> System<'a> for Rendering {
                 _ = self.sender.send(gs);
             }
             GameState::AfterDungeon => {
-                
+
                 // surviving players receive gold
                 // surviving players gain experience
                 // surviving players automatically roll for looted items

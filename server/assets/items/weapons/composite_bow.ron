@@ -1,13 +1,13 @@
 Item(
-    item_id: 5,
-    name: "Greatsword",
+    item_id: 231,
+    name: "Composite Bow",
     quality: Uncommon,
     equip_slot: MainHand,
     stats: Some(ItemStats(
         attack_modifiers: Some(AttackModifiers(
-            damage_bonus: 2,
-            hit_rating_bonus: 5,
-            range_bonus: 1,
+            damage_bonus: 1,
+            hit_rating_bonus: 7,
+            range_bonus: 10,
             cooldown_reduction_ms: 0,
         )),
         defense_modifiers: None,
@@ -16,7 +16,7 @@ Item(
         intelligence: None,
         agility: None,
     )),
-    description: "Melee attacks have longer reach",
+    description: "Ranged attack weapon",
     consumable: false,
     effects: None,
 )

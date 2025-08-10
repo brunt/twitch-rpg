@@ -1,0 +1,25 @@
+Item(
+    item_id: 538,
+    name: "Wooden Buckler",
+    quality: Common,
+    equip_slot: OffHand,
+    stats: Some(ItemStats(
+        attack_modifiers: Some(AttackModifiers(
+            damage_bonus: -4,
+            hit_rating_bonus: -5,
+            range_bonus: -10,
+            cooldown_reduction_ms: -1000,
+        )),
+        defense_modifiers: Some(DefenseModifiers(
+            damage_reduction: 3,
+            evasion_rating: 5,
+        )),
+        other_modifiers: None,
+        strength: None,
+        intelligence: None,
+        agility: None,
+    )),
+    description: "Reduces incoming and outgoing damage",
+    consumable: false,
+    effects: None,
+)

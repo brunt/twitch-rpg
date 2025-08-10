@@ -9,7 +9,9 @@ use crate::ecs::components::movement::{
     CanMove, DesiredTargetPosition, MovementSpeed, TargetPosition,
 };
 use crate::ecs::components::{DungeonItem, Enemy, Level, Name, Player, Position, Stats};
-use crate::ecs::resources::{Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, ShopInventory};
+use crate::ecs::resources::{
+    Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, ShopInventory,
+};
 use crate::ecs::systems::pathfinding::PathfindingSystem;
 use common::{Form, Health, PlayerClass};
 use rand::seq::IndexedRandom;
@@ -123,10 +125,7 @@ impl<'a> System<'a> for CountdownSystem {
                     defense_components
                         .insert(
                             entity,
-                            DefenseComponent {
-                                defense: 0,
-                                evasion: 0,
-                            },
+                            DefenseComponent::from_stats_and_items(st, equipped_items),
                         )
                         .expect("failed to add defense_component");
                     forms
@@ -209,7 +208,7 @@ impl<'a> System<'a> for CountdownSystem {
                         .insert(item, DungeonItem)
                         .expect("failed to be an item");
                 });
-                
+
                 *adventure = Some(adv);
                 *game_state = GameState::OnAdventure;
                 *game_timer = None;

@@ -10,15 +10,11 @@ impl<'a> System<'a> for LevelUpSystem {
     type SystemData = (
         WriteStorage<'a, Experience>,
         WriteStorage<'a, Level>,
-        ReadExpect<'a, Option<Adventure>>,
         ReadExpect<'a, GameState>,
     );
 
-    fn run(&mut self, (mut experiences, mut levels, adventure, game_state): Self::SystemData) {
+    fn run(&mut self, (mut experiences, mut levels, game_state): Self::SystemData) {
         if matches!(*game_state, GameState::InTown) {
-            return;
-        };
-        let Some(ref adv) = *adventure else {
             return;
         };
 

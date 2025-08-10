@@ -277,6 +277,6 @@ impl Money {
 
 impl Default for Money {
     fn default() -> Self {
-        Self(15)
+        Self(20)
     }
 }

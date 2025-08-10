@@ -11,7 +11,7 @@ pub struct ShopItemPool {
 impl ShopItemPool {
     pub fn new() -> Self {
         use ItemQuality::*;
-        let allowed = vec![Common, Uncommon];
+        let allowed = [Common];
 
         let all_items = load_items_by_quality(|item| {
             if allowed.contains(&item.quality) {
@@ -69,9 +69,10 @@ pub fn initialize_reward_items(difficulty: u32) -> Vec<Item> {
     })
 }
 
+// TODO: allowed qualities as an arg
 pub fn initialize_shop_items() -> Vec<ShopItem> {
     use ItemQuality::*;
-    let allowed = vec![Common, Uncommon];
+    let allowed = [Common, Uncommon];
 
     load_items_by_quality(|item| {
         if allowed.contains(&item.quality) {

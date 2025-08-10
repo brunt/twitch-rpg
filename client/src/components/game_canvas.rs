@@ -1,5 +1,5 @@
 use crate::SpriteSheets;
-use crate::components::{AnimationState, draw_sprite, load_images};
+use crate::components::{AnimationState, draw_sprite};
 use crate::dungeon_floor::draw_dungeon_floor;
 use crate::item_shop::draw_shop_interface;
 use crate::sprites::SPRITE_DIMENSION;
@@ -7,15 +7,13 @@ use crate::sprites::spellfx_missiles_sprites::ActiveProjectile;
 use common::GameSnapShot;
 use leptos::context::use_context;
 use leptos::html::Canvas;
-use leptos::prelude::{
-    Effect, Get, LocalStorage, NodeRef, NodeRefAttribute, ReadSignal, Signal, document,
-};
+use leptos::prelude::{Effect, Get, LocalStorage, NodeRef, NodeRefAttribute, ReadSignal, Signal};
 use leptos::{IntoView, component, view};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
-use web_sys::{CanvasRenderingContext2d, HtmlImageElement, window};
+use web_sys::{CanvasRenderingContext2d, window};
 
 #[component]
 pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoView {

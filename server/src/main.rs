@@ -50,27 +50,27 @@ async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand, bool)>) {
         .expect("failed to join channel");
 
     loop {
-        if let Ok(msg) = irc_client.recv().await {
-            if let Ok(m) = msg.as_typed() {
-                match m {
-                    tmi::Message::Privmsg(msg) => {
-                        if let Some(command) = get_command(&mut msg.text()) {
-                            _ = tx.try_send((
-                                msg.sender().name().to_string(),
-                                command,
-                                is_privileged_user(&msg),
-                            ));
-                        }
+        if let Ok(msg) = irc_client.recv().await
+            && let Ok(m) = msg.as_typed()
+        {
+            match m {
+                tmi::Message::Privmsg(msg) => {
+                    if let Some(command) = get_command(&mut msg.text()) {
+                        _ = tx.try_send((
+                            msg.sender().name().to_string(),
+                            command,
+                            is_privileged_user(&msg),
+                        ));
                     }
-                    tmi::Message::Reconnect => {
-                        _ = irc_client.reconnect().await;
-                        _ = irc_client.join(&channel).await;
-                    }
-                    tmi::Message::Ping(ping) => {
-                        _ = irc_client.pong(&ping).await;
-                    }
-                    _ => {}
                 }
+                tmi::Message::Reconnect => {
+                    _ = irc_client.reconnect().await;
+                    _ = irc_client.join(&channel).await;
+                }
+                tmi::Message::Ping(ping) => {
+                    _ = irc_client.pong(&ping).await;
+                }
+                _ => {}
             }
         }
     }

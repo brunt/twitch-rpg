@@ -213,7 +213,8 @@ impl From<usize> for MenuItem {
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 pub enum EquipmentSlot {
     MainHand,
-    // OffHand, //TODO: too lazy to differentiate 1h/2h weapons rn
+    //TODO: shields only for now, too lazy to differentiate 1h/2h weapons
+    OffHand,
     Head,
     Body,
     Legs,
@@ -227,13 +228,14 @@ impl EquipmentSlot {
     pub fn slot_order(&self) -> usize {
         match self {
             Self::MainHand => 0,
-            Self::Head => 1,
-            Self::Body => 2,
-            Self::Legs => 3,
-            Self::Feet => 4,
-            Self::Finger => 5,
-            Self::Neck => 6,
-            Self::UtilitySlot => 7,
+            Self::OffHand => 1,
+            Self::Head => 2,
+            Self::Body => 3,
+            Self::Legs => 4,
+            Self::Feet => 5,
+            Self::Finger => 6,
+            Self::Neck => 7,
+            Self::UtilitySlot => 8,
         }
     }
 }
@@ -242,6 +244,7 @@ impl Display for EquipmentSlot {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::MainHand => write!(f, "Main Hand"),
+            Self::OffHand => write!(f, "Off Hand"),
             Self::Head => write!(f, "Head"),
             Self::Body => write!(f, "Body"),
             Self::Legs => write!(f, "Legs"),
@@ -288,7 +291,7 @@ impl Item {
         let effects_price: u32 = self.effects.as_ref().map_or(0, |effects| {
             effects.iter().fold(0, |acc, (effect, duration)| {
                 acc + match effect {
-                    Effect::Heal(amount) => *amount * 3,
+                    Effect::Heal(amount) => *amount,
                     Effect::Transform(Form::Scaled(_)) => 10,
                     Effect::Transform(Form::Invisible) => 20,
                     _ => 20,
@@ -317,7 +320,7 @@ pub struct AttackModifiers {
     pub damage_bonus: i32,
     pub hit_rating_bonus: i32,
     pub range_bonus: i32,
-    pub cooldown_reduction_ms: i32, // negative for faster attacking
+    pub cooldown_reduction_ms: i32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -69,6 +69,8 @@ pub struct AttackComponent {
     pub range: u32,
     /// the time after which this entity may attack again in milliseconds
     pub cooldown: u32,
+    /// additional multiplier added to critical damage (base 1.5x)
+    pub crit_damage_multiplier: f32,
 }
 
 impl AttackComponent {
@@ -78,6 +80,7 @@ impl AttackComponent {
             hit_rating: 15 * difficulty,
             range: 1,
             cooldown: 3000 / difficulty,
+            crit_damage_multiplier: 0.0,
         }
     }
 
@@ -115,6 +118,7 @@ impl AttackComponent {
             cooldown: (base_cooldown - attack_mods.cooldown_reduction_ms)
                 .max(200)
                 .min(base_cooldown) as u32,
+            crit_damage_multiplier: 0.0,
         }
     }
 }
