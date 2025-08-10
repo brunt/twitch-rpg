@@ -17,7 +17,7 @@ use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::{
     CanMove, DesiredTargetPosition, MovementSpeed, TargetPosition, Wander,
 };
-use crate::ecs::components::spells::Spellbook;
+use crate::ecs::components::spells::{SpellCaster, SpellTarget, SpellTimer, Spellbook};
 use crate::ecs::components::{DungeonItem, Opened};
 use crate::ecs::resources::{
     Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, GroupDestination, ShopInventory,
@@ -43,7 +43,6 @@ pub fn create_world() -> World {
     world.register::<Money>();
     world.register::<Enemy>();
     world.register::<DungeonItem>();
-    // world.register::<Path>();
     world.register::<Wander>();
     world.register::<AttackTarget>();
     world.register::<AttackComponent>();
@@ -55,6 +54,9 @@ pub fn create_world() -> World {
     world.register::<FiredProjectile>();
     world.register::<CanMove>();
     world.register::<AttackTimer>();
+    world.register::<SpellTarget>();
+    world.register::<SpellTimer>();
+    world.register::<SpellCaster>();
     world.register::<FormComponent>();
     world.register::<ActiveEffects>();
     world.register::<Spellbook>();

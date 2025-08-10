@@ -5,9 +5,10 @@ use crate::ecs::components::combat::HealthComponent;
 use crate::ecs::components::effect::{ActiveEffects, TimedEffect};
 use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::inventory::Equipment;
-use crate::ecs::components::spells::Spellbook;
+use crate::ecs::components::spells::{SpellCaster, Spellbook};
 use crate::ecs::components::{Level, Money, Name, Player, Stats};
 use crate::ecs::resources::{GameState, ShopInventory};
+use crate::ecs::spells::AllSpells;
 use common::{Effect, EquipmentSlot, Form, Health};
 use specs::{
     Entities, Entity, Join, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
@@ -35,7 +36,9 @@ impl<'a> System<'a> for CommandHandlerSystem {
         WriteStorage<'a, FormComponent>,
         WriteStorage<'a, ActiveEffects>,
         WriteStorage<'a, Spellbook>,
+        WriteStorage<'a, SpellCaster>,
         ReadExpect<'a, ShopInventory>,
+        ReadExpect<'a, AllSpells>,
         Entities<'a>,
     );
 
@@ -56,7 +59,9 @@ impl<'a> System<'a> for CommandHandlerSystem {
             mut forms,
             mut active_effects,
             mut spellbooks,
+            mut spell_casters,
             ref shop_inventory,
+            ref all_spells,
             ref entities,
         ): Self::SystemData,
     ) {
@@ -108,7 +113,15 @@ impl<'a> System<'a> for CommandHandlerSystem {
                             equipment
                                 .insert(player_entity, Equipment::default())
                                 .expect("failed to create inventory");
-                            spellbooks.insert(player_entity, Spellbook::default())
+                            spellbooks
+                                .insert(
+                                    player_entity,
+                                    Spellbook::from_class_and_level(Some(class), 1, all_spells),
+                                )
+                                .expect("failed to create spellbook");
+                            spell_casters
+                                .insert(player_entity, SpellCaster)
+                                .expect("failed to create spell caster");
                         }
                         RpgCommand::Rejoin => {
                             // Load player character

@@ -1,21 +1,13 @@
-(
-    id: 1,
-    name: "Fireball",
-    targeting: (
-        type: "PointRadius",
-        radius: 3.0,
-    ),
-    cooldown: 5.0,
-    effects: [
-        (
-            type: "Damage",
-            amount: 50,
-            damage_type: "Red",
-        ),
-        // (
-        //     type: "ApplyStatus",
-        //     status: "Burn",
-        //     duration: 5.0,
-        // ),
-    ],
-)
+// Spell(
+//     id: 1,
+//     name: "Fireball",
+//     targeting: PointRadius(radius: 3.0),
+//     cooldown: 5.0,
+//     effects: [
+//         (Damage(50, Red), None),
+//     ],
+//     caster_restriction: PlayerClass(
+//         classes: [Wizard, Sorcerer],
+//         min_level: Some(1),
+//     ),
+// )

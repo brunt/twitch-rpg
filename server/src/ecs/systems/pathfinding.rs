@@ -2,7 +2,7 @@ use crate::ecs::components::Position;
 use crate::ecs::components::movement::{DesiredTargetPosition, TargetPosition};
 use crate::ecs::resources::Adventure;
 use pathfinding::prelude::astar;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use tatami_dungeon::Tile;
 
 pub struct PathfindingSystem;

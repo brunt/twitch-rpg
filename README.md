@@ -6,27 +6,11 @@ Idle RPG controlled through Twitch chat
 
 ### Current challenges
 * Smooth character movement
-* AI
-* Spells and abilities
-* Do I need a motion system?
-* bounding box around all players in party, when a player pushes an edge of the box outward the camera position moves
-* player pathfinding system
-```rust
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-pub struct Moving {
-    pub from: Position,
-    pub to: Position,
-    pub start_time: f32,       // seconds since game start
-    pub duration: f32,         // total duration of movement animation
-}
-```
+* Attack buildup rather than attack cooldown.
+* Spell buildup rather along with spell cooldown.
+* crit and spell animations
+* persisting to database
 
-### Player Pathfinding:
-* When in a room, target enemies 1 at a time until they're gone
-* Then target any treasure in the room
-* Then target stairs if any
-* Then target a corridor to go to another room
 
 ### Architecture
 * leptos frontend, reacting to server sent events, no events, click, submit etc

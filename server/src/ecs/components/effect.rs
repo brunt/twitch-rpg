@@ -9,6 +9,12 @@ pub struct TimedEffect {
     pub remaining_secs: f64,
 }
 
+impl PartialEq for TimedEffect {
+    fn eq(&self, other: &Self) -> bool {
+        self.effect == other.effect
+    }
+}
+
 #[derive(Component, Debug, Default)]
 pub struct ActiveEffects {
     pub effects: Vec<TimedEffect>,

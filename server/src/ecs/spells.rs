@@ -1,10 +1,9 @@
 use crate::ecs::assets::ASSETS;
 use common::Spell;
+use std::collections::HashMap;
 
 #[derive(Default)]
-pub struct AllSpells {
-    pub all_spells: Vec<Spell>,
-}
+pub struct AllSpells(pub HashMap<u32, Spell>);
 
 impl AllSpells {
     pub fn new() -> Self {
@@ -12,16 +11,13 @@ impl AllSpells {
             .load_rec_dir::<Spell>("assets.spells")
             .expect("Failed to load spells");
 
-        let all_spells = assets
+        let all_spells: HashMap<u32, Spell> = assets
             .read()
             .ids()
-            .filter_map(|id| {
-                let spell = ASSETS.load::<Spell>(id).ok()?.read().clone();
-                Some(spell)
-            })
+            .filter_map(|id| ASSETS.load::<Spell>(id).ok()?.read().clone().into())
+            .map(|spell: Spell| (spell.id, spell))
             .collect();
 
-        dbg!(&all_spells);
-        AllSpells { all_spells }
+        AllSpells(all_spells)
     }
 }

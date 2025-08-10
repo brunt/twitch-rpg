@@ -19,11 +19,14 @@ use crate::ecs::systems::movement::Movement;
 use crate::ecs::systems::party_wipe::PartyWipeSystem;
 use crate::ecs::systems::pathfinding::PathfindingSystem;
 use crate::ecs::systems::player_ai::PlayerAI;
+use crate::ecs::systems::player_spell_ai::PlayerSpellAISystem;
 use crate::ecs::systems::projectile_cleanup::ProjectileCleanupSystem;
 use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
 use crate::ecs::systems::room_exploration::RoomExplorationSystem;
 use crate::ecs::systems::shop_population::ShopPopulation;
+use crate::ecs::systems::spell_cooldown::SpellCooldownSystem;
+use crate::ecs::systems::spellcasting::SpellcastingSystem;
 use crate::ecs::systems::stat_aggregation::StatAggregation;
 use crate::ecs::systems::stat_change::StatSyncSystem;
 use crate::ecs::systems::weapon_classification::WeaponClassifierSystem;
@@ -56,7 +59,7 @@ pub fn run_game_server(
     gamestate_sender: broadcast::Sender<GameSnapShot>,
     commands_receiver: Receiver<(String, RpgCommand, bool)>,
 ) {
-    const MIN_PLAYERS: usize = 2;
+    const MIN_PLAYERS: usize = 1;
 
     let mut gw = GameWorld::new(commands_receiver);
 
@@ -65,6 +68,9 @@ pub fn run_game_server(
     // build dispatcher with systems
     let mut dispatcher = DispatcherBuilder::new()
         .with(CommandHandlerSystem, "command_handler", &[])
+        .with(GroupCoordination, "group_coordination", &[])
+        .with(PlayerSpellAISystem, "player_spell_ai", &[])
+        .with(PlayerAI, "player_ai", &["group_coordination"])
         .with(
             CountdownSystem {
                 min_players: MIN_PLAYERS,
@@ -73,22 +79,26 @@ pub fn run_game_server(
             &["command_handler"],
         )
         .with(CombatSystem, "combat", &[])
+        .with(SpellcastingSystem, "spellcasting", &["player_spell_ai"])
         .with(DeathCleanupSystem, "death_cleanup", &[])
         .with(PartyWipeSystem, "party_wipe", &["death_cleanup"])
         .with(AttackCooldownSystem, "attack_cooldown", &["combat"])
-        .with(Movement, "movement", &["combat", "death_cleanup"])
+        .with(SpellCooldownSystem, "spell_cooldown", &["spellcasting"])
+        .with(
+            Movement,
+            "movement",
+            &["combat", "spellcasting", "death_cleanup"],
+        )
         .with(
             AssignRoomTargetSystem,
             "assign_room_target",
             &["combat", "movement"],
         )
-        .with(GroupCoordination, "group_coordination", &[])
         .with(
             RandomWander,
             "random_wander",
             &["movement", "group_coordination"],
         )
-        .with(PlayerAI, "player_ai", &["group_coordination"])
         .with(PathfindingSystem, "pathfinding", &["movement", "player_ai"])
         .with(
             Rendering {

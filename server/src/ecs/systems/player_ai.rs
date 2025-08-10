@@ -47,7 +47,7 @@ impl<'a> System<'a> for PlayerAI {
             return;
         };
 
-        for (player_entity, pos, _, health) in (&entities, &positions, &players, &healths)
+        for (player_entity, pos, _, _health) in (&entities, &positions, &players, &healths)
             .join()
             .filter(|(_, _, _, health)| !matches!(health.0, Health::Dead))
         {
@@ -105,6 +105,7 @@ impl<'a> System<'a> for PlayerAI {
                 attack_targets
                     .insert(player_entity, AttackTarget { entity: *enemy_id })
                     .expect("failed to add attack target");
+
                 if let Some(target_adj) = adjacents
                     .into_iter()
                     .min_by_key(|adj| adj.distance(player_dungeon_pos))

@@ -2,6 +2,7 @@ use assets_manager::{BoxedError, FileAsset};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 use tatami_dungeon::Position;
 
@@ -66,7 +67,7 @@ pub struct PlayerSnapshot {
     // pub buffs: Vec<String>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Form {
     Normal,
     Polymorphed(String),
@@ -74,7 +75,7 @@ pub enum Form {
     Scaled(f64), // larger or smaller
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Copy)]
 pub enum PlayerClass {
     Fighter,
     Druid,
@@ -315,7 +316,7 @@ impl Item {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AttackModifiers {
     pub damage_bonus: i32,
     pub hit_rating_bonus: i32,
@@ -324,7 +325,7 @@ pub struct AttackModifiers {
     pub crit_damage_multiplier: f64,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct DefenseModifiers {
     pub damage_reduction: i32,
     pub evasion_rating: i32,
@@ -354,7 +355,7 @@ pub struct ItemStats {
     pub agility: Option<u32>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct StatChange {
     pub strength: Option<i32>,
     pub intelligence: Option<i32>,
@@ -384,7 +385,7 @@ pub struct Projectile {
 }
 
 /// this is used for rendering so basic color names are fine
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum DamageType {
     Physical,
     Red,
@@ -413,7 +414,7 @@ impl Display for DamageType {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Effect {
     Heal(u32),
     Revive,
@@ -439,7 +440,7 @@ pub struct Spell {
     pub name: String,
     pub targeting: Targeting,
     pub cooldown: f64,
-    pub effects: Vec<Effect>,
+    pub effects: Vec<(Effect, Option<f64>)>,
     pub caster_restriction: SpellCasterRestriction,
 }
 impl FileAsset for Spell {
@@ -447,6 +448,20 @@ impl FileAsset for Spell {
 
     fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, BoxedError> {
         assets_manager::asset::load_ron(&bytes)
+    }
+}
+
+impl PartialEq for Spell {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for Spell {}
+
+impl Hash for Spell {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
     }
 }
 
