@@ -47,7 +47,10 @@ impl<'a> System<'a> for PlayerAI {
             return;
         };
 
-        for (player_entity, pos, _) in (&entities, &positions, &players).join() {
+        for (player_entity, pos, _, health) in (&entities, &positions, &players, &healths)
+            .join()
+            .filter(|(_, _, _, health)| !matches!(health.0, Health::Dead))
+        {
             let Some(current_room) = adv
                 .get_current_floor()
                 .rooms

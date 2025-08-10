@@ -1,6 +1,5 @@
 use common::{MenuItem, PlayerClass};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum RpgCommand {

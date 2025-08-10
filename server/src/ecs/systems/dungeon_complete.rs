@@ -3,12 +3,11 @@ use crate::ecs::components::combat::{
     RangedAttacker,
 };
 use crate::ecs::components::inventory::Equipment;
-use crate::ecs::components::movement::{CanMove, MovementSpeed, Path, TargetPosition};
+use crate::ecs::components::movement::{CanMove, MovementSpeed, TargetPosition};
 use crate::ecs::components::{Experience, Level, Money, Name, Player, Position};
-use crate::ecs::resources::{Adventure, GameState, RoomCheck};
-use crate::ecs::shop::initialize_reward_items;
-use specs::{Entities, Join, ReadStorage, System, WriteExpect, WriteStorage};
-use std::ops::Deref;
+use crate::ecs::resources::{Adventure, GameState};
+use crate::ecs::shop::{ShopItemPool, initialize_reward_items, initialize_shop_items};
+use specs::{Entities, Join, System, WriteExpect, WriteStorage};
 
 pub struct DungeonComplete;
 
@@ -17,6 +16,7 @@ impl<'a> System<'a> for DungeonComplete {
         Entities<'a>,
         WriteExpect<'a, GameState>,
         WriteExpect<'a, Option<Adventure>>,
+        WriteExpect<'a, ShopItemPool>,
         WriteStorage<'a, Player>,
         WriteStorage<'a, Name>,
         WriteStorage<'a, Position>,
@@ -31,7 +31,7 @@ impl<'a> System<'a> for DungeonComplete {
         WriteStorage<'a, CanMove>,
         WriteStorage<'a, RangedAttacker>,
         WriteStorage<'a, MeleeAttacker>,
-        WriteStorage<'a, Path>,
+        // WriteStorage<'a, Path>,
         WriteStorage<'a, FiredProjectile>,
     );
     // TODO: readstorage from stats to display? or is that in rendering system?
@@ -45,6 +45,7 @@ impl<'a> System<'a> for DungeonComplete {
             mut entities,
             mut game_state,
             mut adventure,
+            mut shop_item_pool,
             mut players,
             mut names,
             mut positions,
@@ -59,7 +60,7 @@ impl<'a> System<'a> for DungeonComplete {
             mut can_move,
             mut ranged_attackers,
             mut melee_attackers,
-            mut paths,
+            // mut paths,
             mut fired_projectiles,
         ): Self::SystemData,
     ) {
@@ -84,56 +85,69 @@ impl<'a> System<'a> for DungeonComplete {
                 })
             })
             .collect();
-        // if a player is at a stair position, change the gamestate
-        let mut pos_to_remove = vec![];
-        let mut players_to_remove = vec![];
-        for (entity, _, position) in (&entities, &players, &positions).join() {
-            for stair_position in &stair_positions {
-                if position == stair_position {
-                    *game_state = GameState::AfterDungeon;
+        // Check if any player is at a stair position
+        let any_player_at_stairs =
+            (&entities, &players, &positions)
+                .join()
+                .any(|(_, _, position)| {
+                    stair_positions
+                        .iter()
+                        .any(|stair_position| position == stair_position)
+                });
 
-                    // remove relevant components
-                    pos_to_remove.push(entity);
-                    target_positions.remove(entity);
-                    movementspeeds.remove(entity);
-                    can_move.remove(entity);
-                    paths.remove(entity);
-                    fired_projectiles.remove(entity);
-                    ranged_attackers.remove(entity);
-                    melee_attackers.remove(entity);
-                    healths.remove(entity);
-                    attack_components.remove(entity);
-                    attack_timer.remove(entity);
-                    // dole out rewards
-                    let items = initialize_reward_items(adv.difficulty);
+        // If any player reached stairs, process all players
+        if any_player_at_stairs {
+            *game_state = GameState::AfterDungeon;
 
-                    // TODO: does this play with the level up system?
-                    if let Some(mut exp) = experiences.get_mut(entity) {
-                        exp.current += 100 * adv.difficulty;
-                    }
+            let mut pos_to_remove = vec![];
+            let mut players_to_remove = vec![];
 
-                    // TODO: other multipliers
-                    if let Some(mut money) = monies.get_mut(entity) {
-                        money.0 += 100 * adv.difficulty;
-                    }
+            for (entity, _, _) in (&entities, &players, &positions).join() {
+                // remove relevant components
+                pos_to_remove.push(entity);
+                target_positions.remove(entity);
+                movementspeeds.remove(entity);
+                can_move.remove(entity);
+                // paths.remove(entity);
+                fired_projectiles.remove(entity);
+                ranged_attackers.remove(entity);
+                melee_attackers.remove(entity);
+                healths.remove(entity);
+                attack_components.remove(entity);
+                attack_timer.remove(entity);
 
-                    // TODO: save character data
+                // dole out rewards
+                let items = initialize_reward_items(adv.difficulty);
 
-                    // remove players from party
-                    players_to_remove.push(entity);
-                    names.remove(entity);
-
-                    // change game state to InTown
-                    *game_state = GameState::InTown;
+                // TODO: does this play with the level up system?
+                if let Some(mut exp) = experiences.get_mut(entity) {
+                    exp.current += 100 * adv.difficulty;
                 }
-            }
-        }
 
-        for pos in pos_to_remove {
-            positions.remove(pos);
-        }
-        for p in players_to_remove {
-            players.remove(p);
+                // TODO: other multipliers
+                if let Some(mut money) = monies.get_mut(entity) {
+                    money.0 += 100 * adv.difficulty;
+                }
+
+                // TODO: save character data
+
+                // remove players from party
+                players_to_remove.push(entity);
+                names.remove(entity);
+            }
+
+            for pos in pos_to_remove {
+                positions.remove(pos);
+            }
+            for p in players_to_remove {
+                players.remove(p);
+            }
+
+            // regenerate shop items
+            shop_item_pool.all_items = initialize_shop_items();
+
+            // change game state to InTown
+            *game_state = GameState::InTown;
         }
     }
 }

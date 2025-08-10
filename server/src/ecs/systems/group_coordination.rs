@@ -33,9 +33,8 @@ impl<'a> System<'a> for GroupCoordination {
 
         let all_at_dest = (&players, &positions, &healths)
             .join()
-            .all(|(_, position, health)| {
-                health.0 != Health::Dead && room.contains(&tatami_dungeon::Position::from(position))
-            });
+            .filter(|(_, _, health)| health.0 != Health::Dead)
+            .all(|(_, position, _health)| room.contains(&tatami_dungeon::Position::from(position)));
 
         if all_at_dest {
             group_destination.target_room_id = None;

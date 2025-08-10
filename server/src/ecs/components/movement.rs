@@ -1,9 +1,8 @@
-use crate::ecs::components;
 use crate::ecs::components::Component;
 use crate::ecs::components::DenseVecStorage;
 use crate::ecs::components::NullStorage;
 use crate::ecs::components::inventory::Equipment;
-use common::{DefenseModifiers, OtherModifiers};
+use common::OtherModifiers;
 use std::cmp::Ordering;
 
 // Entity's coordinates in the world
@@ -124,10 +123,10 @@ impl From<&tatami_dungeon::Position> for DesiredTargetPosition {
     }
 }
 
-#[derive(Debug, Component, Clone)]
-pub struct Path {
-    pub steps: Vec<(u32, u32)>, // next steps, from start to end
-}
+// #[derive(Debug, Component, Clone)]
+// pub struct Path {
+//     pub steps: Vec<(u32, u32)>, // next steps, from start to end
+// }
 
 #[derive(Debug, Component, Clone)]
 pub struct Wander;

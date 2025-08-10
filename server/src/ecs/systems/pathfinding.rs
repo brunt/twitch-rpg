@@ -1,5 +1,5 @@
 use crate::ecs::components::Position;
-use crate::ecs::components::movement::{DesiredTargetPosition, Path, TargetPosition};
+use crate::ecs::components::movement::{DesiredTargetPosition, TargetPosition};
 use crate::ecs::resources::Adventure;
 use pathfinding::prelude::astar;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};

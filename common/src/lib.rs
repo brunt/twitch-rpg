@@ -419,5 +419,43 @@ pub enum Effect {
     Revive,
     Transform(Form),
     StatChange(StatChange),
-    // GainAbility
+    AttackModifier(AttackModifiers),
+    DefenseModifier(DefenseModifiers),
+    Damage(u32, DamageType),
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub enum Targeting {
+    Single,                           // One target (player, enemy, etc.)
+    Personal,                         // Always the caster
+    PointRadius { radius: f32 },      // AoE around a point
+    Cone { angle: f32, range: f32 },  // Directional AoE
+    Line { length: f32, width: f32 }, // Beam-like AoE
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Spell {
+    pub id: u32,
+    pub name: String,
+    pub targeting: Targeting,
+    pub cooldown: f64,
+    pub effects: Vec<Effect>,
+    pub caster_restriction: SpellCasterRestriction,
+}
+impl FileAsset for Spell {
+    const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, BoxedError> {
+        assets_manager::asset::load_ron(&bytes)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub enum SpellCasterRestriction {
+    PlayerClass {
+        classes: Vec<PlayerClass>,
+        min_level: Option<u32>,
+    },
+    Enemy,
+    All,
 }

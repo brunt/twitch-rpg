@@ -34,8 +34,10 @@ use specs::{Builder, DispatcherBuilder, Join, World, WorldExt};
 use tokio::sync::broadcast;
 use tokio::sync::mpsc::Receiver;
 
+pub mod assets;
 pub mod resources;
 mod shop;
+mod spells;
 mod world;
 
 pub struct GameWorld {
@@ -45,7 +47,7 @@ pub struct GameWorld {
 
 impl GameWorld {
     pub fn new(rx: Receiver<(String, RpgCommand, bool)>) -> Self {
-        let mut world = create_world();
+        let world = create_world();
         Self { ecs: world, rx }
     }
 }
@@ -54,7 +56,7 @@ pub fn run_game_server(
     gamestate_sender: broadcast::Sender<GameSnapShot>,
     commands_receiver: Receiver<(String, RpgCommand, bool)>,
 ) {
-    const MIN_PLAYERS: usize = 1;
+    const MIN_PLAYERS: usize = 2;
 
     let mut gw = GameWorld::new(commands_receiver);
 

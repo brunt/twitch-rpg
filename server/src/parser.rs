@@ -3,7 +3,7 @@ use crate::commands::RpgCommand;
 use crate::commands::RpgCommand::PlayerCommand;
 use common::{MenuItem, PlayerClass};
 use winnow::Parser;
-use winnow::ascii::{Caseless, alpha1, digit1, space1};
+use winnow::ascii::{Caseless, digit1, space1};
 use winnow::combinator::{alt, preceded};
 use winnow::error::EmptyError;
 

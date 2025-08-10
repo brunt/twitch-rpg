@@ -1,0 +1,14 @@
+(
+    id: 2,
+    name: "Enlarge Person",
+    targeting: Personal,
+    cooldown: 120.0,
+    effects: [
+        (Transform(Scaled(1.5)), Some(60.0)),
+        (StatChange(( strength: Some(10), agility: None, intelligence: None )), Some(60.0)),
+    ],
+    caster_restriction: PlayerClass {
+        classes: vec![Wizard],
+        min_level: Some(1),
+    },
+)

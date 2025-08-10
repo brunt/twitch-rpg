@@ -2,7 +2,6 @@ use crate::ecs::components::Enemy;
 use crate::ecs::components::Experience;
 use crate::ecs::components::Level;
 use crate::ecs::components::Money;
-use crate::ecs::components::MovementAI;
 use crate::ecs::components::Name;
 use crate::ecs::components::Player;
 use crate::ecs::components::Position;
@@ -12,17 +11,19 @@ use crate::ecs::components::combat::{
     AttackComponent, AttackTarget, AttackTimer, DefenseComponent, FiredProjectile, HealthComponent,
     MeleeAttacker, RangedAttacker,
 };
-use crate::ecs::components::effect::{ActiveEffects, TimedEffect};
+use crate::ecs::components::effect::ActiveEffects;
 use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::movement::{
-    CanMove, DesiredTargetPosition, MovementSpeed, Path, TargetPosition, Wander,
+    CanMove, DesiredTargetPosition, MovementSpeed, TargetPosition, Wander,
 };
+use crate::ecs::components::spells::Spellbook;
 use crate::ecs::components::{DungeonItem, Opened};
 use crate::ecs::resources::{
     Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, GroupDestination, ShopInventory,
 };
 use crate::ecs::shop::ShopItemPool;
+use crate::ecs::spells::AllSpells;
 use specs::{World, WorldExt};
 
 pub fn create_world() -> World {
@@ -37,13 +38,12 @@ pub fn create_world() -> World {
     world.register::<Equipment>();
     world.register::<Stats>();
     world.register::<Experience>();
-    world.register::<MovementAI>();
     world.register::<Player>();
     world.register::<Level>();
     world.register::<Money>();
     world.register::<Enemy>();
     world.register::<DungeonItem>();
-    world.register::<Path>();
+    // world.register::<Path>();
     world.register::<Wander>();
     world.register::<AttackTarget>();
     world.register::<AttackComponent>();
@@ -57,6 +57,7 @@ pub fn create_world() -> World {
     world.register::<AttackTimer>();
     world.register::<FormComponent>();
     world.register::<ActiveEffects>();
+    world.register::<Spellbook>();
 
     // resources
     world.insert(GameState::InTown);
@@ -69,5 +70,6 @@ pub fn create_world() -> World {
     world.insert(ShopInventory::default());
     world.insert(Option::<Adventure>::None);
     world.insert(Option::<DungeonLoot>::None);
+    world.insert(AllSpells::new());
     world
 }

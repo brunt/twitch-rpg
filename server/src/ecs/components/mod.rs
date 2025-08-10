@@ -10,6 +10,7 @@ pub mod effect;
 pub mod form;
 pub mod inventory;
 pub mod movement;
+pub mod spells;
 
 // Corpse component for defeated entities
 #[derive(Debug, Component)]
@@ -69,60 +70,6 @@ pub struct Immobile;
 #[derive(Debug, Component, Clone)]
 pub struct LightRadius {
     pub radius: u32, // How far the entity can see in tiles
-}
-
-#[derive(Debug, Component, Clone)]
-pub struct Spell {
-    pub name: String,
-    pub mana_cost: u32,
-    pub cooldown: std::time::Duration,
-    pub last_cast: Option<std::time::Instant>,
-    pub spell_type: SpellType,
-}
-
-#[derive(Debug, Clone)]
-pub enum SpellType {
-    Damage {
-        base_damage: u32,
-        range: u32, // How far it can be cast from the caster
-    },
-    Heal {
-        heal_amount: u32,
-        range: u32,
-    },
-    // Area of Effect spell variant
-    AreaOfEffect {
-        effect: AoEEffect, // Specific effect (e.g., damage, heal, debuff)
-        radius: u32,       // Radius of the effect area in tiles
-        range: u32,        // How far from caster it can be targeted
-    },
-    // ...other spell types
-}
-
-// Buff effects
-#[derive(Debug, Clone)]
-pub enum BuffEffect {
-    TemporaryDamage(u32),
-    TemporaryDefense(u32),
-    TemporarySpeed(i32),
-    Regeneration(u32),
-}
-
-#[derive(Debug, Clone)]
-pub enum AoEEffect {
-    Damage(u32),        // Flat damage to all affected targets
-    Heal(u32),          // Flat heal to all affected targets
-    Buff(BuffEffect),   // Buff all affected targets
-    Debuff(BuffEffect), // Debuff all affected targets
-}
-
-// Projectile effects
-#[derive(Debug, Clone)]
-pub enum ProjectileEffect {
-    Damage(u32),
-    Slow(f32, std::time::Duration),
-    Stun(std::time::Duration),
-    AreaOfEffect { radius: u32, effect_type: String },
 }
 
 // Experience reward component
@@ -188,23 +135,6 @@ impl From<&Stats> for PlayerStats {
             intelligence: stats.intelligence,
         }
     }
-}
-
-#[derive(Debug, Component, Clone)]
-pub struct MovementAI {
-    pub kind: MovementAIKind,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum MovementAIKind {
-    /// Non-player entity: wander randomly from point to point
-    WanderRandomly,
-    /// Player: pathfind toward unexplored rooms, seeking the next floor entrance
-    ExploreDungeon,
-    /// Entity follows an explicit path (e.g., chasing, patrolling), path to be computed elsewhere
-    PathfindTo(Vec<(i32, i32)>),
-    /// Follow Leader
-    Follow,
 }
 
 #[derive(Debug, Component, Clone)]
