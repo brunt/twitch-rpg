@@ -139,7 +139,7 @@ impl<'a> System<'a> for RoomExplorationSystem {
                             .expect("Failed to insert melee");
 
                         // Target the first available player deterministically.
-                        if let Some(target_entity) = player_entities.iter().next() {
+                        if let Some(target_entity) = player_entities.first() {
                             attack_targets
                                 .insert(
                                     enemy,

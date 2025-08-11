@@ -68,7 +68,7 @@ impl<'a> System<'a> for PlayerSpellAISystem {
             // Check if not on spell cooldown
             let not_on_cooldown = spell_timers
                 .get(player_entity)
-                .map_or(true, |timer| timer.remaining <= 0.0);
+                .is_none_or(|timer| timer.remaining <= 0.0);
 
             if !not_on_cooldown {
                 continue;
@@ -123,17 +123,13 @@ impl<'a> System<'a> for PlayerSpellAISystem {
                     };
 
                     if should_heal {
-                        spellbook
-                            .spells
-                            .iter()
-                            .filter(|s| {
-                                matches!(s.targeting, Targeting::Personal)
-                                    && matches!(
-                                        s.caster_restriction,
-                                        SpellCasterRestriction::PlayerClass { .. }
-                                    )
-                            })
-                            .next()
+                        spellbook.spells.iter().find(|s| {
+                            matches!(s.targeting, Targeting::Personal)
+                                && matches!(
+                                    s.caster_restriction,
+                                    SpellCasterRestriction::PlayerClass { .. }
+                                )
+                        })
                     } else {
                         None
                     }
@@ -141,17 +137,13 @@ impl<'a> System<'a> for PlayerSpellAISystem {
                 .or_else(|| {
                     // Priority 3: Offensive spells when enemies are present
                     if has_enemies {
-                        spellbook
-                            .spells
-                            .iter()
-                            .filter(|s| {
-                                !matches!(s.targeting, Targeting::Personal)
-                                    && matches!(
-                                        s.caster_restriction,
-                                        SpellCasterRestriction::PlayerClass { .. }
-                                    )
-                            })
-                            .next()
+                        spellbook.spells.iter().find(|s| {
+                            !matches!(s.targeting, Targeting::Personal)
+                                && matches!(
+                                    s.caster_restriction,
+                                    SpellCasterRestriction::PlayerClass { .. }
+                                )
+                        })
                     } else {
                         None
                     }
@@ -165,17 +157,13 @@ impl<'a> System<'a> for PlayerSpellAISystem {
                     };
 
                     if should_use_personal {
-                        spellbook
-                            .spells
-                            .iter()
-                            .filter(|s| {
-                                matches!(s.targeting, Targeting::Personal)
-                                    && matches!(
-                                        s.caster_restriction,
-                                        SpellCasterRestriction::PlayerClass { .. }
-                                    )
-                            })
-                            .next()
+                        spellbook.spells.iter().find(|s| {
+                            matches!(s.targeting, Targeting::Personal)
+                                && matches!(
+                                    s.caster_restriction,
+                                    SpellCasterRestriction::PlayerClass { .. }
+                                )
+                        })
                     } else {
                         None
                     }

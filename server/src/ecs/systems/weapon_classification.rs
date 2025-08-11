@@ -22,7 +22,7 @@ impl<'a> System<'a> for WeaponClassifierSystem {
                 .get(&EquipmentSlot::MainHand)
                 .and_then(|item| item.stats.as_ref())
                 .and_then(|stats| stats.attack_modifiers.as_ref())
-                .map_or(false, |atk| atk.range_bonus > 1);
+                .is_some_and(|atk| atk.range_bonus > 1);
 
             if ranged_weapon {
                 ranged.insert(entity, RangedAttacker).ok();

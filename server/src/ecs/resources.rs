@@ -53,11 +53,11 @@ impl ExplorationTree {
 
         loop {
             // Check if the current candidate room has any unexplored children.
-            if let Some(room) = floor.rooms.iter().find(|r| r.id == backtrack_candidate) {
-                if room.connections.iter().any(|conn| !self.contains(&conn.id)) {
-                    // This room has unexplored paths, so this is our target.
-                    return Some(backtrack_candidate);
-                }
+            if let Some(room) = floor.rooms.iter().find(|r| r.id == backtrack_candidate)
+                && room.connections.iter().any(|conn| !self.contains(&conn.id))
+            {
+                // This room has unexplored paths, so this is our target.
+                return Some(backtrack_candidate);
             }
 
             // If not, move to the parent.

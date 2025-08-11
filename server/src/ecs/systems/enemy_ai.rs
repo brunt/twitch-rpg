@@ -62,7 +62,7 @@ impl<'a> System<'a> for EnemyAISystem {
                     // Check if not on spell cooldown
                     let not_on_cooldown = spell_timers
                         .get(enemy_entity)
-                        .map_or(true, |timer| timer.remaining <= 0.0);
+                        .is_none_or(|timer| timer.remaining <= 0.0);
 
                     if not_on_cooldown {
                         // Find a suitable spell for any target
@@ -106,7 +106,7 @@ impl<'a> System<'a> for EnemyAISystem {
                             spellbook
                                 .spells
                                 .iter()
-                                .filter(|s| {
+                                .find(|s| {
                                     matches!(s.targeting, Targeting::Personal)
                                         && matches!(
                                             s.caster_restriction,
@@ -114,28 +114,23 @@ impl<'a> System<'a> for EnemyAISystem {
                                                 | SpellCasterRestriction::All
                                         )
                                 })
-                                .next()
                                 .or_else(|| {
                                     // Fallback to offensive spells
-                                    spellbook
-                                        .spells
-                                        .iter()
-                                        .filter(|s| {
-                                            !matches!(s.targeting, Targeting::Personal)
-                                                && matches!(
-                                                    s.caster_restriction,
-                                                    SpellCasterRestriction::Enemy
-                                                        | SpellCasterRestriction::All
-                                                )
-                                        })
-                                        .next()
+                                    spellbook.spells.iter().find(|s| {
+                                        !matches!(s.targeting, Targeting::Personal)
+                                            && matches!(
+                                                s.caster_restriction,
+                                                SpellCasterRestriction::Enemy
+                                                    | SpellCasterRestriction::All
+                                            )
+                                    })
                                 })
                         } else {
                             // Look for offensive spells first
                             spellbook
                                 .spells
                                 .iter()
-                                .filter(|s| {
+                                .find(|s| {
                                     !matches!(s.targeting, Targeting::Personal)
                                         && matches!(
                                             s.caster_restriction,
@@ -143,21 +138,16 @@ impl<'a> System<'a> for EnemyAISystem {
                                                 | SpellCasterRestriction::All
                                         )
                                 })
-                                .next()
                                 .or_else(|| {
                                     // Fallback to personal spells
-                                    spellbook
-                                        .spells
-                                        .iter()
-                                        .filter(|s| {
-                                            matches!(s.targeting, Targeting::Personal)
-                                                && matches!(
-                                                    s.caster_restriction,
-                                                    SpellCasterRestriction::Enemy
-                                                        | SpellCasterRestriction::All
-                                                )
-                                        })
-                                        .next()
+                                    spellbook.spells.iter().find(|s| {
+                                        matches!(s.targeting, Targeting::Personal)
+                                            && matches!(
+                                                s.caster_restriction,
+                                                SpellCasterRestriction::Enemy
+                                                    | SpellCasterRestriction::All
+                                            )
+                                    })
                                 })
                         };
 

@@ -108,7 +108,7 @@ impl<'a> System<'a> for Rendering {
                 {
                     gs.party.push(PlayerSnapshot {
                         name: name.0.clone(), //TODO: not clone?
-                        class: character_class.0.clone(),
+                        class: character_class.0,
                         health: health.0.clone(),
                         level: level.0,
                         gold: money.0,
@@ -254,7 +254,7 @@ impl<'a> System<'a> for Rendering {
                 {
                     gs.party.push(PlayerSnapshot {
                         name: name.0.clone(),
-                        class: character_class.0.clone(),
+                        class: character_class.0,
                         health: health.0.clone(),
                         level: level.0,
                         gold: money.0,

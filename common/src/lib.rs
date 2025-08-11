@@ -13,7 +13,7 @@ pub struct GameSnapShot {
     #[serde(rename = "b")]
     pub camera_position: Option<tatami_dungeon::Position>,
     #[serde(rename = "c")]
-    pub floor_positions: Option<Vec<EntityPosition>>, //TODO: use component position type?
+    pub floor_positions: Option<Vec<EntityPosition>>,
     #[serde(rename = "d")]
     pub floor: Option<Vec<Vec<u8>>>,
     #[serde(rename = "e")]

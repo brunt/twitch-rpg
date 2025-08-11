@@ -56,10 +56,11 @@ impl<'a> System<'a> for SpellcastingSystem {
             .join()
         {
             // Check if spell is on cooldown
-            if let Some(timer) = spell_timers.get(caster_entity) {
-                if timer.remaining > 0.0 && timer.spell_id == spell_target.spell_id {
-                    continue; // Still cooling down
-                }
+            if let Some(timer) = spell_timers.get(caster_entity)
+                && timer.remaining > 0.0
+                && timer.spell_id == spell_target.spell_id
+            {
+                continue; // Still cooling down
             }
 
             // Get the spell from AllSpells
@@ -130,10 +131,10 @@ impl<'a> System<'a> for SpellcastingSystem {
                     // For AoE spells, we'll target all entities within radius of the target position
                     if let Some(target_pos) = positions.get(target_entity) {
                         // Check if caster can reach the target point
-                        if let Some(attack_comp) = attack_components.get(caster_entity) {
-                            if attack_comp.range < target_pos.distance_to(position) {
-                                continue; // Out of range to cast at target point
-                            }
+                        if let Some(attack_comp) = attack_components.get(caster_entity)
+                            && attack_comp.range < target_pos.distance_to(position)
+                        {
+                            continue; // Out of range to cast at target point
                         }
 
                         // Apply effects to all entities within radius
@@ -155,10 +156,10 @@ impl<'a> System<'a> for SpellcastingSystem {
                 Targeting::Cone { angle: _, range } => {
                     // For now, implement as a simple range-based effect
                     // TODO: Implement proper cone targeting with angle calculations
-                    if let Some(attack_comp) = attack_components.get(caster_entity) {
-                        if attack_comp.range < *range as u32 {
-                            continue; // Out of range
-                        }
+                    if let Some(attack_comp) = attack_components.get(caster_entity)
+                        && attack_comp.range < *range as u32
+                    {
+                        continue; // Out of range
                     }
 
                     self.apply_spell_effects(
@@ -174,10 +175,10 @@ impl<'a> System<'a> for SpellcastingSystem {
                 Targeting::Line { length, width: _ } => {
                     // For now, implement as a simple range-based effect
                     // TODO: Implement proper line targeting
-                    if let Some(attack_comp) = attack_components.get(caster_entity) {
-                        if attack_comp.range < *length as u32 {
-                            continue; // Out of range
-                        }
+                    if let Some(attack_comp) = attack_components.get(caster_entity)
+                        && attack_comp.range < *length as u32
+                    {
+                        continue; // Out of range
                     }
 
                     self.apply_spell_effects(
@@ -218,17 +219,17 @@ impl SpellcastingSystem {
         for (effect, duration) in &spell.effects {
             match effect {
                 Effect::Heal(amount) => {
-                    if let Some(health) = healths.get_mut(target_entity) {
-                        if let Health::Alive { hp, max_hp } = &mut health.0 {
-                            *hp = (*hp + amount).min(*max_hp);
-                        }
+                    if let Some(health) = healths.get_mut(target_entity)
+                        && let Health::Alive { hp, max_hp } = &mut health.0
+                    {
+                        *hp = (*hp + amount).min(*max_hp);
                     }
                 }
                 Effect::Revive => {
-                    if let Some(health) = healths.get_mut(target_entity) {
-                        if matches!(health.0, Health::Dead) {
-                            health.0 = Health::Alive { hp: 1, max_hp: 1 };
-                        }
+                    if let Some(health) = healths.get_mut(target_entity)
+                        && matches!(health.0, Health::Dead)
+                    {
+                        health.0 = Health::Alive { hp: 1, max_hp: 1 };
                     }
                 }
                 Effect::Transform(transform_form) => {
@@ -293,13 +294,13 @@ impl SpellcastingSystem {
                     }
                 }
                 Effect::Damage(amount, damage_type) => {
-                    if let Some(health) = healths.get_mut(target_entity) {
-                        if let Health::Alive { hp, .. } = &mut health.0 {
-                            if *hp > *amount {
-                                *hp -= amount;
-                            } else {
-                                health.0 = Health::Dead;
-                            }
+                    if let Some(health) = healths.get_mut(target_entity)
+                        && let Health::Alive { hp, .. } = &mut health.0
+                    {
+                        if *hp > *amount {
+                            *hp -= amount;
+                        } else {
+                            health.0 = Health::Dead;
                         }
                     }
                     // TODO: Add projectile visual for damage spells similar to combat system

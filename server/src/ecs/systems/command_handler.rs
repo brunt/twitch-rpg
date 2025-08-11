@@ -136,18 +136,17 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 .join()
                                 .find(|(_, name)| name.0 == player_name)
                             {
-                                if let Some(shop_item) = shop_inventory.items.get(&item) {
-                                    if let Some(gold) = money.get_mut(e) {
-                                        if gold.0 >= shop_item.price {
-                                            gold.0 -= shop_item.price;
+                                if let Some(shop_item) = shop_inventory.items.get(&item)
+                                    && let Some(gold) = money.get_mut(e)
+                                    && gold.0 >= shop_item.price
+                                {
+                                    gold.0 -= shop_item.price;
 
-                                            if let Some(equip_slots) = equipment.get_mut(e) {
-                                                equip_slots.slots.insert(
-                                                    shop_item.equip_slot.clone(),
-                                                    shop_item.to_item(),
-                                                );
-                                            }
-                                        }
+                                    if let Some(equip_slots) = equipment.get_mut(e) {
+                                        equip_slots.slots.insert(
+                                            shop_item.equip_slot.clone(),
+                                            shop_item.to_item(),
+                                        );
                                     }
                                 }
                             }
