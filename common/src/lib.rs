@@ -31,7 +31,7 @@ pub struct GameSnapShot {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityPosition {
     #[serde(rename = "a")]
-    pub entity_type: String,
+    pub id: u32,
     #[serde(rename = "b")]
     pub position: tatami_dungeon::Position,
     #[serde(rename = "c")]
@@ -42,6 +42,8 @@ pub struct EntityPosition {
     pub health: Option<Health>,
     #[serde(rename = "f")]
     pub form: Form,
+    #[serde(rename = "g")]
+    pub entity_type: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
