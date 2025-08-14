@@ -1,0 +1,16 @@
+Spell(
+    id: 4,
+    name: "Curse Defense",
+    targeting: Single,
+    cooldown: 120.0,
+    effects: [
+        (DefenseModifier(DefenseModifiers((
+            damage_reduction: -2,
+            evasion_rating: -20,
+        ))), Some(60.0)),
+    ],
+    caster_restriction: PlayerClass(
+        classes: [Warlock],
+        min_level: Some(0),
+    ),
+)

@@ -1,9 +1,10 @@
 use crate::ecs::components::combat::{AttackTarget, HealthComponent};
+use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::movement::TargetPosition;
 use crate::ecs::components::spells::{SpellCaster, SpellTarget, SpellTimer, Spellbook};
 use crate::ecs::components::{Enemy, Player, Position};
 use crate::ecs::spells::AllSpells;
-use common::{Health, SpellCasterRestriction, Targeting};
+use common::{Form, Health, SpellCasterRestriction, Targeting};
 use specs::Entity;
 use specs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage};
 
@@ -18,6 +19,7 @@ impl<'a> System<'a> for EnemyAISystem {
         ReadStorage<'a, SpellCaster>,
         ReadStorage<'a, Spellbook>,
         ReadStorage<'a, SpellTimer>,
+        ReadStorage<'a, FormComponent>,
         WriteStorage<'a, TargetPosition>,
         WriteStorage<'a, AttackTarget>,
         WriteStorage<'a, SpellTarget>,
@@ -35,6 +37,7 @@ impl<'a> System<'a> for EnemyAISystem {
             spell_casters,
             spellbooks,
             spell_timers,
+            forms,
             mut targets,
             mut attack_targets,
             mut spell_targets,
@@ -42,17 +45,19 @@ impl<'a> System<'a> for EnemyAISystem {
             entities,
         ): Self::SystemData,
     ) {
-        let alive_players: Vec<(Entity, &Position)> = (&entities, &players, &positions, &healths)
-            .join()
-            .filter(|(_, _, _, health)| !matches!(health.0, Health::Dead))
-            .map(|(entity, _, pos, _)| (entity, pos))
-            .collect();
+        let alive_players: Vec<(Entity, &Position, &FormComponent)> =
+            (&entities, &players, &positions, &healths, &forms)
+                .join()
+                .filter(|(_, _, _, health, _)| !matches!(health.0, Health::Dead))
+                .map(|(entity, _, pos, _, form)| (entity, pos, form))
+                .collect();
 
-        for (enemy_pos, _, enemy_entity) in (&positions, &enemies, &entities).join() {
+        for (enemy_pos, _, enemy_entity, form) in (&positions, &enemies, &entities, &forms).join() {
             // Find closest alive player
-            if let Some((closest_player_entity, closest_player_pos)) = alive_players
+            if let Some((closest_player_entity, closest_player_pos, _)) = alive_players
                 .iter()
-                .min_by_key(|(_, player_pos)| enemy_pos.distance_to(player_pos))
+                .filter(|(_, _, form)| !matches!(form.0, Form::Invisible))
+                .min_by_key(|(_, player_pos, _)| enemy_pos.distance_to(player_pos))
             {
                 // Check if enemy can cast spells and should prioritize spellcasting
                 let should_cast_spell = if let (Some(_), Some(spellbook)) = (

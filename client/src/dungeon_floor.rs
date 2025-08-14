@@ -226,7 +226,11 @@ pub fn draw_dungeon_floor(
                             adjusted_x,
                             adjusted_y,
                             scale,
-                            None,
+                            if matches!(form, Form::Invisible) {
+                                Some(0.50)
+                            } else {
+                                None
+                            },
                         )
                     }
                 }
