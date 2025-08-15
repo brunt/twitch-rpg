@@ -42,6 +42,8 @@ pub struct EntityPosition {
     pub health: Option<Health>,
     #[serde(rename = "f")]
     pub form: Form,
+    #[serde(rename = "g")]
+    pub id: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -425,13 +427,26 @@ pub enum Effect {
     Damage(u32, DamageType),
 }
 
+#[derive(Clone, Debug, Deserialize)]
+pub enum TargetFilter {
+    Any,
+    EnemyOnly,
+    AllyOrSelf,
+    SelfOnly,
+}
+
 #[derive(Debug, Clone, Deserialize)]
-pub enum Targeting {
+pub enum TargetShape {
     Single,                           // One target (player, enemy, etc.)
-    Personal,                         // Always the caster
     PointRadius { radius: f32 },      // AoE around a point
     Cone { angle: f32, range: f32 },  // Directional AoE
     Line { length: f32, width: f32 }, // Beam-like AoE
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Targeting {
+    pub shape: TargetShape,
+    pub filter: TargetFilter,
 }
 
 #[derive(Debug, Clone, Deserialize)]

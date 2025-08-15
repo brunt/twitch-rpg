@@ -127,6 +127,7 @@ impl<'a> System<'a> for Rendering {
             GameState::OnAdventure => {
                 // build positions list
                 let entity_positions: Vec<EntityPosition> = (
+                    &entities,
                     &positions,
                     &character_classes,
                     &levels,
@@ -135,20 +136,25 @@ impl<'a> System<'a> for Rendering {
                     target_positions.maybe(),
                 )
                     .join()
-                    .map(|(pos, class, lvl, health, form, target_pos_maybe)| {
-                        let pos = pos.clone();
-                        let class = class.clone();
-                        EntityPosition {
-                            entity_type: class.to_string(),
-                            position: tatami_dungeon::Position { x: pos.x, y: pos.y },
-                            level: lvl.0,
-                            target_position: target_pos_maybe.map(tatami_dungeon::Position::from),
-                            health: Some(health.0.clone()),
-                            form: form.0.clone(),
-                        }
-                    })
+                    .map(
+                        |(entity, pos, class, lvl, health, form, target_pos_maybe)| {
+                            let pos = pos.clone();
+                            let class = class.clone();
+                            EntityPosition {
+                                entity_type: class.to_string(),
+                                position: tatami_dungeon::Position { x: pos.x, y: pos.y },
+                                level: lvl.0,
+                                target_position: target_pos_maybe
+                                    .map(tatami_dungeon::Position::from),
+                                health: Some(health.0.clone()),
+                                form: form.0.clone(),
+                                id: entity.id(),
+                            }
+                        },
+                    )
                     .chain(
                         (
+                            &entities,
                             &positions,
                             &names,
                             &levels,
@@ -159,7 +165,7 @@ impl<'a> System<'a> for Rendering {
                         )
                             .join()
                             .map(
-                                |(pos, name, level, _, health, form, target_pos_maybe)| {
+                                |(entity, pos, name, level, _, health, form, target_pos_maybe)| {
                                     EntityPosition {
                                         entity_type: name.0.clone(),
                                         position: tatami_dungeon::Position::from(pos),
@@ -168,24 +174,28 @@ impl<'a> System<'a> for Rendering {
                                             .map(tatami_dungeon::Position::from),
                                         health: Some(health.0.clone()),
                                         form: form.0.clone(),
+                                        id: entity.id(),
                                     }
                                 },
                             ),
                     )
-                    .chain((&positions, &dungeon_items, opened.maybe()).join().map(
-                        |(pos, item, opened_maybe)| EntityPosition {
-                            entity_type: if opened_maybe.is_some() {
-                                "Opened".to_string()
-                            } else {
-                                "Item".to_string()
-                            },
-                            position: tatami_dungeon::Position::from(pos),
-                            level: 0,
-                            target_position: None,
-                            health: None,
-                            form: Form::Normal,
-                        },
-                    ))
+                    .chain(
+                        (&entities, &positions, &dungeon_items, opened.maybe())
+                            .join()
+                            .map(|(entity, pos, _item, opened_maybe)| EntityPosition {
+                                entity_type: if opened_maybe.is_some() {
+                                    "Opened".to_string()
+                                } else {
+                                    "Item".to_string()
+                                },
+                                position: tatami_dungeon::Position::from(pos),
+                                level: 0,
+                                target_position: None,
+                                health: None,
+                                form: Form::Normal,
+                                id: entity.id(),
+                            }),
+                    )
                     .collect();
 
                 // build projectiles
