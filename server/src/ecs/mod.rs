@@ -21,7 +21,6 @@ use crate::ecs::systems::pathfinding::PathfindingSystem;
 use crate::ecs::systems::player_ai::PlayerAI;
 use crate::ecs::systems::player_spell_ai::PlayerSpellAISystem;
 use crate::ecs::systems::projectile_cleanup::ProjectileCleanupSystem;
-use crate::ecs::systems::random_wander::RandomWander;
 use crate::ecs::systems::rendering::Rendering;
 use crate::ecs::systems::room_exploration::RoomExplorationSystem;
 use crate::ecs::systems::shop_population::ShopPopulation;
@@ -93,11 +92,6 @@ pub fn run_game_server(
             AssignRoomTargetSystem,
             "assign_room_target",
             &["combat", "movement"],
-        )
-        .with(
-            RandomWander,
-            "random_wander",
-            &["movement", "group_coordination"],
         )
         .with(PathfindingSystem, "pathfinding", &["movement", "player_ai"])
         .with(

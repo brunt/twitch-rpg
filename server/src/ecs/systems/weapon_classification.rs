@@ -1,6 +1,6 @@
 use crate::ecs::components::combat::{MeleeAttacker, RangedAttacker};
 use crate::ecs::components::inventory::Equipment;
-use common::{EquipmentSlot, Item};
+use common::EquipmentSlot;
 use specs::prelude::*;
 
 /// System for giving players a ranged or melee marker component based on their main-hand weapon.

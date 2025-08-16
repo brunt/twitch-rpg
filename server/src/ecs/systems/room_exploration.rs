@@ -4,9 +4,8 @@ use crate::ecs::components::combat::{
 use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::movement::{CanMove, MovementSpeed, TargetPosition};
 use crate::ecs::components::{Enemy, Level, Name, Player, Position};
-use crate::ecs::resources::{Adventure, DirectionOffset, RoomCheck};
+use crate::ecs::resources::{Adventure, RoomCheck};
 use common::{Form, Health};
-use rand::seq::IteratorRandom;
 use specs::{Entities, Join, ReadStorage, System, WriteExpect, WriteStorage};
 use tatami_dungeon::Position as TatamiPosition;
 
@@ -63,9 +62,10 @@ impl<'a> System<'a> for RoomExplorationSystem {
             return;
         };
 
-        let player_positions: Vec<_> = (&positions, &players)
+        let player_positions: Vec<_> = (&positions, &players, &healths)
             .join()
-            .map(|(pos, _)| pos.clone())
+            .filter(|(_, _, health)| health.0 != Health::Dead)
+            .map(|(pos, _, _)| *pos)
             .collect();
 
         // --- Room Transition and Exploration Logic ---
