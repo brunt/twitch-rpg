@@ -1,14 +1,12 @@
-use crate::ecs::components::combat::{AttackComponent, HealthComponent};
-use crate::ecs::components::effect::{ActiveEffects, TimedEffect};
-use crate::ecs::components::form::FormComponent;
-
-use crate::ecs::components::spells::{SpellCaster, SpellTarget, SpellTimer, Spellbook};
-use crate::ecs::components::{Enemy, Player, Position, Stats};
+use crate::ecs::components::Position;
+use crate::ecs::components::combat::{ActionTimer, AttackComponent, PendingAction};
+use crate::ecs::components::movement::CanMove;
+use crate::ecs::components::spells::{SpellCaster, SpellTarget};
 use crate::ecs::spells::AllSpells;
-use common::{Effect, Form, Health, TargetFilter, TargetShape, Targeting};
+use common::TargetFilter;
 use specs::prelude::*;
 
-// system for effect resolution, no need to check spell cooldowns
+// system for creating spell buildup timers
 pub struct SpellcastingSystem;
 
 impl<'a> System<'a> for SpellcastingSystem {
@@ -19,13 +17,8 @@ impl<'a> System<'a> for SpellcastingSystem {
         WriteStorage<'a, SpellTarget>,
         ReadStorage<'a, AttackComponent>,
         ReadStorage<'a, Position>,
-        ReadStorage<'a, Player>,
-        ReadStorage<'a, Enemy>,
-        WriteStorage<'a, SpellTimer>,
-        WriteStorage<'a, HealthComponent>,
-        WriteStorage<'a, ActiveEffects>,
-        WriteStorage<'a, FormComponent>,
-        WriteStorage<'a, Stats>,
+        WriteStorage<'a, ActionTimer>,
+        WriteStorage<'a, CanMove>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -36,19 +29,24 @@ impl<'a> System<'a> for SpellcastingSystem {
             mut spell_targets,
             attack_components,
             positions,
-            players,
-            enemies,
-            mut spell_timers,
-            mut healths,
-            mut active_effects,
-            mut forms,
-            mut stats,
+            mut action_timers,
+            mut can_move,
         ) = data;
 
         let mut to_remove = Vec::new();
-        for (caster_entity, _, spell_target, position) in
-            (&entities, &spell_casters, &spell_targets, &positions).join()
+        for (caster_entity, _, spell_target, position, attack_component) in (
+            &entities,
+            &spell_casters,
+            &spell_targets,
+            &positions,
+            &attack_components,
+        )
+            .join()
         {
+            // Check if caster already has a pending action
+            if action_timers.get(caster_entity).is_some() {
+                continue; // Skip this tick, already preparing an action
+            }
             // Get the spell from AllSpells
             let Some(spell) = all_spells.0.get(&spell_target.spell_id) else {
                 continue; // Spell doesn't exist
@@ -56,273 +54,64 @@ impl<'a> System<'a> for SpellcastingSystem {
 
             let target_entity = spell_target.target;
 
-            // Handle different targeting types
-            match &spell.targeting.shape {
-                TargetShape::Single => {
-                    match spell.targeting.filter {
-                        TargetFilter::SelfOnly => {
-                            if target_entity != caster_entity {
-                                continue;
-                            }
-                            self.apply_spell_effects(
-                                spell,
-                                caster_entity,
-                                target_entity,
-                                &mut healths,
-                                &mut active_effects,
-                                &mut forms,
-                                &mut stats,
-                            );
-                        }
-
-                        TargetFilter::AllyOrSelf => {
-                            // buffs have an implicit minimum range that offensive spells don't
-                            if let (Some(target_pos), Some(attack_comp)) = (
-                                positions.get(target_entity),
-                                attack_components.get(caster_entity),
-                            ) {
-                                if attack_comp.range.min(3) < target_pos.distance_to(position) {
-                                    // dbg!(format!(
-                                    //     "{} -> {}, {}",
-                                    //     names.get(caster_entity).unwrap().0.clone(),
-                                    //     names.get(target_entity).unwrap().0.clone(),
-                                    //     spell.name.clone()
-                                    // ));
-                                    continue;
-                                }
-                                let caster_is_player = players.get(caster_entity).is_some();
-                                let target_is_player = players.get(target_entity).is_some();
-
-                                self.apply_spell_effects(
-                                    spell,
-                                    caster_entity,
-                                    target_entity,
-                                    &mut healths,
-                                    &mut active_effects,
-                                    &mut forms,
-                                    &mut stats,
-                                );
-                            } else {
-                                dbg!("no pos or atk wtf");
-                                continue; // No position or attack component
-                            }
-                        }
-                        TargetFilter::EnemyOnly => {
-                            if let (Some(target_pos), Some(attack_comp)) = (
-                                positions.get(target_entity),
-                                attack_components.get(caster_entity),
-                            ) {
-                                if attack_comp.range < target_pos.distance_to(position) {
-                                    continue;
-                                }
-                                let caster_is_player = players.get(caster_entity).is_some();
-                                let target_is_player = players.get(target_entity).is_some();
-
-                                self.apply_spell_effects(
-                                    spell,
-                                    caster_entity,
-                                    target_entity,
-                                    &mut healths,
-                                    &mut active_effects,
-                                    &mut forms,
-                                    &mut stats,
-                                );
-                            } else {
-                                dbg!("no pos or atk wtf");
-                                continue; // No position or attack component
-                            }
-                        }
-                        TargetFilter::Any => unimplemented!(),
-                    }
-
-                    // Handle single-target spells
-                    // Check range to target
-                }
-                TargetShape::PointRadius { radius } => {
-                    // For AoE spells, we'll target all entities within radius of the target position
-                    if let Some(target_pos) = positions.get(target_entity) {
-                        // Check if caster can reach the target point
-                        if let Some(attack_comp) = attack_components.get(caster_entity)
-                            && attack_comp.range < target_pos.distance_to(position)
-                        {
-                            continue; // Out of range to cast at target point
-                        }
-
-                        // Apply effects to all entities within radius
-                        for (nearby_entity, nearby_pos) in (&entities, &positions).join() {
-                            if target_pos.distance_to(nearby_pos) <= *radius as u32 {
-                                self.apply_spell_effects(
-                                    spell,
-                                    caster_entity,
-                                    nearby_entity,
-                                    &mut healths,
-                                    &mut active_effects,
-                                    &mut forms,
-                                    &mut stats,
-                                );
-                            }
-                        }
+            // Basic validation - more detailed validation will happen when buildup completes
+            match spell.targeting.filter {
+                TargetFilter::SelfOnly => {
+                    if target_entity != caster_entity {
+                        continue;
                     }
                 }
-                TargetShape::Cone { angle: _, range } => {
-                    // For now, implement as a simple range-based effect
-                    // TODO: Implement proper cone targeting with angle calculations
-                    if let Some(attack_comp) = attack_components.get(caster_entity)
-                        && attack_comp.range < *range as u32
-                    {
-                        continue; // Out of range
+                TargetFilter::AllyOrSelf => {
+                    // buffs have an implicit minimum range that offensive spells don't
+                    if let (Some(target_pos), Some(attack_comp)) = (
+                        positions.get(target_entity),
+                        attack_components.get(caster_entity),
+                    ) {
+                        if attack_comp.range.min(3) < target_pos.distance_to(position) {
+                            continue;
+                        }
+                    } else {
+                        continue; // No position or attack component
                     }
-
-                    self.apply_spell_effects(
-                        spell,
-                        caster_entity,
-                        target_entity,
-                        &mut healths,
-                        &mut active_effects,
-                        &mut forms,
-                        &mut stats,
-                    );
                 }
-                TargetShape::Line { length, width: _ } => {
-                    // For now, implement as a simple range-based effect
-                    // TODO: Implement proper line targeting
-                    if let Some(attack_comp) = attack_components.get(caster_entity)
-                        && attack_comp.range < *length as u32
-                    {
-                        continue; // Out of range
+                TargetFilter::EnemyOnly => {
+                    if let (Some(target_pos), Some(attack_comp)) = (
+                        positions.get(target_entity),
+                        attack_components.get(caster_entity),
+                    ) {
+                        if attack_comp.range < target_pos.distance_to(position) {
+                            continue;
+                        }
+                    } else {
+                        continue; // No position or attack component
                     }
-
-                    self.apply_spell_effects(
-                        spell,
-                        caster_entity,
-                        target_entity,
-                        &mut healths,
-                        &mut active_effects,
-                        &mut forms,
-                        &mut stats,
-                    );
                 }
+                TargetFilter::Any => unimplemented!(),
             }
 
-            // Set spell cooldown
-            spell_timers
-                .entry(caster_entity)
-                .expect("failed to get spell timer entry")
-                .or_insert_with(|| SpellTimer {
-                    remaining: spell.cooldown,
-                    spell_id: spell.id,
-                });
+            // Remove movement capability during buildup
+            can_move.remove(caster_entity);
+
+            // Create action timer with spell buildup time
+            action_timers
+                .insert(
+                    caster_entity,
+                    ActionTimer {
+                        remaining: attack_component.cooldown as f64 / 1000.0,
+                        action: PendingAction::Spell {
+                            target: target_entity,
+                            spell_id: spell_target.spell_id,
+                            caster_position: *position,
+                        },
+                    },
+                )
+                .expect("Failed to insert ActionTimer component");
 
             to_remove.push(caster_entity);
         }
 
         for entity in to_remove {
             spell_targets.remove(entity);
-        }
-    }
-}
-
-impl SpellcastingSystem {
-    fn apply_spell_effects(
-        &self,
-        spell: &common::Spell,
-        caster_entity: Entity,
-        target_entity: Entity,
-        healths: &mut WriteStorage<HealthComponent>,
-        active_effects: &mut WriteStorage<ActiveEffects>,
-        forms: &mut WriteStorage<FormComponent>,
-        stats: &mut WriteStorage<Stats>,
-    ) {
-        for (effect, duration) in &spell.effects {
-            match effect {
-                Effect::Heal(amount) => {
-                    if let Some(health) = healths.get_mut(target_entity)
-                        && let Health::Alive { hp, max_hp } = &mut health.0
-                    {
-                        *hp = (*hp + amount).min(*max_hp);
-                    }
-                }
-                Effect::Revive => {
-                    if let Some(health) = healths.get_mut(target_entity)
-                        && matches!(health.0, Health::Dead)
-                    {
-                        health.0 = Health::Alive { hp: 1, max_hp: 1 };
-                    }
-                }
-                Effect::Transform(transform_form) => {
-                    if let Some(form) = forms.get_mut(target_entity) {
-                        form.0 = transform_form.clone();
-                    }
-
-                    // Add timed effect if duration is specified
-                    if let Some(duration) = duration {
-                        active_effects
-                            .entry(target_entity)
-                            .expect("active effects entry")
-                            .or_insert_with(ActiveEffects::default)
-                            .effects
-                            .push(TimedEffect {
-                                effect: effect.clone(),
-                                remaining_secs: *duration,
-                            });
-                    }
-                }
-                Effect::StatChange(_) => {
-                    // StatAggregation system handles stat calculations
-                    // We only add the effect to ActiveEffects if it has a duration
-                    if let Some(duration) = duration {
-                        active_effects
-                            .entry(target_entity)
-                            .expect("active effects entry")
-                            .or_insert_with(ActiveEffects::default)
-                            .effects
-                            .push(TimedEffect {
-                                effect: effect.clone(),
-                                remaining_secs: *duration,
-                            });
-                    }
-                }
-                Effect::AttackModifier(_) => {
-                    // Similar to StatChange, handled by other systems
-                    if let Some(duration) = duration {
-                        active_effects
-                            .entry(target_entity)
-                            .expect("active effects entry")
-                            .or_insert_with(ActiveEffects::default)
-                            .effects
-                            .push(TimedEffect {
-                                effect: effect.clone(),
-                                remaining_secs: *duration,
-                            });
-                    }
-                }
-                Effect::DefenseModifier(_) => {
-                    // Similar to StatChange, handled by other systems
-                    if let Some(duration) = duration {
-                        active_effects
-                            .entry(target_entity)
-                            .expect("active effects entry")
-                            .or_insert_with(ActiveEffects::default)
-                            .effects
-                            .push(TimedEffect {
-                                effect: effect.clone(),
-                                remaining_secs: *duration,
-                            });
-                    }
-                }
-                Effect::Damage(amount, damage_type) => {
-                    if let Some(health) = healths.get_mut(target_entity)
-                        && let Health::Alive { hp, .. } = &mut health.0
-                    {
-                        if *hp > *amount {
-                            *hp -= amount;
-                        } else {
-                            health.0 = Health::Dead;
-                        }
-                    }
-                    // TODO: Add projectile visual for damage spells similar to combat system
-                }
-            }
         }
     }
 }

@@ -6,7 +6,7 @@ use common::OtherModifiers;
 use std::cmp::Ordering;
 
 // Entity's coordinates in the world
-#[derive(Component, Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Component, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Copy)]
 pub struct Position {
     pub x: u32,
     pub y: u32,

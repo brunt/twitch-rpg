@@ -1,12 +1,11 @@
 use crate::ecs::components::combat::{
-    AttackComponent, AttackTarget, AttackTimer, DefenseComponent, FiredProjectile, HealthComponent,
-    MeleeAttacker, RangedAttacker,
+    ActionTimer, AttackComponent, AttackTarget, HealthComponent, MeleeAttacker, PendingAction,
+    RangedAttacker,
 };
 use crate::ecs::components::movement::CanMove;
 use crate::ecs::components::{Enemy, Player, Position};
-use crate::ecs::resources::DeltaTime;
-use common::{DamageType, Health};
-use rand::{Rng, rngs::ThreadRng};
+use common::Health;
+
 use specs::prelude::*;
 
 pub struct CombatSystem;
@@ -20,11 +19,9 @@ impl<'a> System<'a> for CombatSystem {
         ReadStorage<'a, Enemy>,
         ReadStorage<'a, MeleeAttacker>,
         ReadStorage<'a, RangedAttacker>,
-        ReadStorage<'a, DefenseComponent>,
         ReadStorage<'a, Position>,
-        WriteStorage<'a, HealthComponent>,
-        WriteStorage<'a, FiredProjectile>,
-        WriteStorage<'a, AttackTimer>,
+        ReadStorage<'a, HealthComponent>,
+        WriteStorage<'a, ActionTimer>,
         WriteStorage<'a, CanMove>,
     );
 
@@ -35,24 +32,27 @@ impl<'a> System<'a> for CombatSystem {
             targets,
             players,
             enemies,
-            melee,
+            _melee,
             range,
-            defenses,
             positions,
-            mut healths,
-            mut fired_projectiles,
-            mut attack_timers,
+            healths,
+            mut action_timers,
             mut can_move,
         ) = data;
 
         for (attacker_entity, attack, attack_target, position) in
             (&entities, &attacks, &targets, &positions).join()
         {
-            // Check if attacker is on cooldown
-            if let Some(timer) = attack_timers.get(attacker_entity) {
-                if timer.remaining > 0.0 {
-                    continue; // Skip this tick, still cooling down
-                }
+            // Check if attacker already has a pending action
+            if action_timers.get(attacker_entity).is_some() {
+                continue; // Skip this tick, already preparing an action
+            }
+
+            if healths
+                .get(attack_target.entity)
+                .is_some_and(|health| health.0 == Health::Dead)
+            {
+                continue;
             }
 
             // Attacker must be Player or Enemy
@@ -76,75 +76,28 @@ impl<'a> System<'a> for CombatSystem {
                 continue; // Out of range
             }
 
-            let defense = defenses.get(target_entity).map(|d| d.defense).unwrap_or(0);
-            let evasion = defenses.get(target_entity).map(|d| d.evasion).unwrap_or(0);
+            // Create pending action - damage calculation happens when buildup completes
+            let is_ranged = range.get(attacker_entity).is_some();
 
-            // P(hit) = attack_rating / (attack_rating - evasion_rating), clamped 5%-95%
-            let hit_chance = if attack.hit_rating == 0 || evasion >= attack.hit_rating {
-                0.05 // Minimum 5% hit chance
-            } else {
-                (attack.hit_rating as f64 / (attack.hit_rating - evasion) as f64).clamp(0.05, 0.95)
-            };
-
-            let mut rng = ThreadRng::default();
-            let attack_hits = rng.random_range(0.0..1.0) < hit_chance;
-
-            let actual_damage = if attack_hits {
-                let base_damage = attack.damage.saturating_sub(defense);
-
-                // P(crit) = 5% + (0.0005) * (attack_rating - evasion), on successful hit
-                if rng.random_range(0.0..1.0)
-                    < (0.05 + 0.0005 * (attack.hit_rating - evasion) as f64).clamp(0.0, 1.0)
-                {
-                    (base_damage as f64 * 1.5 + attack.crit_damage_multiplier) as u32
-                } else {
-                    base_damage
-                }
-            } else {
-                0
-            };
-
-            // this component gets re-added in the attack_cooldown system
+            // Remove movement capability during buildup
             can_move.remove(attacker_entity);
 
-            // Apply damage if target is alive
-            if let Some(health) = healths.get_mut(target_entity) {
-                if health.is_alive() && actual_damage > 0 {
-                    match &mut health.0 {
-                        Health::Alive { hp, .. } => {
-                            if *hp > actual_damage {
-                                *hp -= actual_damage;
-                            } else {
-                                health.0 = Health::Dead;
-                            }
-                        }
-                        _ => {}
-                    }
-
-                    if range.get(attacker_entity).is_some() {
-                        fired_projectiles
-                            .insert(
-                                attacker_entity,
-                                FiredProjectile {
-                                    position: tatami_dungeon::Position::from(position),
-                                    target_position: tatami_dungeon::Position::from(target_pos),
-                                    damage: actual_damage,
-                                    damage_type: DamageType::Physical,
-                                },
-                            )
-                            .expect("Failed to insert FiredProjectile component");
-                    }
-                }
-            }
-
-            // Only insert a cooldown timer if one does not exist yet
-            attack_timers
-                .entry(attacker_entity)
-                .expect("failed to get entry for attacker")
-                .or_insert_with(|| AttackTimer {
-                    //TODO: u32 or f64 for counting time?
-                    remaining: attack.cooldown as f64 / 1000.0,
-                });
+            // Create action timer with buildup time
+            action_timers
+                .insert(
+                    attacker_entity,
+                    ActionTimer {
+                        remaining: attack.cooldown as f64 / 1000.0, // Using cooldown as buildup time
+                        action: PendingAction::Attack {
+                            target: target_entity,
+                            attacker_position: *position,
+                            target_position: *target_pos,
+                            attack_data: attack.clone(),
+                            is_ranged,
+                        },
+                    },
+                )
+                .expect("Failed to insert ActionTimer component");
         }
     }
 }
