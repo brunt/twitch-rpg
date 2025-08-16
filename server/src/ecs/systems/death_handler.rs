@@ -1,4 +1,4 @@
-use crate::ecs::components::combat::{AttackComponent, AttackTarget, HealthComponent};
+use crate::ecs::components::combat::{ActionTimer, AttackComponent, AttackTarget, HealthComponent};
 use crate::ecs::components::movement::{DesiredTargetPosition, MovementSpeed, TargetPosition};
 use common::Health;
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
@@ -14,6 +14,7 @@ impl<'a> System<'a> for DeathCleanupSystem {
         WriteStorage<'a, TargetPosition>,
         WriteStorage<'a, MovementSpeed>,
         WriteStorage<'a, DesiredTargetPosition>,
+        WriteStorage<'a, ActionTimer>,
     );
 
     fn run(
@@ -26,6 +27,7 @@ impl<'a> System<'a> for DeathCleanupSystem {
             mut target_positions,
             mut movements,
             mut desired_target_positions,
+            mut action_timers,
         ): Self::SystemData,
     ) {
         for (entity, health) in (&entities, &healths).join() {
@@ -35,6 +37,7 @@ impl<'a> System<'a> for DeathCleanupSystem {
                 attack_components.remove(entity);
                 movements.remove(entity);
                 desired_target_positions.remove(entity);
+                action_timers.remove(entity);
             }
         }
     }
