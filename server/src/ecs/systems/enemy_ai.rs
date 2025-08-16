@@ -4,7 +4,7 @@ use crate::ecs::components::movement::TargetPosition;
 use crate::ecs::components::spells::{SpellCaster, SpellTarget, SpellTimer, Spellbook};
 use crate::ecs::components::{Enemy, Player, Position};
 use crate::ecs::spells::AllSpells;
-use common::{Form, Health, SpellCasterRestriction, Targeting};
+use common::{Form, Health, SpellCasterRestriction, TargetFilter, TargetShape, Targeting};
 use specs::Entity;
 use specs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage};
 
@@ -76,12 +76,10 @@ impl<'a> System<'a> for EnemyAISystem {
                                 spell.caster_restriction,
                                 SpellCasterRestriction::Enemy | SpellCasterRestriction::All
                             ) && matches!(
-                                spell.targeting,
-                                Targeting::Single
-                                    | Targeting::PointRadius { .. }
-                                    | Targeting::Personal
-                                    | Targeting::Cone { .. }
-                                    | Targeting::Line { .. }
+                                spell.targeting.filter,
+                                TargetFilter::Any
+                                    | TargetFilter::EnemyOnly
+                                    | TargetFilter::SelfOnly
                             )
                         })
                     } else {
@@ -112,7 +110,7 @@ impl<'a> System<'a> for EnemyAISystem {
                                 .spells
                                 .iter()
                                 .find(|s| {
-                                    matches!(s.targeting, Targeting::Personal)
+                                    matches!(s.targeting.filter, TargetFilter::SelfOnly)
                                         && matches!(
                                             s.caster_restriction,
                                             SpellCasterRestriction::Enemy
@@ -122,7 +120,7 @@ impl<'a> System<'a> for EnemyAISystem {
                                 .or_else(|| {
                                     // Fallback to offensive spells
                                     spellbook.spells.iter().find(|s| {
-                                        !matches!(s.targeting, Targeting::Personal)
+                                        !matches!(s.targeting.filter, TargetFilter::SelfOnly)
                                             && matches!(
                                                 s.caster_restriction,
                                                 SpellCasterRestriction::Enemy
@@ -136,7 +134,7 @@ impl<'a> System<'a> for EnemyAISystem {
                                 .spells
                                 .iter()
                                 .find(|s| {
-                                    !matches!(s.targeting, Targeting::Personal)
+                                    !matches!(s.targeting.filter, TargetFilter::SelfOnly)
                                         && matches!(
                                             s.caster_restriction,
                                             SpellCasterRestriction::Enemy
@@ -146,7 +144,7 @@ impl<'a> System<'a> for EnemyAISystem {
                                 .or_else(|| {
                                     // Fallback to personal spells
                                     spellbook.spells.iter().find(|s| {
-                                        matches!(s.targeting, Targeting::Personal)
+                                        matches!(s.targeting.filter, TargetFilter::SelfOnly)
                                             && matches!(
                                                 s.caster_restriction,
                                                 SpellCasterRestriction::Enemy
@@ -157,8 +155,8 @@ impl<'a> System<'a> for EnemyAISystem {
                         };
 
                         if let Some(spell) = preferred_spell {
-                            let target_entity = match spell.targeting {
-                                Targeting::Personal => enemy_entity,
+                            let target_entity = match spell.targeting.filter {
+                                TargetFilter::SelfOnly => enemy_entity,
                                 _ => *closest_player_entity, // All other targeting types target the player
                             };
 
@@ -166,7 +164,8 @@ impl<'a> System<'a> for EnemyAISystem {
                                 .insert(
                                     enemy_entity,
                                     SpellTarget {
-                                        entity: target_entity,
+                                        caster: enemy_entity,
+                                        target: target_entity,
                                         spell_id: spell.id,
                                     },
                                 )

@@ -1,7 +1,7 @@
 Spell(
     id: 4,
     name: "Curse Defense",
-    targeting: Single,
+    targeting: Targeting(shape: Single, filter: EnemyOnly),
     cooldown: 120.0,
     effects: [
         (DefenseModifier(DefenseModifiers((

@@ -1,7 +1,7 @@
 Spell(
     id: 2,
     name: "Enlarge Person",
-    targeting: Personal,
+    targeting: Targeting(shape: Single, filter: AllyOrSelf),
     cooldown: 120.0,
     effects: [
         (Transform(Scaled(1.5)), Some(60.0)),
@@ -9,6 +9,6 @@ Spell(
     ],
     caster_restriction: PlayerClass(
         classes: [Wizard],
-        min_level: Some(0),
+        min_level: Some(1),
     ),
 )

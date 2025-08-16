@@ -59,7 +59,7 @@ pub fn run_game_server(
     gamestate_sender: broadcast::Sender<GameSnapShot>,
     commands_receiver: Receiver<(String, RpgCommand, bool)>,
 ) {
-    const MIN_PLAYERS: usize = 1;
+    const MIN_PLAYERS: usize = 2;
 
     let mut gw = GameWorld::new(commands_receiver);
 

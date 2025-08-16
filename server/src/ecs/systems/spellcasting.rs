@@ -5,9 +5,10 @@ use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::spells::{SpellCaster, SpellTarget, SpellTimer, Spellbook};
 use crate::ecs::components::{Enemy, Player, Position, Stats};
 use crate::ecs::spells::AllSpells;
-use common::{Effect, Form, Health, Targeting};
+use common::{Effect, Form, Health, TargetFilter, TargetShape, Targeting};
 use specs::prelude::*;
 
+// system for effect resolution, no need to check spell cooldowns
 pub struct SpellcastingSystem;
 
 impl<'a> System<'a> for SpellcastingSystem {
@@ -15,8 +16,7 @@ impl<'a> System<'a> for SpellcastingSystem {
         Entities<'a>,
         ReadExpect<'a, AllSpells>,
         ReadStorage<'a, SpellCaster>,
-        ReadStorage<'a, SpellTarget>,
-        ReadStorage<'a, Spellbook>,
+        WriteStorage<'a, SpellTarget>,
         ReadStorage<'a, AttackComponent>,
         ReadStorage<'a, Position>,
         ReadStorage<'a, Player>,
@@ -33,8 +33,7 @@ impl<'a> System<'a> for SpellcastingSystem {
             entities,
             all_spells,
             spell_casters,
-            spell_targets,
-            spellbooks,
+            mut spell_targets,
             attack_components,
             positions,
             players,
@@ -46,88 +45,100 @@ impl<'a> System<'a> for SpellcastingSystem {
             mut stats,
         ) = data;
 
-        for (caster_entity, _, spell_target, spellbook, position) in (
-            &entities,
-            &spell_casters,
-            &spell_targets,
-            &spellbooks,
-            &positions,
-        )
-            .join()
+        let mut to_remove = Vec::new();
+        for (caster_entity, _, spell_target, position) in
+            (&entities, &spell_casters, &spell_targets, &positions).join()
         {
-            // Check if spell is on cooldown
-            if let Some(timer) = spell_timers.get(caster_entity)
-                && timer.remaining > 0.0
-                && timer.spell_id == spell_target.spell_id
-            {
-                continue; // Still cooling down
-            }
-
             // Get the spell from AllSpells
             let Some(spell) = all_spells.0.get(&spell_target.spell_id) else {
                 continue; // Spell doesn't exist
             };
 
-            // Check if caster has this spell in their spellbook
-            if !spellbook.spells.contains(spell) {
-                continue; // Caster doesn't know this spell
-            }
-
-            let target_entity = spell_target.entity;
+            let target_entity = spell_target.target;
 
             // Handle different targeting types
-            match &spell.targeting {
-                Targeting::Personal => {
-                    // Target must be the caster themselves
-                    if target_entity != caster_entity {
-                        continue;
+            match &spell.targeting.shape {
+                TargetShape::Single => {
+                    match spell.targeting.filter {
+                        TargetFilter::SelfOnly => {
+                            if target_entity != caster_entity {
+                                continue;
+                            }
+                            self.apply_spell_effects(
+                                spell,
+                                caster_entity,
+                                target_entity,
+                                &mut healths,
+                                &mut active_effects,
+                                &mut forms,
+                                &mut stats,
+                            );
+                        }
+
+                        TargetFilter::AllyOrSelf => {
+                            // buffs have an implicit minimum range that offensive spells don't
+                            if let (Some(target_pos), Some(attack_comp)) = (
+                                positions.get(target_entity),
+                                attack_components.get(caster_entity),
+                            ) {
+                                if attack_comp.range.min(3) < target_pos.distance_to(position) {
+                                    // dbg!(format!(
+                                    //     "{} -> {}, {}",
+                                    //     names.get(caster_entity).unwrap().0.clone(),
+                                    //     names.get(target_entity).unwrap().0.clone(),
+                                    //     spell.name.clone()
+                                    // ));
+                                    continue;
+                                }
+                                let caster_is_player = players.get(caster_entity).is_some();
+                                let target_is_player = players.get(target_entity).is_some();
+
+                                self.apply_spell_effects(
+                                    spell,
+                                    caster_entity,
+                                    target_entity,
+                                    &mut healths,
+                                    &mut active_effects,
+                                    &mut forms,
+                                    &mut stats,
+                                );
+                            } else {
+                                dbg!("no pos or atk wtf");
+                                continue; // No position or attack component
+                            }
+                        }
+                        TargetFilter::EnemyOnly => {
+                            if let (Some(target_pos), Some(attack_comp)) = (
+                                positions.get(target_entity),
+                                attack_components.get(caster_entity),
+                            ) {
+                                if attack_comp.range < target_pos.distance_to(position) {
+                                    continue;
+                                }
+                                let caster_is_player = players.get(caster_entity).is_some();
+                                let target_is_player = players.get(target_entity).is_some();
+
+                                self.apply_spell_effects(
+                                    spell,
+                                    caster_entity,
+                                    target_entity,
+                                    &mut healths,
+                                    &mut active_effects,
+                                    &mut forms,
+                                    &mut stats,
+                                );
+                            } else {
+                                dbg!("no pos or atk wtf");
+                                continue; // No position or attack component
+                            }
+                        }
+                        TargetFilter::Any => unimplemented!(),
                     }
-                    self.apply_spell_effects(
-                        spell,
-                        caster_entity,
-                        target_entity,
-                        &mut healths,
-                        &mut active_effects,
-                        &mut forms,
-                        &mut stats,
-                    );
-                }
-                Targeting::Single => {
+
+                    // Handle single-target spells
                     // Check range to target
-                    if let (Some(target_pos), Some(attack_comp)) = (
-                        positions.get(target_entity),
-                        attack_components.get(caster_entity),
-                    ) {
-                        if attack_comp.range < target_pos.distance_to(position) {
-                            continue; // Out of range
-                        }
-
-                        // Validate target type (players can target enemies, enemies can target players)
-                        let caster_is_player = players.get(caster_entity).is_some();
-                        let target_is_player = players.get(target_entity).is_some();
-                        let target_is_enemy = enemies.get(target_entity).is_some();
-
-                        if caster_is_player && !target_is_enemy && target_entity != caster_entity {
-                            continue; // Players can only target enemies or themselves
-                        }
-                        if !caster_is_player && !target_is_player {
-                            continue; // Enemies can only target players
-                        }
-
-                        self.apply_spell_effects(
-                            spell,
-                            caster_entity,
-                            target_entity,
-                            &mut healths,
-                            &mut active_effects,
-                            &mut forms,
-                            &mut stats,
-                        );
-                    } else {
-                        continue; // No position or attack component
-                    }
                 }
-                Targeting::PointRadius { radius } => {
+                TargetShape::PointRadius { radius } => {
                     // For AoE spells, we'll target all entities within radius of the target position
                     if let Some(target_pos) = positions.get(target_entity) {
                         // Check if caster can reach the target point
@@ -153,7 +164,7 @@ impl<'a> System<'a> for SpellcastingSystem {
                         }
                     }
                 }
-                Targeting::Cone { angle: _, range } => {
+                TargetShape::Cone { angle: _, range } => {
                     // For now, implement as a simple range-based effect
                     // TODO: Implement proper cone targeting with angle calculations
                     if let Some(attack_comp) = attack_components.get(caster_entity)
@@ -172,7 +183,7 @@ impl<'a> System<'a> for SpellcastingSystem {
                         &mut stats,
                     );
                 }
-                Targeting::Line { length, width: _ } => {
+                TargetShape::Line { length, width: _ } => {
                     // For now, implement as a simple range-based effect
                     // TODO: Implement proper line targeting
                     if let Some(attack_comp) = attack_components.get(caster_entity)
@@ -201,6 +212,12 @@ impl<'a> System<'a> for SpellcastingSystem {
                     remaining: spell.cooldown,
                     spell_id: spell.id,
                 });
+
+            to_remove.push(caster_entity);
+        }
+
+        for entity in to_remove {
+            spell_targets.remove(entity);
         }
     }
 }

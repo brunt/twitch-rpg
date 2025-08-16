@@ -17,7 +17,7 @@ impl AllSpells {
             .filter_map(|id| ASSETS.load::<Spell>(id).ok()?.read().clone().into())
             .map(|spell: Spell| (spell.id, spell))
             .collect();
-
+        // dbg!(&all_spells);
         AllSpells(all_spells)
     }
 }

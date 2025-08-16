@@ -158,33 +158,6 @@ pub fn draw_dungeon_floor(
         }
     }
 
-    // Draw entities at positions
-    // for EntityPosition {
-    //     entity_type: class,
-    //     position,
-    //     level,
-    //     health,
-    //     form,
-    //     ..
-    // } in floor_pos.iter()
-    // {
-    //     // Skip if out of map bounds to be robust
-    //     let row = position.x as usize;
-    //     let col = position.y as usize;
-    //     if row >= map_height || col >= map_width {
-    //         continue;
-    //     }
-
-    //     let x = (col as f64 - row as f64) * (SPRITE_DIMENSION as f64 / 2.0) + canvas_width / 2.0
-    //         - SPRITE_DIMENSION as f64 / 2.0
-    //         + offset_x;
-    //     let y = (col as f64 + row as f64) * (SPRITE_DIMENSION as f64 / 4.0) + offset_y;
-
-    //     // Draw the sprite at (x, y)
-    //     if let Some(Health::Dead) = health {
-    //         draw_sprite(ctx, terrain_image, &get_dead_sprite(), x, y, 1.0, None)
-    //     } else {
-    //         match class.as_str() {
     for re in entity_render_map.values() {
         let (tile_row, tile_col) = re.render_pos;
 

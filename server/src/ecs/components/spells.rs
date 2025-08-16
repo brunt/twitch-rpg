@@ -52,7 +52,8 @@ impl Spellbook {
 /// The entity that this entity is targeting for spell casting
 #[derive(Component)]
 pub struct SpellTarget {
-    pub entity: Entity,
+    pub caster: Entity,
+    pub target: Entity,
     pub spell_id: u32,
 }
 

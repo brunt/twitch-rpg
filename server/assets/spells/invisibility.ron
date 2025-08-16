@@ -1,13 +1,13 @@
 Spell(
     id: 3,
     name: "Stealth",
-    targeting: Personal,
-    cooldown: 120.0,
+    targeting: Targeting(shape: Single, filter: SelfOnly),
+    cooldown: 60.0,
     effects: [
         (Transform(Invisible), Some(20.0)),
     ],
     caster_restriction: PlayerClass(
         classes: [Rogue],
-        min_level: Some(2),
+        min_level: Some(1),
     ),
 )

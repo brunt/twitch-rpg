@@ -3,14 +3,16 @@ mod ecs;
 mod parser;
 mod webserver;
 
-use crate::commands::RpgCommand;
+use crate::commands::{PlayerCommand, RpgCommand};
 use crate::ecs::run_game_server;
 use crate::parser::get_command;
 use crate::webserver::start_web_server;
-use common::GameSnapShot;
+use common::{GameSnapShot, MenuItem};
 use dotenv::dotenv;
 use tmi::{Badge, BadgeData, Privmsg};
 use tokio::sync::{broadcast, mpsc};
+
+use common::PlayerClass;
 
 #[tokio::main]
 async fn main() {
@@ -37,6 +39,29 @@ fn is_channel_owner(msg: &Privmsg) -> bool {
 }
 
 async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand, bool)>) {
+    // TODO: remove
+    // simulate players joining
+    _ = tx.try_send((
+        "ubruntu".to_string(),
+        RpgCommand::Join(PlayerClass::Wizard),
+        true,
+    ));
+    _ = tx.try_send((
+        "Pixelmog".to_string(),
+        RpgCommand::Join(PlayerClass::Cleric),
+        true,
+    ));
+    _ = tx.try_send((
+        "tester".to_string(),
+        RpgCommand::Join(PlayerClass::Rogue),
+        true,
+    ));
+    // _ = tx.try_send((
+    //     "ubruntu".to_string(),
+    //     RpgCommand::PlayerCommand(PlayerCommand::Buy(MenuItem(5))),
+    //     true,
+    // ));
+
     let channel = format!(
         "#{}",
         std::env::var("CHANNEL_NAME").expect("missing CHANNEL_NAME env var")
