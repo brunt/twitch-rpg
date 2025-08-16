@@ -1,9 +1,10 @@
 use crate::ecs::components::Position;
 use crate::ecs::components::combat::{ActionTimer, AttackComponent, PendingAction};
+use crate::ecs::components::effect::ActiveEffects;
 use crate::ecs::components::movement::CanMove;
 use crate::ecs::components::spells::{SpellCaster, SpellTarget};
 use crate::ecs::spells::AllSpells;
-use common::TargetFilter;
+use common::{Effect, TargetFilter};
 use specs::prelude::*;
 
 // system for creating spell buildup timers
@@ -17,6 +18,7 @@ impl<'a> System<'a> for SpellcastingSystem {
         WriteStorage<'a, SpellTarget>,
         ReadStorage<'a, AttackComponent>,
         ReadStorage<'a, Position>,
+        ReadStorage<'a, ActiveEffects>,
         WriteStorage<'a, ActionTimer>,
         WriteStorage<'a, CanMove>,
     );
@@ -29,6 +31,7 @@ impl<'a> System<'a> for SpellcastingSystem {
             mut spell_targets,
             attack_components,
             positions,
+            effects,
             mut action_timers,
             mut can_move,
         ) = data;
@@ -53,6 +56,24 @@ impl<'a> System<'a> for SpellcastingSystem {
             };
 
             let target_entity = spell_target.target;
+
+            // check the list of active effects on the entity, and if all of them are effects produced by the spell, pass
+            if let Some(active_effects) = effects.get(spell_target.target)
+                && spell
+                    .effects
+                    .iter()
+                    .map(|(effect, _)| effect)
+                    .all(|effect| {
+                        active_effects
+                            .effects
+                            .iter()
+                            .map(|timed_effect| &timed_effect.effect)
+                            .collect::<Vec<&Effect>>()
+                            .contains(&effect)
+                    })
+            {
+                continue;
+            }
 
             // Basic validation - more detailed validation will happen when buildup completes
             match spell.targeting.filter {

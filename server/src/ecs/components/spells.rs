@@ -68,8 +68,3 @@ pub struct SpellTimer {
 #[derive(Component)]
 #[storage(NullStorage)]
 pub struct SpellCaster;
-
-// pub struct SpellEffect {
-//     pub effect: Effect,
-//     pub target: Option<Entity>,
-// }
