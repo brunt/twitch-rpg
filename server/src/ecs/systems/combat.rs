@@ -1,8 +1,10 @@
 use crate::ecs::components::combat::{
-    ActionTimer, AttackComponent, AttackTarget, MeleeAttacker, PendingAction, RangedAttacker,
+    ActionTimer, AttackComponent, AttackTarget, HealthComponent, MeleeAttacker, PendingAction,
+    RangedAttacker,
 };
 use crate::ecs::components::movement::CanMove;
 use crate::ecs::components::{Enemy, Player, Position};
+use common::Health;
 
 use specs::prelude::*;
 
@@ -18,6 +20,7 @@ impl<'a> System<'a> for CombatSystem {
         ReadStorage<'a, MeleeAttacker>,
         ReadStorage<'a, RangedAttacker>,
         ReadStorage<'a, Position>,
+        ReadStorage<'a, HealthComponent>,
         WriteStorage<'a, ActionTimer>,
         WriteStorage<'a, CanMove>,
     );
@@ -32,6 +35,7 @@ impl<'a> System<'a> for CombatSystem {
             _melee,
             range,
             positions,
+            healths,
             mut action_timers,
             mut can_move,
         ) = data;
@@ -42,6 +46,13 @@ impl<'a> System<'a> for CombatSystem {
             // Check if attacker already has a pending action
             if action_timers.get(attacker_entity).is_some() {
                 continue; // Skip this tick, already preparing an action
+            }
+
+            if healths
+                .get(attack_target.entity)
+                .is_some_and(|health| health.0 == Health::Dead)
+            {
+                continue;
             }
 
             // Attacker must be Player or Enemy

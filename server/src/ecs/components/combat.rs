@@ -27,7 +27,7 @@ pub enum PendingAction {
     },
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct ActionTimer {
     pub remaining: f64,
     pub action: PendingAction,

@@ -34,8 +34,14 @@ impl<'a> System<'a> for SpellcastingSystem {
         ) = data;
 
         let mut to_remove = Vec::new();
-        for (caster_entity, _, spell_target, position) in
-            (&entities, &spell_casters, &spell_targets, &positions).join()
+        for (caster_entity, _, spell_target, position, attack_component) in (
+            &entities,
+            &spell_casters,
+            &spell_targets,
+            &positions,
+            &attack_components,
+        )
+            .join()
         {
             // Check if caster already has a pending action
             if action_timers.get(caster_entity).is_some() {
@@ -91,7 +97,7 @@ impl<'a> System<'a> for SpellcastingSystem {
                 .insert(
                     caster_entity,
                     ActionTimer {
-                        remaining: spell.cooldown, // Using cooldown as buildup time
+                        remaining: attack_component.cooldown as f64 / 1000.0,
                         action: PendingAction::Spell {
                             target: target_entity,
                             spell_id: spell_target.spell_id,
