@@ -1,5 +1,5 @@
 use crate::ecs::components::combat::{
-    AttackComponent, AttackTarget, AttackTimer, DefenseComponent, HealthComponent, MeleeAttacker,
+    ActionTimer, AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
 };
 use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::movement::{CanMove, MovementSpeed, TargetPosition};

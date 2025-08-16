@@ -3,8 +3,8 @@ pub mod systems;
 
 use crate::commands::RpgCommand;
 use crate::ecs::resources::DeltaTime;
+use crate::ecs::systems::action_timer::ActionTimerSystem;
 use crate::ecs::systems::assign_room_target::AssignRoomTargetSystem;
-use crate::ecs::systems::attack_cooldown::AttackCooldownSystem;
 use crate::ecs::systems::combat::CombatSystem;
 use crate::ecs::systems::command_handler::{CommandHandlerSystem, CommandQueue};
 use crate::ecs::systems::countdown::CountdownSystem;
@@ -82,7 +82,7 @@ pub fn run_game_server(
         .with(SpellcastingSystem, "spellcasting", &["player_spell_ai"])
         .with(DeathCleanupSystem, "death_cleanup", &[])
         .with(PartyWipeSystem, "party_wipe", &["death_cleanup"])
-        .with(AttackCooldownSystem, "attack_cooldown", &["combat"])
+        .with(ActionTimerSystem, "action_timer", &["combat"])
         .with(SpellCooldownSystem, "spell_cooldown", &["spellcasting"])
         .with(
             Movement,

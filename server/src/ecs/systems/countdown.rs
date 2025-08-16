@@ -1,6 +1,6 @@
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::combat::{
-    AttackComponent, AttackTarget, AttackTimer, DefenseComponent, HealthComponent, MeleeAttacker,
+    ActionTimer, AttackComponent, AttackTarget, DefenseComponent, HealthComponent, MeleeAttacker,
     RangedAttacker,
 };
 use crate::ecs::components::form::FormComponent;

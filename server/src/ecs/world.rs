@@ -8,7 +8,7 @@ use crate::ecs::components::Position;
 use crate::ecs::components::Stats;
 use crate::ecs::components::class::{CharacterClass, ShowCharacter};
 use crate::ecs::components::combat::{
-    AttackComponent, AttackTarget, AttackTimer, DefenseComponent, FiredProjectile, HealthComponent,
+    ActionTimer, AttackComponent, AttackTarget, DefenseComponent, FiredProjectile, HealthComponent,
     MeleeAttacker, RangedAttacker,
 };
 use crate::ecs::components::effect::ActiveEffects;
@@ -53,7 +53,7 @@ pub fn create_world() -> World {
     world.register::<ShowCharacter>();
     world.register::<FiredProjectile>();
     world.register::<CanMove>();
-    world.register::<AttackTimer>();
+    world.register::<ActionTimer>();
     world.register::<SpellTarget>();
     world.register::<SpellTimer>();
     world.register::<SpellCaster>();

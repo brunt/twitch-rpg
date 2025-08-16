@@ -1,5 +1,5 @@
 use crate::ecs::components::combat::{
-    AttackComponent, AttackTarget, AttackTimer, FiredProjectile, HealthComponent, MeleeAttacker,
+    ActionTimer, AttackComponent, AttackTarget, FiredProjectile, HealthComponent, MeleeAttacker,
     RangedAttacker,
 };
 use crate::ecs::components::inventory::Equipment;
@@ -26,7 +26,7 @@ impl<'a> System<'a> for DungeonComplete {
         WriteStorage<'a, TargetPosition>,
         WriteStorage<'a, MovementSpeed>,
         WriteStorage<'a, HealthComponent>,
-        WriteStorage<'a, AttackTimer>,
+        WriteStorage<'a, ActionTimer>,
         WriteStorage<'a, AttackComponent>,
         WriteStorage<'a, CanMove>,
         WriteStorage<'a, RangedAttacker>,

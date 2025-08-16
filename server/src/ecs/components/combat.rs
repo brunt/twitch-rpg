@@ -2,7 +2,7 @@ use crate::ecs::components::DenseVecStorage;
 use crate::ecs::components::NullStorage;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::{Component, Stats};
-use common::{AttackModifiers, DamageType, DefenseModifiers, Health, ItemStats, PlayerClass};
+use common::{AttackModifiers, DamageType, DefenseModifiers, Health};
 use specs::Entity;
 
 /// the entity that this entity is attacking
@@ -11,9 +11,26 @@ pub struct AttackTarget {
     pub(crate) entity: Entity,
 }
 
-#[derive(Component, Default)]
-pub struct AttackTimer {
+#[derive(Debug, Clone)]
+pub enum PendingAction {
+    Attack {
+        target: Entity,
+        attacker_position: crate::ecs::components::Position,
+        target_position: crate::ecs::components::Position,
+        attack_data: AttackComponent,
+        is_ranged: bool,
+    },
+    Spell {
+        target: Entity,
+        spell_id: u32,
+        caster_position: crate::ecs::components::Position,
+    },
+}
+
+#[derive(Component)]
+pub struct ActionTimer {
     pub remaining: f64,
+    pub action: PendingAction,
 }
 
 #[derive(Component)]
@@ -59,7 +76,7 @@ impl DefenseComponent {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Debug)]
 pub struct AttackComponent {
     /// base damage that this entity can do
     pub damage: u32,
