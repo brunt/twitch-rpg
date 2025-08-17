@@ -31,7 +31,6 @@ impl<'a> System<'a> for DungeonComplete {
         WriteStorage<'a, CanMove>,
         WriteStorage<'a, RangedAttacker>,
         WriteStorage<'a, MeleeAttacker>,
-        // WriteStorage<'a, Path>,
         WriteStorage<'a, FiredProjectile>,
     );
     // TODO: readstorage from stats to display? or is that in rendering system?
@@ -60,7 +59,6 @@ impl<'a> System<'a> for DungeonComplete {
             mut can_move,
             mut ranged_attackers,
             mut melee_attackers,
-            // mut paths,
             mut fired_projectiles,
         ): Self::SystemData,
     ) {
@@ -126,10 +124,10 @@ impl<'a> System<'a> for DungeonComplete {
 
                 // TODO: other multipliers
                 if let Some(mut money) = monies.get_mut(entity) {
-                    money.0 += 100 * adv.difficulty;
+                    money.0 += (100 * adv.difficulty).max(100);
                 }
 
-                // TODO: save character data
+                // TODO: save character data after loot is given (end of a timer?)
 
                 // remove players from party
                 players_to_remove.push(entity);

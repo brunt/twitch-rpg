@@ -4,7 +4,6 @@ use common::{MenuItem, ShopItem};
 use rand::rngs::ThreadRng;
 use rand::seq::IteratorRandom;
 use specs::{ReadExpect, System, WriteExpect};
-use std::collections::HashMap;
 
 /// ShopPopulation is a system to fill the shop with items
 pub struct ShopPopulation;
@@ -24,7 +23,7 @@ impl<'a> System<'a> for ShopPopulation {
     }
 }
 
-fn generate_shop_items(pool: &ShopItemPool, rng: &mut ThreadRng) -> HashMap<MenuItem, ShopItem> {
+fn generate_shop_items(pool: &ShopItemPool, rng: &mut ThreadRng) -> Vec<(MenuItem, ShopItem)> {
     pool.all_items
         .iter()
         .choose_multiple(rng, 8)

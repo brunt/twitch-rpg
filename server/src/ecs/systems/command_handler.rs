@@ -136,16 +136,17 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 .join()
                                 .find(|(_, name)| name.0 == player_name)
                             {
-                                if let Some(shop_item) = shop_inventory.items.get(&item)
+                                if let Some(shop_item) =
+                                    shop_inventory.items.iter().find(|(id, _)| *id == item)
                                     && let Some(gold) = money.get_mut(e)
-                                    && gold.0 >= shop_item.price
+                                    && gold.0 >= shop_item.1.price
                                 {
-                                    gold.0 -= shop_item.price;
+                                    gold.0 -= shop_item.1.price;
 
                                     if let Some(equip_slots) = equipment.get_mut(e) {
                                         equip_slots.slots.insert(
-                                            shop_item.equip_slot.clone(),
-                                            shop_item.to_item(),
+                                            shop_item.1.equip_slot.clone(),
+                                            shop_item.1.to_item(),
                                         );
                                     }
                                 }
@@ -222,7 +223,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                                 });
                                         }
                                     }
-                                    Effect::StatChange(stat_change) => {
+                                    Effect::StatChange(_) => {
                                         // StatAggregation system will handle stat calculations
                                         // We only need to add the effect to ActiveEffects if it has a duration
                                         if let Some(duration) = duration {

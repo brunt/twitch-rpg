@@ -17,7 +17,7 @@ pub struct GameSnapShot {
     #[serde(rename = "d")]
     pub floor: Option<Vec<Vec<u8>>>,
     #[serde(rename = "e")]
-    pub shop_items: Option<HashMap<MenuItem, ShopItem>>,
+    pub shop_items: Option<Vec<(MenuItem, ShopItem)>>,
     #[serde(rename = "f")]
     pub ready_timer: Option<SerializedCountdownTimer>,
     #[serde(rename = "g")]

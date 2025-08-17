@@ -302,7 +302,7 @@ impl Default for Adventure {
 
 #[derive(Default)]
 pub struct ShopInventory {
-    pub items: HashMap<MenuItem, ShopItem>,
+    pub items: Vec<(MenuItem, ShopItem)>,
 }
 
 #[derive(Default, Clone, Debug)]

@@ -19,7 +19,7 @@ use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 pub(crate) fn draw_shop_interface(
     ctx: &CanvasRenderingContext2d,
     sprites: &SpriteSheets,
-    items: &HashMap<MenuItem, ShopItem>,
+    items: &Vec<(MenuItem, ShopItem)>,
     start_x: f64,
     start_y: f64,
     slots_per_row: usize,
@@ -115,44 +115,50 @@ pub(crate) fn draw_shop_interface(
         );
 
         // draw stats
+        // Draw stats
         if let Some(item_stats) = &item.stats {
             ctx.set_fill_style_str("#fff");
             ctx.set_font(BOLD_SM_TEXT_FONT);
-            let mut y_offset = 135.0;
+
+            // start relative to slot's top-left corner
+            let mut y_offset = y + 135.0;
             let mut x_offset = x + MARGIN;
+
             if let Some(atk) = &item_stats.attack_modifiers {
                 if let Some(atk) = atk.damage_bonus {
-                    ctx.fill_text(&format!("ATK: {}", atk), x + MARGIN, y_offset)
+                    ctx.fill_text(&format!("ATK: {}", atk), x_offset, y_offset)
                         .unwrap();
                     y_offset += 15.0;
                 }
                 if let Some(hit) = atk.hit_rating_bonus {
-                    ctx.fill_text(&format!("HIT: {}", hit), x + MARGIN, y_offset)
+                    ctx.fill_text(&format!("HIT: {}", hit), x_offset, y_offset)
                         .unwrap();
                     y_offset += 15.0;
                 }
                 if let Some(range) = atk.range_bonus {
-                    ctx.fill_text(&format!("RANGE: {}", range), x + MARGIN, y_offset)
+                    ctx.fill_text(&format!("RANGE: {}", range), x_offset, y_offset)
                         .unwrap();
                     y_offset += 15.0;
                 }
                 if let Some(crit) = atk.crit_damage_multiplier {
-                    ctx.fill_text(&format!("CRIT: {}", crit), x + MARGIN, y_offset)
+                    ctx.fill_text(&format!("CRIT: {}", crit), x_offset, y_offset)
                         .unwrap();
                     y_offset += 15.0;
                 }
                 if let Some(cd) = atk.cooldown_reduction_ms {
-                    ctx.fill_text(&format!("CDWN: {}", cd / 1000), x + MARGIN, y_offset)
+                    ctx.fill_text(&format!("CDWN: {}", cd / 1000), x_offset, y_offset)
                         .unwrap();
-                    y_offset = 135.0;
+                    // reset y_offset for next column (still relative to slot y)
+                    y_offset = y + 135.0;
                 }
             }
+
             if let Some(def) = &item_stats.defense_modifiers {
                 if item_stats.attack_modifiers.is_none() {
                     x_offset = x + MARGIN;
                 } else {
                     x_offset = x + MARGIN + 100.0;
-                    y_offset = 135.0;
+                    y_offset = y + 135.0;
                 };
                 if let Some(dmg) = def.damage_reduction {
                     ctx.fill_text(&format!("DEF: {}", dmg), x_offset, y_offset)
@@ -163,9 +169,11 @@ pub(crate) fn draw_shop_interface(
                     ctx.fill_text(&format!("EV: {}", ev), x_offset, y_offset)
                         .unwrap();
                 }
+                // reset to start for next stat column
                 x_offset = x_offset + 115.0;
-                y_offset = 135.0;
+                y_offset = y + 135.0;
             }
+
             if let Some(str) = item_stats.strength {
                 ctx.fill_text(&format!("STR: {}", str), x_offset, y_offset)
                     .unwrap();

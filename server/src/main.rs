@@ -41,21 +41,21 @@ fn is_channel_owner(msg: &Privmsg) -> bool {
 async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand, bool)>) {
     // TODO: remove
     // simulate players joining
-    _ = tx.try_send((
-        "ubruntu".to_string(),
-        RpgCommand::Join(PlayerClass::Wizard),
-        true,
-    ));
-    _ = tx.try_send((
-        "Pixelmog".to_string(),
-        RpgCommand::Join(PlayerClass::Cleric),
-        true,
-    ));
-    _ = tx.try_send((
-        "tester".to_string(),
-        RpgCommand::Join(PlayerClass::Rogue),
-        true,
-    ));
+    // _ = tx.try_send((
+    //     "ubruntu".to_string(),
+    //     RpgCommand::Join(PlayerClass::Wizard),
+    //     true,
+    // ));
+    // _ = tx.try_send((
+    //     "Pixelmog".to_string(),
+    //     RpgCommand::Join(PlayerClass::Cleric),
+    //     true,
+    // ));
+    // _ = tx.try_send((
+    //     "tester".to_string(),
+    //     RpgCommand::Join(PlayerClass::Rogue),
+    //     true,
+    // ));
     // _ = tx.try_send((
     //     "ubruntu".to_string(),
     //     RpgCommand::PlayerCommand(PlayerCommand::Buy(MenuItem(5))),

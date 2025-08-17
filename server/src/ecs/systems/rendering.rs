@@ -281,7 +281,60 @@ impl<'a> System<'a> for Rendering {
                 _ = self.sender.send(gs);
             }
             GameState::AfterDungeon => {
+                let mut gs = GameSnapShot {
+                    party: Vec::new(),
+                    camera_position: None,
+                    floor_positions: None,
+                    floor: None,
+                    shop_items: Some(shop_inventory.items.clone()),
+                    ready_timer: countdown.clone().map(|c| c.to_serialized()),
+                    difficulty: None,
+                    projectiles: None,
+                    loot: None,
+                };
 
+                for (
+                    entity,
+                    name,
+                    health,
+                    character_class,
+                    level,
+                    money,
+                    stats,
+                    equipment,
+                    form,
+                    show,
+                ) in (
+                    &entities,
+                    &names,
+                    &health,
+                    &character_classes,
+                    &levels,
+                    &monies,
+                    &stats,
+                    &equipment,
+                    &forms,
+                    show_characters.maybe(),
+                )
+                    .join()
+                {
+                    gs.party.push(PlayerSnapshot {
+                        name: name.0.clone(),
+                        class: character_class.0,
+                        health: health.0.clone(),
+                        level: level.0,
+                        gold: money.0,
+                        form: form.0.clone(),
+                        stats: PlayerStats::from(stats),
+                        show: show.is_some(),
+                        equipped_items: equipment.slots.clone(),
+                    });
+
+                    if show.is_some() {
+                        show_flag_cleanup.push(entity);
+                    }
+                }
+                _ = self.sender.send(gs);
                 // surviving players receive gold
                 // surviving players gain experience
                 // surviving players automatically roll for looted items
