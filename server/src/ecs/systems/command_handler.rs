@@ -7,13 +7,12 @@ use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::spells::{SpellCaster, Spellbook};
 use crate::ecs::components::{Level, Money, Name, Player, Stats};
-use crate::ecs::resources::{GameState, ShopInventory};
+use crate::ecs::resources::{Difficulty, GameState, ShopInventory};
 use crate::ecs::spells::AllSpells;
 use common::{Effect, EquipmentSlot, Form, Health};
-use specs::{
-    Entities, Entity, Join, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
-};
+use specs::{Entities, Entity, Join, ReadExpect, System, Write, WriteExpect, WriteStorage};
 use std::collections::VecDeque;
+use std::ops::Add;
 use tatami_dungeon::Dungeon;
 
 pub type CommandQueue = VecDeque<(String, RpgCommand, bool)>;
@@ -23,7 +22,8 @@ pub struct CommandHandlerSystem;
 impl<'a> System<'a> for CommandHandlerSystem {
     type SystemData = (
         WriteExpect<'a, CommandQueue>,
-        WriteExpect<'a, GameState>,
+        ReadExpect<'a, GameState>,
+        WriteExpect<'a, Difficulty>,
         WriteStorage<'a, Name>,
         WriteStorage<'a, Level>,
         WriteStorage<'a, HealthComponent>,
@@ -46,7 +46,8 @@ impl<'a> System<'a> for CommandHandlerSystem {
         &mut self,
         (
             mut command_queue,
-            mut game_state,
+            game_state,
+            mut difficulty,
             mut names,
             mut levels,
             mut healths,
@@ -161,6 +162,9 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                     .insert(e, ShowCharacter)
                                     .expect("failed to show character");
                             }
+                        }
+                        RpgCommand::Difficulty(diff) => {
+                            difficulty.value = diff.min(4);
                         }
                         _ => {}
                     }

@@ -7,7 +7,7 @@ Spell(
         (Heal(5), None),
     ],
     caster_restriction: PlayerClass(
-        classes: [Cleric],
+        classes: [Cleric, Druid],
         min_level: Some(1),
     ),
 )

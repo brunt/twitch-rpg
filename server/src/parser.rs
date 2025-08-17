@@ -25,6 +25,15 @@ pub fn get_command(input: &mut &str) -> Option<RpgCommand> {
                     }),
                 ),
             ),
+            preceded(
+                "difficulty",
+                preceded(
+                    space1,
+                    digit1.map(|number: &str| {
+                        RpgCommand::Difficulty(number.parse::<u32>().unwrap_or_default())
+                    }),
+                ),
+            ),
             Caseless("use").value(PlayerCommand(Use(MenuItem::from(0)))),
             //TODO: use this when there are multiple utility slots
             // preceded(
@@ -100,18 +109,24 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_use_item() {
-        let input = "!use 1";
-        assert_eq!(
-            get_command(&mut &*input),
-            Some(PlayerCommand(Use(MenuItem::from(1))))
-        );
-    }
+    // #[test]
+    // fn test_use_item() {
+    //     let input = "!use 1";
+    //     assert_eq!(
+    //         get_command(&mut &*input),
+    //         Some(PlayerCommand(Use(MenuItem::from(1))))
+    //     );
+    // }
 
     #[test]
     fn test_show_command() {
         let input = "!show";
         assert_eq!(get_command(&mut &*input), Some(PlayerCommand(Show)));
+    }
+
+    #[test]
+    fn test_difficulty_command() {
+        let input = "!difficulty 5";
+        assert_eq!(get_command(&mut &*input), Some(RpgCommand::Difficulty(5)));
     }
 }

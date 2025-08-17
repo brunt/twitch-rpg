@@ -43,12 +43,12 @@ async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand, bool)>) {
     // simulate players joining
     // _ = tx.try_send((
     //     "ubruntu".to_string(),
-    //     RpgCommand::Join(PlayerClass::Wizard),
+    //     RpgCommand::Join(PlayerClass::Fighter),
     //     true,
     // ));
     // _ = tx.try_send((
     //     "Pixelmog".to_string(),
-    //     RpgCommand::Join(PlayerClass::Cleric),
+    //     RpgCommand::Join(PlayerClass::Wizard),
     //     true,
     // ));
     // _ = tx.try_send((
@@ -56,11 +56,7 @@ async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand, bool)>) {
     //     RpgCommand::Join(PlayerClass::Rogue),
     //     true,
     // ));
-    // _ = tx.try_send((
-    //     "ubruntu".to_string(),
-    //     RpgCommand::PlayerCommand(PlayerCommand::Buy(MenuItem(5))),
-    //     true,
-    // ));
+    // _ = tx.try_send(("ubruntu".to_string(), RpgCommand::Difficulty(3), true));
 
     let channel = format!(
         "#{}",

@@ -105,6 +105,25 @@ impl Adventure {
         }
     }
 
+    pub fn new_with_difficulty(diff: u32) -> Self {
+        let params = GenerateDungeonParams {
+            max_stairs_per_floor: 1,
+            min_stairs_per_floor: 1,
+
+            ..GenerateDungeonParams::default()
+        };
+        let dungeon = TatamiDungeon::generate_with_params(params);
+        let starting_room_id = dungeon.starting_room_id;
+        let explored_rooms = ExplorationTree::new(starting_room_id);
+        Self {
+            dungeon,
+            current_floor_index: 0,
+            current_room_index: starting_room_id,
+            difficulty: diff,
+            explored_rooms,
+        }
+    }
+
     pub fn get_current_floor(&self) -> &tatami_dungeon::Floor {
         &self.dungeon.floors[self.current_floor_index]
     }
@@ -334,9 +353,15 @@ impl CountdownTimer {
 
 impl Default for CountdownTimer {
     fn default() -> Self {
-        Self::new(Duration::from_secs(5))
+        Self::new(Duration::from_secs(30))
     }
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct DeltaTime(pub f64);
+
+/// ECS resource used by command handler to set dungeon difficulty
+#[derive(Default)]
+pub struct Difficulty {
+    pub value: u32,
+}

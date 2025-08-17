@@ -20,7 +20,8 @@ use crate::ecs::components::movement::{
 use crate::ecs::components::spells::{SpellCaster, SpellTarget, SpellTimer, Spellbook};
 use crate::ecs::components::{DungeonItem, Opened};
 use crate::ecs::resources::{
-    Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, GroupDestination, ShopInventory,
+    Adventure, CountdownTimer, DeltaTime, Difficulty, DungeonLoot, GameState, GroupDestination,
+    ShopInventory,
 };
 use crate::ecs::shop::ShopItemPool;
 use crate::ecs::spells::AllSpells;
@@ -72,6 +73,7 @@ pub fn create_world() -> World {
     world.insert(ShopInventory::default());
     world.insert(Option::<Adventure>::None);
     world.insert(Option::<DungeonLoot>::None);
+    world.insert(Difficulty::default());
     world.insert(AllSpells::new());
     world
 }

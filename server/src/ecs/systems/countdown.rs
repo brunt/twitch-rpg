@@ -10,12 +10,14 @@ use crate::ecs::components::movement::{
 };
 use crate::ecs::components::{DungeonItem, Enemy, Level, Name, Player, Position, Stats};
 use crate::ecs::resources::{
-    Adventure, CountdownTimer, DeltaTime, DungeonLoot, GameState, ShopInventory,
+    Adventure, CountdownTimer, DeltaTime, Difficulty, DungeonLoot, GameState, ShopInventory,
 };
 use crate::ecs::systems::pathfinding::PathfindingSystem;
 use common::{Form, Health, PlayerClass};
 use rand::seq::IndexedRandom;
-use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
+use specs::{
+    Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
+};
 use std::time;
 
 pub struct CountdownSystem {
@@ -29,6 +31,7 @@ impl<'a> System<'a> for CountdownSystem {
         WriteExpect<'a, GameState>,
         WriteExpect<'a, Option<Adventure>>,
         WriteExpect<'a, Option<DungeonLoot>>,
+        ReadExpect<'a, Difficulty>,
         ReadStorage<'a, Player>,
         WriteStorage<'a, Enemy>,
         WriteStorage<'a, Position>,
@@ -59,6 +62,7 @@ impl<'a> System<'a> for CountdownSystem {
             mut game_state,
             mut adventure,
             mut dungeon_loot,
+            difficulty,
             players,
             mut enemies,
             mut positions,
@@ -97,7 +101,7 @@ impl<'a> System<'a> for CountdownSystem {
 
             // start the dungeon! a lot of logic is here, perhaps it should move somewhere
             if timer.remaining.is_zero() {
-                let adv = Adventure::default();
+                let adv = Adventure::new_with_difficulty(difficulty.value);
                 // insert everything from dungeon into ECS
 
                 for (entity, _player) in (&entities, &players).join() {

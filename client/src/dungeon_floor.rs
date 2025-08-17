@@ -51,7 +51,7 @@ pub fn draw_dungeon_floor(
         dd1,
         dd2,
     ] = match difficulty {
-        1 => get_terrain(&TileSet::Woods),
+        0 | 1 => get_terrain(&TileSet::Woods),
         2 => get_terrain(&TileSet::Mountain),
         3 => get_terrain(&TileSet::Desert),
         4 => get_terrain(&TileSet::Tundra),
