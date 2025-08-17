@@ -91,37 +91,39 @@ pub struct Stats {
 // TODO: stats based on level
 impl Stats {
     /// starting stats sum to 30?
-    pub(crate) fn new(class: &PlayerClass) -> Self {
+    pub(crate) fn new(class: &PlayerClass, level: u32) -> Self {
+        // leveling up adds 3 attributes per level, +2 for main stat, +1 for secondary
+        // TODO: +1 to 3rd stat every nth level tbd
         match class {
             PlayerClass::Fighter => Stats {
-                strength: 12,
-                agility: 10,
+                strength: 10 + (level * 2),
+                agility: 9 + level,
                 intelligence: 8,
             },
             PlayerClass::Paladin => Stats {
-                strength: 12,
+                strength: 10 + (level * 2),
                 agility: 8,
-                intelligence: 10,
+                intelligence: 9 + level,
             },
             PlayerClass::Wizard | PlayerClass::Sorcerer | PlayerClass::Warlock => Stats {
                 strength: 6,
-                agility: 10,
-                intelligence: 14,
+                agility: 9 + level,
+                intelligence: 12 + (level * 2),
             },
             PlayerClass::Rogue | PlayerClass::Ranger => Stats {
-                strength: 10,
-                agility: 14,
+                strength: 9 + level,
+                agility: 12 + (level * 2),
                 intelligence: 6,
             },
             PlayerClass::Druid => Stats {
-                strength: 10,
-                agility: 8,
-                intelligence: 12,
+                strength: 9 + level,
+                agility: 7 + level,
+                intelligence: 11 + level,
             },
             PlayerClass::Cleric => Stats {
-                strength: 9,
+                strength: 8 + level,
                 agility: 9,
-                intelligence: 12,
+                intelligence: 10 + (level * 2),
             },
         }
     }

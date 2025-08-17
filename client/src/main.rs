@@ -350,9 +350,9 @@ fn App() -> impl IntoView {
     //         ],
     //         camera_position: None,
     //         floor_positions: None,
-    //         difficulty: None,
+    //         difficulty: Some(2),
     //         projectiles: None,
-    //         loot: None,
+    //         loot: Some(3),
     //     };
     //     set_gamestate.set(Some(mock_snapshot));
     // });

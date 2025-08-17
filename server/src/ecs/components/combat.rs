@@ -48,7 +48,7 @@ impl DefenseComponent {
             evasion: 5 * difficulty,
         }
     }
-    // TODO: from buffs as well
+
     /// Defense component derived from ALL equipped items
     pub fn from_stats_and_items(stats: &Stats, equipment: &Equipment) -> Self {
         // Aggregate item modifiers
@@ -102,7 +102,7 @@ impl AttackComponent {
             damage: 2 * difficulty,
             hit_rating: 15 * difficulty,
             range: 1,
-            cooldown: 3000 / difficulty,
+            cooldown: 3000 / difficulty.max(1),
             crit_damage_multiplier: 0.0,
         }
     }

@@ -1,7 +1,7 @@
 use crate::ecs::components::class::CharacterClass;
 use crate::ecs::components::effect::ActiveEffects;
 use crate::ecs::components::inventory::Equipment;
-use crate::ecs::components::{Player, Stats};
+use crate::ecs::components::{Level, Player, Stats};
 use common::Effect;
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 
@@ -14,18 +14,21 @@ impl<'a> System<'a> for StatAggregation {
         ReadStorage<'a, CharacterClass>,
         ReadStorage<'a, Equipment>,
         ReadStorage<'a, ActiveEffects>,
+        ReadStorage<'a, Level>,
         WriteStorage<'a, Stats>,
     );
 
     fn run(
         &mut self,
-        (entities, players, classes, equipment, active_effects, mut stats): Self::SystemData,
+        (entities, players, classes, equipment, active_effects, levels, mut stats): Self::SystemData,
     ) {
         // This system iterates over all players and recalculates their stats for the current frame
         // based on their class, equipped items, and any temporary buffs or debuffs.
-        for (entity, _, class, equipment) in (&entities, &players, &classes, &equipment).join() {
+        for (entity, _, class, equipment, level) in
+            (&entities, &players, &classes, &equipment, &levels).join()
+        {
             // 1. Start with the character's base stats from their class.
-            let mut aggregated_stats = Stats::new(&class.0);
+            let mut aggregated_stats = Stats::new(&class.0, level.0);
 
             // 2. Add stats from all equipped items.
             for item in equipment.slots.values() {

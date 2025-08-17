@@ -17,9 +17,9 @@ use common::PlayerClass;
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-    let (commands_sender, commands_receiver) = mpsc::channel::<(String, RpgCommand, bool)>(100);
+    let (commands_sender, commands_receiver) = mpsc::channel::<(String, RpgCommand, bool)>(1000);
 
-    let (gamestate_sender, _gamestate_receiver) = broadcast::channel::<GameSnapShot>(100);
+    let (gamestate_sender, _gamestate_receiver) = broadcast::channel::<GameSnapShot>(1000);
 
     _ = tokio::spawn(read_commands_from_chat(commands_sender));
     _ = tokio::spawn(start_web_server(gamestate_sender.clone()));
@@ -41,22 +41,12 @@ fn is_channel_owner(msg: &Privmsg) -> bool {
 async fn read_commands_from_chat(tx: mpsc::Sender<(String, RpgCommand, bool)>) {
     // TODO: remove
     // simulate players joining
-    // _ = tx.try_send((
-    //     "ubruntu".to_string(),
-    //     RpgCommand::Join(PlayerClass::Fighter),
-    //     true,
-    // ));
-    // _ = tx.try_send((
-    //     "Pixelmog".to_string(),
-    //     RpgCommand::Join(PlayerClass::Wizard),
-    //     true,
-    // ));
-    // _ = tx.try_send((
-    //     "tester".to_string(),
-    //     RpgCommand::Join(PlayerClass::Rogue),
-    //     true,
-    // ));
-    // _ = tx.try_send(("ubruntu".to_string(), RpgCommand::Difficulty(3), true));
+    for i in 0..100 {
+        let name = format!("tester{}", i);
+        _ = tx.try_send((name, RpgCommand::Join(PlayerClass::Fighter), true));
+    }
+
+    _ = tx.try_send(("tester3".to_string(), RpgCommand::Difficulty(4), true));
 
     let channel = format!(
         "#{}",

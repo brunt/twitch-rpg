@@ -38,7 +38,6 @@ impl<'a> System<'a> for LevelUpSystem {
                 exp.next_level = f32::pow(exp.next_level as f32, 1.45) as u32;
 
                 // Optionally, insert extra logic (e.g., play animation, spawn effects, update other stats, etc.)
-                println!("Leveled up! New Level: {}", level.0);
             }
         }
     }

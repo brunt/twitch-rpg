@@ -6,7 +6,7 @@ use crate::ecs::components::effect::{ActiveEffects, TimedEffect};
 use crate::ecs::components::form::FormComponent;
 use crate::ecs::components::inventory::Equipment;
 use crate::ecs::components::spells::{SpellCaster, Spellbook};
-use crate::ecs::components::{Level, Money, Name, Player, Stats};
+use crate::ecs::components::{Experience, Level, Money, Name, Player, Stats};
 use crate::ecs::resources::{Difficulty, GameState, ShopInventory};
 use crate::ecs::spells::AllSpells;
 use common::{Effect, EquipmentSlot, Form, Health};
@@ -26,6 +26,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
         WriteExpect<'a, Difficulty>,
         WriteStorage<'a, Name>,
         WriteStorage<'a, Level>,
+        WriteStorage<'a, Experience>,
         WriteStorage<'a, HealthComponent>,
         WriteStorage<'a, CharacterClass>,
         WriteStorage<'a, Money>,
@@ -50,6 +51,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
             mut difficulty,
             mut names,
             mut levels,
+            mut experiences,
             mut healths,
             mut classes,
             mut money,
@@ -85,6 +87,9 @@ impl<'a> System<'a> for CommandHandlerSystem {
                             levels
                                 .insert(player_entity, Level::default())
                                 .expect("failed to set default level");
+                            experiences
+                                .insert(player_entity, Experience::default())
+                                .expect("failed to set default experience");
                             names
                                 .insert(player_entity, Name(player_name))
                                 .expect("failed to set name");
@@ -92,7 +97,7 @@ impl<'a> System<'a> for CommandHandlerSystem {
                                 .insert(player_entity, HealthComponent::default())
                                 .expect("failed to set default health");
                             stats
-                                .insert(player_entity, Stats::new(&class))
+                                .insert(player_entity, Stats::new(&class, 1)) //TODO: load from save with this command
                                 .expect("failed to add stats");
                             classes
                                 .insert(player_entity, CharacterClass(class))
