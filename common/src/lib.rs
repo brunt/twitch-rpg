@@ -320,17 +320,17 @@ impl Item {
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AttackModifiers {
-    pub damage_bonus: i32,
-    pub hit_rating_bonus: i32,
-    pub range_bonus: i32,
-    pub cooldown_reduction_ms: i32,
-    pub crit_damage_multiplier: f64,
+    pub damage_bonus: Option<i32>,
+    pub hit_rating_bonus: Option<i32>,
+    pub range_bonus: Option<i32>,
+    pub cooldown_reduction_ms: Option<i32>,
+    pub crit_damage_multiplier: Option<f64>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct DefenseModifiers {
-    pub damage_reduction: i32,
-    pub evasion_rating: i32,
+    pub damage_reduction: Option<i32>,
+    pub evasion_rating: Option<i32>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

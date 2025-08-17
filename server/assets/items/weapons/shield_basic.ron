@@ -5,15 +5,15 @@ Item(
     equip_slot: OffHand,
     stats: Some(ItemStats(
         attack_modifiers: Some(AttackModifiers(
-            damage_bonus: -4,
-            hit_rating_bonus: -5,
-            range_bonus: -10,
-            cooldown_reduction_ms: -1000,
-            crit_damage_multiplier: 0.0,
+            damage_bonus: Some(-4),
+            hit_rating_bonus: Some(-5),
+            range_bonus: Some(-10),
+            cooldown_reduction_ms: Some(-1000),
+            crit_damage_multiplier: None,
         )),
         defense_modifiers: Some(DefenseModifiers(
-            damage_reduction: 3,
-            evasion_rating: 5,
+            damage_reduction: Some(3),
+            evasion_rating: Some(5),
         )),
         other_modifiers: None,
         strength: None,

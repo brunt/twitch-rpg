@@ -54,15 +54,20 @@ impl DefenseComponent {
         // Aggregate item modifiers
         let defense_mods = equipment.slots.values().fold(
             DefenseModifiers {
-                damage_reduction: 0,
-                evasion_rating: 0,
+                damage_reduction: None,
+                evasion_rating: None,
             },
             |mut m, item| {
                 if let Some(stats) = &item.stats {
                     if let Some(modifiers) = &stats.defense_modifiers {
                         //TODO: multiplicative?
-                        m.damage_reduction += modifiers.damage_reduction;
-                        m.evasion_rating += modifiers.evasion_rating;
+                        m.damage_reduction = Some(
+                            m.damage_reduction.unwrap_or(0)
+                                + modifiers.damage_reduction.unwrap_or(0),
+                        );
+                        m.evasion_rating = Some(
+                            m.evasion_rating.unwrap_or(0) + modifiers.evasion_rating.unwrap_or(0),
+                        );
                     }
                 }
                 m
@@ -70,8 +75,8 @@ impl DefenseComponent {
         );
 
         Self {
-            defense: defense_mods.damage_reduction.max(0) as u32,
-            evasion: (stats.agility / 4) + defense_mods.evasion_rating.max(0) as u32,
+            defense: defense_mods.damage_reduction.unwrap_or(0).max(0) as u32,
+            evasion: (stats.agility / 4) + defense_mods.evasion_rating.unwrap_or(0).max(0) as u32,
         }
     }
 }
@@ -104,41 +109,51 @@ impl AttackComponent {
 
     /// Attack component derived from ALL equipped items
     pub fn from_stats_and_items(stats: &Stats, equipment: &Equipment) -> Self {
-        // Aggregate item modifiers
+        // Aggregate item modifiers (keep Options here for tooltip flexibility)
         let attack_mods = equipment.slots.values().fold(
             AttackModifiers {
-                damage_bonus: 0,
-                hit_rating_bonus: 0,
-                range_bonus: 0,
-                cooldown_reduction_ms: 0,
-                crit_damage_multiplier: 0.0,
+                damage_bonus: None,
+                hit_rating_bonus: None,
+                range_bonus: None,
+                cooldown_reduction_ms: None,
+                crit_damage_multiplier: None,
             },
             |mut m, item| {
-                if let Some(stats) = &item.stats {
-                    if let Some(modifiers) = &stats.attack_modifiers {
-                        //TODO: multiplicative?
-                        m.damage_bonus += modifiers.damage_bonus;
-                        m.hit_rating_bonus += modifiers.hit_rating_bonus;
-                        m.range_bonus += modifiers.range_bonus;
-                        m.cooldown_reduction_ms += modifiers.cooldown_reduction_ms;
-                        m.crit_damage_multiplier += modifiers.crit_damage_multiplier;
-                    }
+                if let Some(stats) = &item.stats
+                    && let Some(modifiers) = &stats.attack_modifiers
+                {
+                    m.damage_bonus =
+                        Some(m.damage_bonus.unwrap_or(0) + modifiers.damage_bonus.unwrap_or(0));
+                    m.hit_rating_bonus = Some(
+                        m.hit_rating_bonus.unwrap_or(0) + modifiers.hit_rating_bonus.unwrap_or(0),
+                    );
+                    m.range_bonus =
+                        Some(m.range_bonus.unwrap_or(0) + modifiers.range_bonus.unwrap_or(0));
+                    m.cooldown_reduction_ms = Some(
+                        m.cooldown_reduction_ms.unwrap_or(0)
+                            + modifiers.cooldown_reduction_ms.unwrap_or(0),
+                    );
+                    m.crit_damage_multiplier = Some(
+                        m.crit_damage_multiplier.unwrap_or(0.0)
+                            + modifiers.crit_damage_multiplier.unwrap_or(0.0),
+                    );
                 }
                 m
             },
         );
 
         let base_cooldown = 2000;
+
         Self {
-            damage: (stats.strength as i32 + attack_mods.damage_bonus).max(1) as u32,
+            damage: (stats.strength as i32 + attack_mods.damage_bonus.unwrap_or(0)).max(1) as u32,
             hit_rating: ((stats.agility * 2 + stats.intelligence / 2) as i32
-                + attack_mods.hit_rating_bonus)
-                .max(1) as u32,
-            range: attack_mods.range_bonus.max(1) as u32,
-            cooldown: (base_cooldown - attack_mods.cooldown_reduction_ms)
+                + attack_mods.hit_rating_bonus.unwrap_or(0))
+            .max(1) as u32,
+            range: attack_mods.range_bonus.unwrap_or(1).max(1) as u32,
+            cooldown: (base_cooldown - attack_mods.cooldown_reduction_ms.unwrap_or(0))
                 .max(200)
                 .min(base_cooldown) as u32,
-            crit_damage_multiplier: 0.0,
+            crit_damage_multiplier: 1.5 + attack_mods.crit_damage_multiplier.unwrap_or(0.0),
         }
     }
 }

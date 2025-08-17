@@ -336,7 +336,7 @@ pub fn GameCanvas(#[prop(into)] gs: Signal<Option<GameSnapShot>>) -> impl IntoVi
                     });
                 } else {
                     if let Some(shop_items) = snapshot.shop_items.as_ref() {
-                        draw_shop_interface(&ctx, &sprites_for_closure, shop_items, 30.0, 30.0, 4)
+                        draw_shop_interface(&ctx, &sprites_for_closure, shop_items, 15.0, 15.0, 4)
                     };
                     // Draw ready timer or shop interface if not in dungeon.
                     if let Some(ready_timer) = &snapshot.ready_timer {

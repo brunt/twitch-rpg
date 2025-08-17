@@ -305,7 +305,7 @@ impl ActionTimerSystem {
                             });
                     }
                 }
-                Effect::Damage(amount, damage_type) => {
+                Effect::Damage(amount, _damage_type) => {
                     if let Some(health) = healths.get_mut(target_entity)
                         && let Health::Alive { hp, .. } = &mut health.0
                     {

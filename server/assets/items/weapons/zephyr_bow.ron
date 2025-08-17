@@ -5,11 +5,11 @@ Item(
     equip_slot: MainHand,
     stats: Some(ItemStats(
         attack_modifiers: Some(AttackModifiers(
-            damage_bonus: 5,
-            hit_rating_bonus: 20,
-            range_bonus: 15,
-            cooldown_reduction_ms: 0,
-            crit_damage_multiplier: 0.4,
+            damage_bonus: Some(5),
+            hit_rating_bonus: Some(20),
+            range_bonus: Some(15),
+            cooldown_reduction_ms: None,
+            crit_damage_multiplier: Some(0.4),
         )),
         defense_modifiers: None,
         other_modifiers: None,
