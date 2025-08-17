@@ -1,12 +1,9 @@
 use crate::SpriteSheets;
 use crate::components::draw_item_sprite;
+use crate::sprites::ITEM_SPRITE_DIMENSION;
 use crate::sprites::items_sprites::ITEMS_SPRITES;
-use crate::sprites::{ITEM_SPRITE_DIMENSION, SpriteRect};
 use common::{ItemQuality, MenuItem, ShopItem};
-use leptos::context::use_context;
-use leptos::prelude::{Get, LocalStorage, ReadSignal};
-use std::collections::HashMap;
-use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
+use web_sys::CanvasRenderingContext2d;
 // /////////////////////////
 // //  ITEM NAME         #//
 // // ITEM IMAGE  SLOT    //
@@ -32,16 +29,14 @@ pub(crate) fn draw_shop_interface(
     const BOLD_SM_TEXT_FONT: &str = "bold 16px sans-serif";
     const SM_TEXT_FONT: &str = "14px sans-serif";
 
-    let padding = 16.0;
-
     ctx.draw_image_with_html_image_element(&sprites.background, 0.0, 0.0)
         .unwrap();
 
     for (menu_item, item) in items.iter() {
         let row = menu_item.0 / slots_per_row;
         let col = menu_item.0 % slots_per_row;
-        let x = start_x + col as f64 * (ITEM_SLOT_WIDTH + padding);
-        let y = start_y + row as f64 * (ITEM_SLOT_HEIGHT + padding);
+        let x = start_x + col as f64 * (ITEM_SLOT_WIDTH + MARGIN);
+        let y = start_y + row as f64 * (ITEM_SLOT_HEIGHT + MARGIN);
         let quality = match item.quality.clone() {
             ItemQuality::Common => "#ddd",
             ItemQuality::Uncommon => "#af0",
@@ -114,78 +109,72 @@ pub(crate) fn draw_shop_interface(
             y + 65.0,
         );
 
-        // draw stats
         // Draw stats
         if let Some(item_stats) = &item.stats {
             ctx.set_fill_style_str("#fff");
             ctx.set_font(BOLD_SM_TEXT_FONT);
+            let mut col_x = x + MARGIN; // start first column
+            let col_y_start = y + 135.0; // top of slot
 
-            // start relative to slot's top-left corner
-            let mut y_offset = y + 135.0;
-            let mut x_offset = x + MARGIN;
-
+            // ---- Attack modifiers ----
             if let Some(atk) = &item_stats.attack_modifiers {
-                if let Some(atk) = atk.damage_bonus {
-                    ctx.fill_text(&format!("ATK: {}", atk), x_offset, y_offset)
+                let mut col_y = col_y_start;
+                if let Some(dmg) = atk.damage_bonus {
+                    ctx.fill_text(&format!("ATK: {}", dmg), col_x, col_y)
                         .unwrap();
-                    y_offset += 15.0;
+                    col_y += 15.0;
                 }
                 if let Some(hit) = atk.hit_rating_bonus {
-                    ctx.fill_text(&format!("HIT: {}", hit), x_offset, y_offset)
+                    ctx.fill_text(&format!("HIT: {}", hit), col_x, col_y)
                         .unwrap();
-                    y_offset += 15.0;
+                    col_y += 15.0;
                 }
                 if let Some(range) = atk.range_bonus {
-                    ctx.fill_text(&format!("RANGE: {}", range), x_offset, y_offset)
+                    ctx.fill_text(&format!("RANGE: {}", range), col_x, col_y)
                         .unwrap();
-                    y_offset += 15.0;
+                    col_y += 15.0;
                 }
                 if let Some(crit) = atk.crit_damage_multiplier {
-                    ctx.fill_text(&format!("CRIT: {}", crit), x_offset, y_offset)
+                    ctx.fill_text(&format!("CRIT: {}", crit), col_x, col_y)
                         .unwrap();
-                    y_offset += 15.0;
+                    col_y += 15.0;
                 }
                 if let Some(cd) = atk.cooldown_reduction_ms {
-                    ctx.fill_text(&format!("CDWN: {}", cd / 1000), x_offset, y_offset)
+                    ctx.fill_text(&format!("CDWN: {}", cd / 1000), col_x, col_y)
                         .unwrap();
-                    // reset y_offset for next column (still relative to slot y)
-                    y_offset = y + 135.0;
                 }
+                col_x += 100.0; // move to next column for defense
             }
 
+            // ---- Defense modifiers ----
             if let Some(def) = &item_stats.defense_modifiers {
-                if item_stats.attack_modifiers.is_none() {
-                    x_offset = x + MARGIN;
-                } else {
-                    x_offset = x + MARGIN + 100.0;
-                    y_offset = y + 135.0;
-                };
+                let mut col_y = col_y_start;
                 if let Some(dmg) = def.damage_reduction {
-                    ctx.fill_text(&format!("DEF: {}", dmg), x_offset, y_offset)
+                    ctx.fill_text(&format!("DEF: {}", dmg), col_x, col_y)
                         .unwrap();
-                    y_offset += 15.0;
+                    col_y += 15.0;
                 }
                 if let Some(ev) = def.evasion_rating {
-                    ctx.fill_text(&format!("EV: {}", ev), x_offset, y_offset)
-                        .unwrap();
+                    ctx.fill_text(&format!("EV: {}", ev), col_x, col_y).unwrap();
+                    // col_y += 15.0;
                 }
-                // reset to start for next stat column
-                x_offset = x_offset + 115.0;
-                y_offset = y + 135.0;
+                col_x += 100.0; // move to next column for attributes
             }
 
+            // ---- Attributes ----
+            let mut col_y = col_y_start;
             if let Some(str) = item_stats.strength {
-                ctx.fill_text(&format!("STR: {}", str), x_offset, y_offset)
+                ctx.fill_text(&format!("STR: {}", str), col_x, col_y)
                     .unwrap();
-                y_offset += 15.0;
+                col_y += 15.0;
             }
             if let Some(agility) = item_stats.agility {
-                ctx.fill_text(&format!("AGI: {}", agility), x_offset, y_offset)
+                ctx.fill_text(&format!("AGI: {}", agility), col_x, col_y)
                     .unwrap();
-                y_offset += 15.0;
+                col_y += 15.0;
             }
             if let Some(int) = item_stats.intelligence {
-                ctx.fill_text(&format!("INT: {}", int), x_offset, y_offset)
+                ctx.fill_text(&format!("INT: {}", int), col_x, col_y)
                     .unwrap();
             }
         }
